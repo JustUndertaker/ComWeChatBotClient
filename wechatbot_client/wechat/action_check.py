@@ -4,7 +4,7 @@ from pydantic import BaseConfig, BaseModel, Extra, create_model
 
 from wechatbot_client.com_wechat import ComWechatApi
 
-from .utils import get_typed_annotation, get_typed_signature
+from .utils import get_typed_signature
 
 ACTION_LIST = [
     "send_text",
