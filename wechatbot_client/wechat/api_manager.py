@@ -104,5 +104,5 @@ class ApiManager:
         """
         获取wxid
         """
-        info = self.api.get_self_info_sync()
+        info = self.api.get_self_info()
         return info["wxId"]

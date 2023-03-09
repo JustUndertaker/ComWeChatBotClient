@@ -339,18 +339,6 @@ class ComWechatApi(ComProgress):
         )
         return status == 0
 
-    def get_self_info_sync(self) -> dict:
-        """
-        获取个人信息
-
-        Returns
-        -------
-        dict
-            调用成功返回个人信息，否则返回空字典.
-        """
-        self_info = self.robot.CGetSelfInfo(self.wechat_pid)
-        return json.loads(self_info)
-
     def get_self_info(self) -> dict:
         """
         获取个人信息
@@ -382,7 +370,7 @@ class ComWechatApi(ComProgress):
             self.AddressBook = []
         return self.AddressBook
 
-    async def get_friend_list(self) -> list:
+    def get_friend_list(self) -> list:
         """
         从通讯录列表中筛选出好友列表
 
@@ -393,7 +381,7 @@ class ComWechatApi(ComProgress):
 
         """
         if not self.AddressBook:
-            await self.get_contacts()
+            self.get_contacts()
         friend_list = [
             item
             for item in self.AddressBook
@@ -401,7 +389,7 @@ class ComWechatApi(ComProgress):
         ]
         return friend_list
 
-    async def get_chatroom_list(self) -> list:
+    def get_chatroom_list(self) -> list:
         """
         从通讯录列表中筛选出群聊列表
 
@@ -412,11 +400,11 @@ class ComWechatApi(ComProgress):
 
         """
         if not self.AddressBook:
-            await self.get_contacts()
+            self.get_contacts()
         chatroom_list = [item for item in self.AddressBook if item["wxType"] == 2]
         return chatroom_list
 
-    async def get_official_account_list(self) -> list:
+    def get_official_account_list(self) -> list:
         """
         从通讯录列表中筛选出公众号列表
 
@@ -427,7 +415,7 @@ class ComWechatApi(ComProgress):
 
         """
         if not self.AddressBook:
-            await self.get_contacts()
+            self.get_contacts()
         official_account_list = [
             item
             for item in self.AddressBook
@@ -435,7 +423,7 @@ class ComWechatApi(ComProgress):
         ]
         return official_account_list
 
-    async def get_friend_by_remark(self, remark: str) -> Optional[dict]:
+    def get_friend_by_remark(self, remark: str) -> Optional[dict]:
         """
         通过备注搜索联系人
 
@@ -451,13 +439,13 @@ class ComWechatApi(ComProgress):
 
         """
         if not self.AddressBook:
-            await self.get_contacts()
+            self.get_contacts()
         for item in self.AddressBook:
             if item["wxRemark"] == remark:
                 return item
         return None
 
-    async def get_friend_by_wxid(self, wx_number: str) -> Optional[dict]:
+    def get_friend_by_wxid(self, wx_number: str) -> Optional[dict]:
         """
         通过微信号搜索联系人
 
@@ -473,13 +461,13 @@ class ComWechatApi(ComProgress):
 
         """
         if not self.AddressBook:
-            await self.get_contacts()
+            self.get_contacts()
         for item in self.AddressBook:
             if item["wxNumber"] == wx_number:
                 return item
         return None
 
-    async def get_friend_by_nickname(self, nickname: str) -> Optional[dict]:
+    def get_friend_by_nickname(self, nickname: str) -> Optional[dict]:
         """
         通过昵称搜索联系人
 
@@ -495,7 +483,7 @@ class ComWechatApi(ComProgress):
 
         """
         if not self.AddressBook:
-            await self.get_contacts()
+            self.get_contacts()
         for item in self.AddressBook:
             if item["wxNickName"] == nickname:
                 return item
@@ -520,7 +508,7 @@ class ComWechatApi(ComProgress):
         userinfo = self.robot.CGetWxUserInfo(self.wechat_pid, wxid)
         return json.loads(userinfo)
 
-    def _GetChatRoomMembers(self, chatroom_id: str) -> Optional[dict]:
+    def get_group_members(self, chatroom_id: str) -> Optional[dict]:
         """
         获取群成员信息
 
@@ -535,28 +523,7 @@ class ComWechatApi(ComProgress):
             获取成功返回群成员信息，失败返回None.
 
         """
-
         info = dict(self.robot.CGetChatRoomMembers(self.wechat_pid, chatroom_id))
-        if not info:
-            return None
-        return info
-
-    async def get_group_members(self, chatroom_id: str) -> Optional[dict]:
-        """
-        获取群成员信息
-
-        Parameters
-        ----------
-        chatroom_id : str
-            群聊id.
-
-        Returns
-        -------
-        dict or None
-            获取成功返回群成员信息，失败返回None.
-
-        """
-        info = await self._GetChatRoomMembers(chatroom_id)
         if not info:
             return None
         members = info["members"].split("^G")
@@ -1313,7 +1280,7 @@ class ComWechatApi(ComProgress):
             成功返回文件路径，失败返回空字符串.
 
         """
-        path = await self._GetMsgCDN(msgid=msgid)
+        path = self._GetMsgCDN(msgid=msgid)
         if path != "":
             file = Path(path)
             while not file.exists():
