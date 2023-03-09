@@ -77,10 +77,9 @@ def gen_action_dict():
         call = getattr(ComWechatApi, action)
         signature = get_typed_signature(call)
         field = {}
-        globalns = getattr(call, "__globals__", {})
         for parameter in signature.parameters.values():
             name = parameter.name
-            annotation = get_typed_annotation(parameter, globalns)
+            annotation = parameter.annotation
             if name != "self":
                 field[name] = (annotation, ...)
         action_type = create_model(action, __config__=ModelConfig, **field)
