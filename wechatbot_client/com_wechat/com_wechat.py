@@ -84,7 +84,7 @@ class ComProgress:
         while True:
             try:
                 await asyncio.sleep(0)
-                PumpEvents(0.1)
+                PumpEvents(0.01)
             except KeyboardInterrupt:
                 logger.info("<g>事件接收已关闭，再使用 'ctrl + c' 结束进程...</g>")
                 return
