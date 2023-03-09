@@ -1,6 +1,6 @@
 from typing import Type
 
-from pydantic import BaseModel, create_model
+from pydantic import BaseConfig, BaseModel, Extra, create_model
 
 from wechatbot_client.com_wechat import ComWechatApi
 
@@ -62,6 +62,12 @@ ACTION_DICT: dict[str, Type[BaseModel]] = {}
 """action模型字典"""
 
 
+class ModelConfig(BaseConfig):
+    """action模型config"""
+
+    extra = Extra.forbid
+
+
 def gen_action_dict():
     """
     生成action字典
@@ -77,5 +83,5 @@ def gen_action_dict():
             annotation = get_typed_annotation(parameter, globalns)
             if name != "self":
                 field[name] = (annotation, ...)
-        action_type = create_model(action, **field)
+        action_type = create_model(action, __config__=ModelConfig, **field)
         ACTION_DICT[action] = action_type
