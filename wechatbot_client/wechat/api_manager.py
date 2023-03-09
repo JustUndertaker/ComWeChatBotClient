@@ -33,17 +33,19 @@ class ApiManager:
             exit(-1)
         logger.debug("<g>找到微信进程...</g>")
         # 注入dll
-        logger.debug("<y>正在注入微信...</g>")
+        logger.debug("<y>正在注入微信...</y>")
         if not self.api.start_service_sync():
             logger.error("<r>微信进程启动失败...</r>")
             self.api.close()
             exit(-1)
         logger.success("<g>dll注入成功...</g>")
         # 等待登录
+        logger.info("<y>等待登录...</y>")
         if not self.wait_for_login():
             logger.info("<g>进程关闭...</g>")
             self.api.close()
             exit(-1)
+        logger.success("<g>登录完成...</g>")
 
     def wait_for_login(self) -> bool:
         """
@@ -67,6 +69,9 @@ class ApiManager:
         """
         注册接收消息
         """
+        # 注册消息事件
+        self.api.register_msg_event()
+        logger.debug("<g>注册消息事件成功...</g>")
         # 启动消息hook
         result = await self.api.start_receive_message()
         if not result:
@@ -85,9 +90,6 @@ class ApiManager:
         if not result:
             logger.error("<r>启动语音hook失败...</r>")
         logger.debug("<g>启动语音hook成功...</g?")
-        # 注册消息事件
-        self.api.register_msg_event()
-        logger.debug("<g>注册消息事件成功...</g?")
         # 开始监听
         self.api.start_msg_recv()
         logger.info("<g>开始监听消息...</g?")
@@ -103,4 +105,4 @@ class ApiManager:
         获取wxid
         """
         info = self.api.get_self_info_sync()
-        return info["wxid"]
+        return info["wxId"]

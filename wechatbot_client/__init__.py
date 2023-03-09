@@ -1,6 +1,7 @@
+from functools import partial
+
 from fastapi import FastAPI
 
-from wechatbot_client.cmd import install
 from wechatbot_client.config import Config, Env
 from wechatbot_client.driver import Driver
 from wechatbot_client.http import router
@@ -24,12 +25,6 @@ def init() -> None:
     logger.info(f"Current <y><b>Env: {env.environment}</b></y>")
     logger.debug(f"Loaded <y><b>Config</b></y>: {str(config.dict())}")
 
-    logger.info("<y>正在注入微信进程...</y>")
-    if not install(cmd_path="./wcf.exe", debug=True):
-        logger.error("<r>注入微信失败...</r>")
-        exit(-1)
-    logger.success("<g>微信注入成功...</g>")
-
     _Driver = Driver(config)
     _WeChat = get_wechat()
     _WeChat.init(config)
@@ -37,7 +32,8 @@ def init() -> None:
     app = _Driver.server_app
     app.include_router(router)
     logger.success("<g>http api已开启...</g>")
-    _Driver.on_startup(_WeChat.open_recv_msg)
+    file_path = config.cache_path
+    _Driver.on_startup(partial(_WeChat.open_recv_msg, file_path))
     _Driver.on_shutdown(_WeChat.close)
 
 

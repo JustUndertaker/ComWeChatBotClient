@@ -6,8 +6,6 @@ from typing import Optional, Union
 import psutil
 from comtypes.client import CreateObject, GetEvents, PumpEvents
 
-from wechatbot_client.utils import run_sync
-
 
 class MessageReporter:
     """
@@ -139,20 +137,6 @@ class ComWechatApi(ComProgress):
         """
         return self.robot.CStartWeChat()
 
-    def start_service_sync(self) -> bool:
-        """
-        注入DLL到微信以启动服务
-
-        Returns
-        -------
-        int
-            0成功,非0失败.
-
-        """
-        status = self.robot.CStartRobotService(self.wechat_pid)
-        return status == 0
-
-    @run_sync
     def start_service(self) -> bool:
         """
         注入DLL到微信以启动服务
@@ -166,20 +150,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CStartRobotService(self.wechat_pid)
         return status == 0
 
-    def stop_service_sync(self) -> int:
-        """
-        停止服务，会将DLL从微信进程中卸载
-
-        Returns
-        -------
-        int
-            COM进程pid.
-
-        """
-        com_pid = self.robot.CStopRobotService(self.wechat_pid)
-        return com_pid
-
-    @run_sync
     def stop_service(self) -> int:
         """
         停止服务，会将DLL从微信进程中卸载
@@ -190,22 +160,10 @@ class ComWechatApi(ComProgress):
             COM进程pid.
 
         """
+
         com_pid = self.robot.CStopRobotService(self.wechat_pid)
         return com_pid
 
-    def is_wechat_login_sync(self) -> bool:
-        """
-        获取微信登录状态
-
-        Returns
-        -------
-        bool
-            微信登录状态.
-
-        """
-        return self.robot.CIsWxLogin(self.wechat_pid) == 1
-
-    @run_sync
     def is_wechat_login(self) -> bool:
         """
         获取微信登录状态
@@ -216,9 +174,10 @@ class ComWechatApi(ComProgress):
             微信登录状态.
 
         """
-        return self.robot.CIsWxLogin(self.wechat_pid) == 1
 
-    @run_sync
+        status = self.robot.CIsWxLogin(self.wechat_pid)
+        return status == 1
+
     def send_text(self, receiver: str, msg: str) -> bool:
         """
         发送文本消息
@@ -236,9 +195,10 @@ class ComWechatApi(ComProgress):
             0成功,非0失败.
 
         """
-        return self.robot.CSendText(self.wechat_pid, receiver, msg) == 0
 
-    @run_sync
+        status = self.robot.CSendText(self.wechat_pid, receiver, msg)
+        return status == 0
+
     def send_image(self, receiver: str, img_path: str) -> bool:
         """
         发送图片消息
@@ -256,9 +216,10 @@ class ComWechatApi(ComProgress):
             0成功,非0失败.
 
         """
-        return self.robot.CSendImage(self.wechat_pid, receiver, img_path) == 0
 
-    @run_sync
+        status = self.robot.CSendImage(self.wechat_pid, receiver, img_path)
+        return status == 0
+
     def send_file(self, receiver: str, filepath: str) -> bool:
         """
         发送文件
@@ -276,9 +237,10 @@ class ComWechatApi(ComProgress):
             0成功,非0失败.
 
         """
-        return self.robot.CSendFile(self.wechat_pid, receiver, filepath) == 0
 
-    @run_sync
+        status = self.robot.CSendFile(self.wechat_pid, receiver, filepath)
+        return status == 0
+
     def send_xml(
         self,
         receiver: str,
@@ -309,12 +271,12 @@ class ComWechatApi(ComProgress):
             0成功,非0失败.
 
         """
+
         status = self.robot.CSendArticle(
             self.wechat_pid, receiver, title, abstract, url, img_path
         )
         return status == 0
 
-    @run_sync
     def send_card(self, receiver: str, shared_wxid: str, nickname: str) -> bool:
         """
         发送名片
@@ -334,10 +296,10 @@ class ComWechatApi(ComProgress):
             0成功,非0失败.
 
         """
+
         status = self.robot.CSendCard(self.wechat_pid, receiver, shared_wxid, nickname)
         return status == 0
 
-    @run_sync
     def send_at_msg(
         self,
         chatroom_id: str,
@@ -367,6 +329,7 @@ class ComWechatApi(ComProgress):
         """
         if "@chatroom" not in chatroom_id:
             return False
+
         status = self.robot.CSendAtText(
             self.wechat_pid, chatroom_id, at_users, msg, auto_nickname
         )
@@ -384,7 +347,6 @@ class ComWechatApi(ComProgress):
         self_info = self.robot.CGetSelfInfo(self.wechat_pid)
         return json.loads(self_info)
 
-    @run_sync
     def get_self_info(self) -> dict:
         """
         获取个人信息
@@ -398,7 +360,6 @@ class ComWechatApi(ComProgress):
         self_info = self.robot.CGetSelfInfo(self.wechat_pid)
         return json.loads(self_info)
 
-    @run_sync
     def get_contacts(self) -> list:
         """
         获取联系人列表
@@ -409,6 +370,7 @@ class ComWechatApi(ComProgress):
             调用成功返回通讯录列表，调用失败返回空列表.
 
         """
+
         try:
             friend_tuple = self.robot.CGetFriendList(self.wechat_pid)
             self.AddressBook = [dict(i) for i in list(friend_tuple)]
@@ -535,7 +497,6 @@ class ComWechatApi(ComProgress):
                 return item
         return None
 
-    @run_sync
     def get_user_info(self, wxid: str) -> dict:
         """
         通过wxid查询联系人信息
@@ -551,10 +512,10 @@ class ComWechatApi(ComProgress):
             联系人信息.
 
         """
+
         userinfo = self.robot.CGetWxUserInfo(self.wechat_pid, wxid)
         return json.loads(userinfo)
 
-    @run_sync
     def _GetChatRoomMembers(self, chatroom_id: str) -> Optional[dict]:
         """
         获取群成员信息
@@ -570,6 +531,7 @@ class ComWechatApi(ComProgress):
             获取成功返回群成员信息，失败返回None.
 
         """
+
         info = dict(self.robot.CGetChatRoomMembers(self.wechat_pid, chatroom_id))
         if not info:
             return None
@@ -601,7 +563,6 @@ class ComWechatApi(ComProgress):
             data["members"].append(member_info)
         return data
 
-    @run_sync
     def check_friend_status(self, wxid: str) -> int:
         """
         获取好友状态码
@@ -621,9 +582,9 @@ class ComWechatApi(ComProgress):
             0xB5:'被拉黑',
 
         """
+
         return self.robot.CCheckFriendStatus(self.wechat_pid, wxid)
 
-    @run_sync
     def start_receive_message(self, port: int = 0) -> bool:
         """
         启动接收消息Hook
@@ -639,10 +600,10 @@ class ComWechatApi(ComProgress):
             启动成功返回0,失败返回非0值.
 
         """
+
         status = self.robot.CStartReceiveMessage(self.wechat_pid, port)
         return status == 0
 
-    @run_sync
     def stop_receice_message(self) -> bool:
         """
         停止接收消息Hook
@@ -652,10 +613,10 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         status = self.robot.CStopReceiveMessage(self.wechat_pid)
         return status == 0
 
-    @run_sync
     def get_db_handles(self) -> dict:
         """
         获取数据库句柄和表信息
@@ -666,6 +627,7 @@ class ComWechatApi(ComProgress):
             数据库句柄和表信息.
 
         """
+
         tables_tuple = self.robot.CGetDbHandles(self.wechat_pid)
         tables = [dict(i) for i in tables_tuple]
         dbs = {}
@@ -683,7 +645,6 @@ class ComWechatApi(ComProgress):
             )
         return dbs
 
-    @run_sync
     def execute_sql(self, handle: int, sql: str) -> list:
         """
         执行SQL
@@ -701,6 +662,7 @@ class ComWechatApi(ComProgress):
             查询结果.
 
         """
+
         result = self.robot.CExecuteSQL(self.wechat_pid, handle, sql)
         if len(result) == 0:
             return []
@@ -715,7 +677,6 @@ class ComWechatApi(ComProgress):
             query_list.append(query_dict)
         return query_list
 
-    @run_sync
     def backup_db(self, handle: int, filepath: str) -> bool:
         """
         备份数据库
@@ -732,12 +693,12 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         save_path = Path(filepath)
         save_path.mkdir(parents=True, exist_ok=True)
         status = self.robot.CBackupSQLiteDB(self.wechat_pid, handle, filepath)
         return status == 0
 
-    @run_sync
     def verify_friend_apply(self, v3: str, v4: str) -> bool:
         """
         通过好友请求
@@ -754,10 +715,10 @@ class ComWechatApi(ComProgress):
         bool.
 
         """
+
         status = self.robot.CVerifyFriendApply(self.wechat_pid, v3, v4)
         return status == 0
 
-    @run_sync
     def add_friend_by_wxid(self, wxid: str, message: Optional[str]) -> bool:
         """
         wxid加好友
@@ -775,10 +736,10 @@ class ComWechatApi(ComProgress):
             请求发送成功返回0,失败返回非0值.
 
         """
+
         status = self.robot.CAddFriendByWxid(self.wechat_pid, wxid, message)
         return status == 0
 
-    @run_sync
     def add_friend_by_v3(
         self, v3: str, message: str or None, add_type: int = 0x6
     ) -> bool:
@@ -800,10 +761,10 @@ class ComWechatApi(ComProgress):
             请求发送成功返回0,失败返回非0值.
 
         """
+
         status = self.robot.CAddFriendByV3(self.wechat_pid, v3, message, add_type)
         return status == 0
 
-    @run_sync
     def get_wechat_version(self) -> str:
         """
         获取微信版本号
@@ -814,9 +775,9 @@ class ComWechatApi(ComProgress):
             微信版本号.
 
         """
+
         return self.robot.CGetWeChatVer()
 
-    @run_sync
     def search_user_info(self, keyword: str) -> Optional[dict]:
         """
         网络查询用户信息
@@ -832,12 +793,12 @@ class ComWechatApi(ComProgress):
             查询成功返回用户信息,查询失败返回None.
 
         """
+
         userinfo = self.robot.CSearchContactByNet(self.wechat_pid, keyword)
         if userinfo:
             return dict(userinfo)
         return None
 
-    @run_sync
     def follow_public_number(self, public_id: str) -> bool:
         """
         关注公众号
@@ -853,10 +814,10 @@ class ComWechatApi(ComProgress):
             请求成功返回0,失败返回非0值.
 
         """
+
         status = self.robot.CAddBrandContact(self.wechat_pid, public_id)
         return status == 0
 
-    @run_sync
     def change_wechat_version(self, version: str) -> bool:
         """
         自定义微信版本号，一定程度上防止自动更新
@@ -871,10 +832,10 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         status = self.robot.CChangeWeChatVer(self.wechat_pid, version)
         return status == 0
 
-    @run_sync
     def hook_image_msg(self, save_path: str) -> bool:
         """
         开始Hook未加密图片
@@ -889,10 +850,10 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         status = self.robot.CHookImageMsg(self.wechat_pid, save_path)
         return status == 0
 
-    @run_sync
     def unhook_image_msg(self) -> bool:
         """
         取消Hook未加密图片
@@ -902,10 +863,10 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         status = self.robot.CUnHookImageMsg(self.wechat_pid)
         return status == 0
 
-    @run_sync
     def hook_voice_msg(self, save_path: str) -> bool:
         """
         开始Hook语音消息
@@ -920,10 +881,10 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         status = self.robot.CHookVoiceMsg(self.wechat_pid, save_path)
         return status == 0
 
-    @run_sync
     def unhook_voice_msg(self) -> bool:
         """
         取消Hook语音消息
@@ -933,10 +894,10 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         status = self.robot.CUnHookVoiceMsg(self.wechat_pid)
         return status == 0
 
-    @run_sync
     def delete_user(self, wxid: str) -> bool:
         """
         删除好友
@@ -951,10 +912,10 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         stauts = self.robot.CDeleteUser(self.wechat_pid, wxid)
         return stauts == 0
 
-    @run_sync
     def send_app_msg(self, wxid: str, appid: str) -> bool:
         """
         发送小程序
@@ -971,10 +932,10 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         status = self.robot.CSendAppMsg(self.wechat_pid, wxid, appid)
         return status == 0
 
-    @run_sync
     def edit_remark(self, wxid: str, remark: Optional[str]) -> bool:
         """
         修改好友或群聊备注
@@ -991,10 +952,10 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         status = self.robot.CEditRemark(self.wechat_pid, wxid, remark)
         return status == 0
 
-    @run_sync
     def set_group_name(self, chatroom_id: str, name: str) -> bool:
         """
         修改群名称.请确认具有相关权限再调用。
@@ -1011,10 +972,10 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         status = self.robot.CSetChatRoomName(self.wechat_pid, chatroom_id, name)
         return status == 0
 
-    @run_sync
     def set_group_announcement(
         self, chatroom_id: str, announcement: Optional[str]
     ) -> bool:
@@ -1033,12 +994,12 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         status = self.robot.CSetChatRoomAnnouncement(
             self.wechat_pid, chatroom_id, announcement
         )
         return status == 0
 
-    @run_sync
     def set_group_nickname(self, chatroom_id: str, nickname: str) -> bool:
         """
         设置群内个人昵称
@@ -1055,12 +1016,12 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         stauts = self.robot.CSetChatRoomSelfNickname(
             self.wechat_pid, chatroom_id, nickname
         )
         return stauts == 0
 
-    @run_sync
     def get_groupmember_nickname(self, chatroom_id: str, wxid: str) -> str:
         """
         获取群成员昵称
@@ -1078,9 +1039,9 @@ class ComWechatApi(ComProgress):
             成功返回群成员昵称,失败返回空字符串.
 
         """
+
         return self.robot.CGetChatRoomMemberNickname(self.wechat_pid, chatroom_id, wxid)
 
-    @run_sync
     def delete_groupmember(
         self, chatroom_id: str, wxid_list: Union[str, list, tuple]
     ) -> bool:
@@ -1099,10 +1060,10 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         status = self.robot.CDelChatRoomMember(self.wechat_pid, chatroom_id, wxid_list)
         return status == 0
 
-    @run_sync
     def add_groupmember(
         self, chatroom_id: str, wxid_list: Union[str, list, tuple]
     ) -> bool:
@@ -1121,10 +1082,10 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         status = self.robot.CAddChatRoomMember(self.wechat_pid, chatroom_id, wxid_list)
         return status == 0
 
-    @run_sync
     def open_browser(self, url: str) -> bool:
         """
         打开微信内置浏览器
@@ -1139,10 +1100,10 @@ class ComWechatApi(ComProgress):
         bool
 
         """
+
         status = self.robot.COpenBrowser(self.wechat_pid, url)
         return status == 0
 
-    @run_sync
     def get_history_public_msg(self, public_id: str, offset: str = "") -> str:
         """
         获取公众号历史消息，一次获取十条推送记录
@@ -1160,6 +1121,7 @@ class ComWechatApi(ComProgress):
             成功返回json数据，失败返回错误信息或空字符串.
 
         """
+
         ret = self.robot.CGetHistoryPublicMsg(self.wechat_pid, public_id, offset)[0]
         try:
             ret = json.loads(ret)
@@ -1167,7 +1129,6 @@ class ComWechatApi(ComProgress):
             pass
         return ret
 
-    @run_sync
     def forward_msg(self, wxid: str, msgid: int) -> bool:
         """
         转发消息，只支持单条转发
@@ -1185,10 +1146,10 @@ class ComWechatApi(ComProgress):
             成功返回0，失败返回非0值.
 
         """
+
         status = self.robot.CForwardMessage(self.wechat_pid, wxid, msgid)
         return status == 0
 
-    @run_sync
     def get_qrcode_image(self) -> bytes:
         """
         获取二维码，同时切换到扫码登录
@@ -1205,10 +1166,10 @@ class ComWechatApi(ComProgress):
         >>> image.save('./qrcode.png')
 
         """
+
         data = self.robot.CGetQrcodeImage(self.wechat_pid)
         return bytes(data)
 
-    @run_sync
     def get_a8key(self, url: str) -> Union[dict, str]:
         """
         获取A8Key
@@ -1224,6 +1185,7 @@ class ComWechatApi(ComProgress):
             成功返回A8Key信息，失败返回空字符串.
 
         """
+
         ret = self.robot.CGetA8Key(self.wechat_pid, url)
         try:
             ret = json.loads(ret)
@@ -1231,7 +1193,6 @@ class ComWechatApi(ComProgress):
             pass
         return ret
 
-    @run_sync
     def send_origin_xml(self, wxid: str, xml: str, img_path: str = "") -> bool:
         """
         发送原始xml消息
@@ -1251,10 +1212,10 @@ class ComWechatApi(ComProgress):
             发送成功返回0，发送失败返回非0值.
 
         """
+
         status = self.robot.CSendXmlMsg(self.wechat_pid, wxid, xml, img_path)
         return status == 0
 
-    @run_sync
     def logout(self) -> bool:
         """
         退出登录
@@ -1265,10 +1226,10 @@ class ComWechatApi(ComProgress):
             成功返回0，失败返回非0值.
 
         """
+
         status = self.robot.CLogout(self.wechat_pid)
         return status == 0
 
-    @run_sync
     def get_transfer(self, wxid: str, transcationid: str, transferid: str) -> bool:
         """
         收款
@@ -1288,12 +1249,12 @@ class ComWechatApi(ComProgress):
             成功返回0，失败返回非0值.
 
         """
+
         status = self.robot.CGetTransfer(
             self.wechat_pid, wxid, transcationid, transferid
         )
         return status == 0
 
-    @run_sync
     def send_gif_msg(self, wxid: str, img_path: str) -> bool:
         """
         发送gif表情
@@ -1311,10 +1272,10 @@ class ComWechatApi(ComProgress):
             0成功,非0失败.
 
         """
+
         status = self.robot.CSendEmotion(self.wechat_pid, wxid, img_path)
         return status == 0
 
-    @run_sync
     def _GetMsgCDN(self, msgid: int) -> str:
         """
         下载图片、视频、文件
@@ -1330,6 +1291,7 @@ class ComWechatApi(ComProgress):
             成功返回文件路径，失败返回空字符串.
 
         """
+
         return self.robot.CGetMsgCDN(self.wechat_pid, msgid)
 
     async def get_msg_cdn(self, msgid: int) -> str:

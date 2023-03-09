@@ -81,7 +81,7 @@ class Driver:
             "disable_existing_loggers": False,
             "handlers": {
                 "default": {
-                    "class": "wechatferry_client.log.LoguruHandler",
+                    "class": "wechatbot_client.log.LoguruHandler",
                 },
             },
             "loggers": {
