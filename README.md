@@ -1,0 +1,2 @@
+# ComWeChatBotClient
+ComWeChatBot的通信组件
