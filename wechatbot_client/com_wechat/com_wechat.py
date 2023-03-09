@@ -6,6 +6,8 @@ from typing import Optional, Union
 import psutil
 from comtypes.client import CreateObject, GetEvents, PumpEvents
 
+from wechatbot_client.log import logger
+
 
 class MessageReporter:
     """
@@ -76,20 +78,21 @@ class ComProgress:
             self.wechat_pid, self.connection_point.cookie
         )
 
-    def _pump_event(self) -> None:
+    async def _pump_event(self) -> None:
         """接收event"""
         while True:
             try:
-                PumpEvents(2)
-            except KeyboardInterrupt as e:
-                raise e
+                await asyncio.sleep(0)
+                PumpEvents(0.1)
+            except KeyboardInterrupt:
+                logger.info("<g>事件接收已关闭，再使用 'ctrl + c' 结束进程...</g>")
+                return
 
     def start_msg_recv(self) -> None:
         """
         开始接收消息
         """
-        loop = asyncio.get_event_loop()
-        loop.run_in_executor(func=self._pump_event)
+        asyncio.create_task(self._pump_event())
 
 
 class ComWechatApi(ComProgress):

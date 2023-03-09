@@ -34,7 +34,7 @@ class ApiManager:
         logger.debug("<g>找到微信进程...</g>")
         # 注入dll
         logger.debug("<y>正在注入微信...</y>")
-        if not self.api.start_service_sync():
+        if not self.api.start_service():
             logger.error("<r>微信进程启动失败...</r>")
             self.api.close()
             exit(-1)
@@ -53,7 +53,7 @@ class ApiManager:
         """
         while True:
             try:
-                if self.api.is_wechat_login_sync():
+                if self.api.is_wechat_login():
                     return True
                 time.sleep(1)
             except KeyboardInterrupt:
@@ -65,7 +65,7 @@ class ApiManager:
         """
         ...
 
-    async def open_recv_msg(self, file_path: str) -> None:
+    def open_recv_msg(self, file_path: str) -> None:
         """
         注册接收消息
         """
@@ -73,26 +73,26 @@ class ApiManager:
         self.api.register_msg_event()
         logger.debug("<g>注册消息事件成功...</g>")
         # 启动消息hook
-        result = await self.api.start_receive_message()
+        result = self.api.start_receive_message()
         if not result:
             logger.error("<r>启动消息hook失败...</r>")
-        logger.debug("<g>启动消息hook成功...</g?")
+        logger.debug("<g>启动消息hook成功...</g>")
         # 启动图片hook
         file = Path(file_path)
         img_file = file / "image"
-        result = await self.api.hook_image_msg(str(img_file.absolute()))
+        result = self.api.hook_image_msg(str(img_file.absolute()))
         if not result:
             logger.error("<r>启动图片hook失败...</r>")
-        logger.debug("<g>启动图片hook成功...</g?")
+        logger.debug("<g>启动图片hook成功...</g>")
         # 启动语音hook
         voice_file = file / "voice"
-        result = await self.api.hook_voice_msg(str(voice_file.absolute()))
+        result = self.api.hook_voice_msg(str(voice_file.absolute()))
         if not result:
             logger.error("<r>启动语音hook失败...</r>")
-        logger.debug("<g>启动语音hook成功...</g?")
+        logger.debug("<g>启动语音hook成功...</g>")
         # 开始监听
         self.api.start_msg_recv()
-        logger.info("<g>开始监听消息...</g?")
+        logger.info("<g>开始监听消息...</g>")
 
     def close(self) -> None:
         """

@@ -38,11 +38,11 @@ class WeChatManager:
         logger.debug("<g>微信id获取成功...</g>")
         logger.info("<g>初始化完成，启动uvicorn...</g>")
 
-    async def open_recv_msg(self, file_path: str) -> None:
+    def open_recv_msg(self, file_path: str) -> None:
         """
         开始接收消息
         """
-        await self.api_manager.open_recv_msg(file_path)
+        self.api_manager.open_recv_msg(file_path)
 
     def close(self) -> None:
         """
