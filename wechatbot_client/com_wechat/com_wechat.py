@@ -1,12 +1,13 @@
 import asyncio
 import json
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 import psutil
 from comtypes.client import CreateObject, GetEvents, PumpEvents
 
 from wechatbot_client.log import logger
+from wechatbot_client.utils import escape_tag
 
 
 class MessageReporter:
@@ -14,9 +15,9 @@ class MessageReporter:
     消息接收器
     """
 
-    def OnGetMessageEvent(self, msg):
-        msg = json.loads(msg[0])
-        print(msg)
+    def OnGetMessageEvent(self, message: Tuple[str, None]):
+        msg = message[0]
+        logger.success(f"<g>接收到wechat消息</g> - {escape_tag(msg)}")
 
 
 class ComProgress:

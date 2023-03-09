@@ -128,3 +128,4 @@ dmypy.json
 .pyre/
 DWeChatRobot.dll
 logs/
+file_cache/
