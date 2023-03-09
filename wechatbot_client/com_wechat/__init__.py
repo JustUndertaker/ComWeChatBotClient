@@ -10,3 +10,5 @@ http/ws -> wechat -> comprocess -> com
 上报消息:
 com -> msgreporter -> wechat -> http/ws
 """
+
+from .com_wechat import ComWechatApi as ComWechatApi

@@ -1,9 +1,6 @@
 import time
 
-from pynng.exceptions import Timeout
-
 from wechatbot_client.config import Config
-from wechatbot_client.grpc.model import Request as GrpcRequest
 from wechatbot_client.log import logger
 from wechatbot_client.model import HttpRequest, HttpResponse, Request, Response
 
@@ -41,27 +38,13 @@ class WeChatManager:
         logger.debug("<y>开始获取wxid...</y>")
         self.self_id = self.api_manager.get_wxid()
         logger.debug("<g>微信id获取成功...</g>")
+        logger.info("<g>初始化完成，启动uvicorn...</g>")
 
-    def wait_for_login(self) -> bool:
+    async def open_recv_msg(self) -> None:
         """
-        等待微信登录完成
+        开始接收消息
         """
-        while True:
-            try:
-                result = self.api_manager.check_is_login()
-                if result:
-                    return True
-                time.sleep(1)
-            except KeyboardInterrupt:
-                return False
-            except Timeout:
-                return False
-
-    def connect_msg_socket(self) -> bool:
-        """
-        连接到接收socket
-        """
-        return self.api_manager.connect_msg_socket()
+        await self.api_manager.open_recv_msg()
 
     def close(self) -> None:
         """

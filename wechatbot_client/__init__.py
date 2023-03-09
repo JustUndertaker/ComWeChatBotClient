@@ -37,7 +37,7 @@ def init() -> None:
     app = _Driver.server_app
     app.include_router(router)
     logger.success("<g>http api已开启...</g>")
-    _Driver.on_startup(_WeChat.connect_msg_socket)
+    _Driver.on_startup(_WeChat.open_recv_msg)
     _Driver.on_shutdown(_WeChat.close)
 
 
