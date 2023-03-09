@@ -1,10 +1,8 @@
-import time
-
 from wechatbot_client.config import Config
 from wechatbot_client.log import logger
 from wechatbot_client.model import HttpRequest, HttpResponse, Request, Response
 
-from .api_manager import Action, ApiManager
+from .api_manager import ApiManager
 
 
 class WeChatManager:
@@ -57,26 +55,26 @@ class WeChatManager:
         处理api调用请求
         """
         # 确认action
-        try:
-            action = Action(request.action)
-        except ValueError:
-            logger.error("调用api出错：<r>功能未实现</r>")
-            return Response(status=404, msg=f"{request.action} :该功能未实现", data={})
-        # 调用action
-        try:
-            request.params["func"] = action.action_to_function()
-            grpc_request = GrpcRequest.parse_obj(request.params)
-        except Exception as e:
-            logger.error(f"调用api出错：<r>{e}</r>")
-            return Response(status=500, msg="请求参数错误", data={})
-        try:
-            result = await self.api_manager.grpc.request(grpc_request)
-        except Exception as e:
-            logger.error(f"调用api出错：<r>{e}</r>")
-            return Response(status=500, msg="响应错误", data={})
-        data = result.dict(exclude_defaults=True)
-        del data["func"]
-        return Response(status=200, msg="请求成功", data=data)
+        # try:
+        #     action = Action(request.action)
+        # except ValueError:
+        #     logger.error("调用api出错：<r>功能未实现</r>")
+        #     return Response(status=404, msg=f"{request.action} :该功能未实现", data={})
+        # # 调用action
+        # try:
+        #     request.params["func"] = action.action_to_function()
+        #     grpc_request = GrpcRequest.parse_obj(request.params)
+        # except Exception as e:
+        #     logger.error(f"调用api出错：<r>{e}</r>")
+        #     return Response(status=500, msg="请求参数错误", data={})
+        # try:
+        #     result = await self.api_manager.grpc.request(grpc_request)
+        # except Exception as e:
+        #     logger.error(f"调用api出错：<r>{e}</r>")
+        #     return Response(status=500, msg="响应错误", data={})
+        # data = result.dict(exclude_defaults=True)
+        # del data["func"]
+        # return Response(status=200, msg="请求成功", data=data)
 
     async def handle_http_api(self, request: HttpRequest) -> HttpResponse:
         """

@@ -126,11 +126,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-depends/logs
-depends/.wcf.lock
-sdk.dll
-spy_debug.dll
-spy.dll
-wcf.exe
-.wcf.lock
+DWeChatRobot.dll
 logs/
