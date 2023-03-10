@@ -11,9 +11,6 @@ from wechatbot_client.log import logger
 from wechatbot_client.model import Request
 from wechatbot_client.utils import get_typed_signature
 
-ACTION_LIST = []
-"""action列表"""
-
 ACTION_DICT: dict[str, Type[BaseModel]] = {}
 """action模型字典"""
 
@@ -22,28 +19,6 @@ class ModelConfig(BaseConfig):
     """action模型config"""
 
     extra = Extra.forbid
-
-
-# def gen_action_dict() -> None:
-#     """
-#     生成action字典
-#     """
-#     global ACTION_DICT
-#     for action in ACTION_LIST:
-#         call = getattr(ComWechatApi, action)
-#         signature = get_typed_signature(call)
-#         field = {}
-#         for parameter in signature.parameters.values():
-#             name = parameter.name
-#             annotation = parameter.annotation
-#             default = parameter.default
-#             if name != "self":
-#                 if default == Parameter.empty:
-#                     field[name] = (annotation, ...)
-#                 else:
-#                     field[name] = (annotation, default)
-#         action_type = create_model(action, __config__=ModelConfig, **field)
-#         ACTION_DICT[action] = action_type
 
 
 def check_action_params(request: Request) -> None:
