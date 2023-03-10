@@ -1,3 +1,4 @@
+from inspect import Parameter
 from typing import Type
 
 from pydantic import BaseConfig, BaseModel, Extra, create_model
@@ -73,14 +74,19 @@ def gen_action_dict():
     生成action字典
     """
     global ACTION_DICT
+    field = {}
     for action in ACTION_LIST:
         call = getattr(ComWechatApi, action)
         signature = get_typed_signature(call)
-        field = {}
+        field.clear()
         for parameter in signature.parameters.values():
             name = parameter.name
             annotation = parameter.annotation
+            default = parameter.default
             if name != "self":
-                field[name] = (annotation, ...)
+                if default == Parameter.empty:
+                    field[name] = (annotation, ...)
+                else:
+                    field[name] = (annotation, default)
         action_type = create_model(action, __config__=ModelConfig, **field)
         ACTION_DICT[action] = action_type
