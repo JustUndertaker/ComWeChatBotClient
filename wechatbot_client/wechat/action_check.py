@@ -106,7 +106,8 @@ def check_action_params(request: Request) -> None:
         * `None`: 检测通过
 
     错误:
-        * `TypeError`: 检测不通过
+        * `TypeError`: 未实现action
+        * `ValueError`: 参数错误
     """
     if request.params is None:
         request.params = {}
@@ -120,5 +121,5 @@ def check_action_params(request: Request) -> None:
         action_model.parse_obj(request.params)
     except ValidationError as e:
         logger.error(f"<r>action参数错误:{e}</r>")
-        raise TypeError("请求参数错误...")
+        raise ValueError("请求参数错误...")
     return

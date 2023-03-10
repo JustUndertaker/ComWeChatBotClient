@@ -3,6 +3,8 @@ from pathlib import Path
 
 from wechatbot_client.com_wechat import ComWechatApi
 from wechatbot_client.log import logger
+from wechatbot_client.model import Request, Response
+from wechatbot_client.utils import escape_tag
 
 
 class ApiManager:
@@ -106,3 +108,23 @@ class ApiManager:
         """
         info = self.api.get_self_info()
         return info["wxId"]
+
+    def request(self, request: Request) -> Response:
+        """
+        说明:
+            发送请求，获取返回值
+
+        参数:
+            * `request`: 请求体
+
+        返回:
+            * `response`: 返回值
+        """
+        func = getattr(self.api, request.action)
+        try:
+            result = func(**request.params)
+        except Exception as e:
+            logger.error(f"<r>调用api错误: {e}</r>")
+            return Response(status=500, msg="内部服务错误...", data={})
+        logger.debug(f"<g>调用api成功，返回:</g> {escape_tag(str(result))}")
+        return Response(status=200, msg="请求成功", data=result)
