@@ -307,7 +307,7 @@ class ComWechatApi(ComProgress):
     def send_at_msg(
         self,
         chatroom_id: str,
-        at_users: list or str or tuple,
+        at_users: Union[list[str], str],
         msg: str,
         auto_nickname: bool = True,
     ) -> bool:
@@ -389,7 +389,7 @@ class ComWechatApi(ComProgress):
         ]
         return friend_list
 
-    def get_chatroom_list(self) -> list:
+    def get_group_list(self) -> list:
         """
         从通讯录列表中筛选出群聊列表
 
@@ -712,7 +712,7 @@ class ComWechatApi(ComProgress):
         return status == 0
 
     def add_friend_by_v3(
-        self, v3: str, message: str or None, add_type: int = 0x6
+        self, v3: str, message: Optional[str], add_type: int = 0x6
     ) -> bool:
         """
         v3数据加好友
@@ -1013,9 +1013,7 @@ class ComWechatApi(ComProgress):
 
         return self.robot.CGetChatRoomMemberNickname(self.wechat_pid, chatroom_id, wxid)
 
-    def delete_groupmember(
-        self, chatroom_id: str, wxid_list: Union[str, list, tuple]
-    ) -> bool:
+    def delete_groupmember(self, chatroom_id: str, wxid_list: Union[str, list]) -> bool:
         """
         删除群成员.请确认具有相关权限再调用。
 
@@ -1035,9 +1033,7 @@ class ComWechatApi(ComProgress):
         status = self.robot.CDelChatRoomMember(self.wechat_pid, chatroom_id, wxid_list)
         return status == 0
 
-    def add_groupmember(
-        self, chatroom_id: str, wxid_list: Union[str, list, tuple]
-    ) -> bool:
+    def add_groupmember(self, chatroom_id: str, wxid_list: Union[str, list]) -> bool:
         """
         添加群成员.请确认具有相关权限再调用。
 
@@ -1100,7 +1096,7 @@ class ComWechatApi(ComProgress):
             pass
         return ret
 
-    def forward_msg(self, wxid: str, msgid: int) -> bool:
+    def send_forward_msg(self, wxid: str, msgid: int) -> bool:
         """
         转发消息，只支持单条转发
 

@@ -19,7 +19,7 @@ ACTION_LIST = [
     "get_self_info",
     "get_contacts",
     "get_friend_list",
-    "get_chatroom_list",
+    "get_group_list",
     "get_official_account_list",
     "get_friend_by_remark",
     "get_friend_by_wxid",
@@ -50,7 +50,7 @@ ACTION_LIST = [
     "add_groupmember",
     "open_browser",
     "get_history_public_msg",
-    "forward_msg",
+    "send_forward_msg",
     "get_qrcode_image",
     "get_a8key",
     "send_origin_xml",
@@ -76,11 +76,10 @@ def gen_action_dict():
     生成action字典
     """
     global ACTION_DICT
-    field = {}
     for action in ACTION_LIST:
         call = getattr(ComWechatApi, action)
         signature = get_typed_signature(call)
-        field.clear()
+        field = {}
         for parameter in signature.parameters.values():
             name = parameter.name
             annotation = parameter.annotation
