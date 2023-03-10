@@ -1,9 +1,11 @@
 from inspect import Parameter
 from typing import Type
 
-from pydantic import BaseConfig, BaseModel, Extra, create_model
+from pydantic import BaseConfig, BaseModel, Extra, ValidationError, create_model
 
 from wechatbot_client.com_wechat import ComWechatApi
+from wechatbot_client.log import logger
+from wechatbot_client.model import Request
 
 from .utils import get_typed_signature
 
@@ -90,3 +92,33 @@ def gen_action_dict():
                     field[name] = (annotation, default)
         action_type = create_model(action, __config__=ModelConfig, **field)
         ACTION_DICT[action] = action_type
+
+
+def check_action_params(request: Request) -> None:
+    """
+    说明:
+        检测action的参数合法性，会检测`action`是否存在，同时param类型是否符合
+
+    参数:
+        * `request`：action请求
+
+    返回:
+        * `None`: 检测通过
+
+    错误:
+        * `TypeError`: 检测不通过
+    """
+    if request.params is None:
+        request.params = {}
+
+    action_model = ACTION_DICT.get(request.action)
+    if action_model is None:
+        logger.error(f"<r>未实现的action:{request.action}</r>")
+        raise TypeError(f"未实现的action:{request.action}")
+
+    try:
+        action_model.parse_obj(request.params)
+    except ValidationError as e:
+        logger.error(f"<r>action参数错误:{e}</r>")
+        raise TypeError("请求参数错误...")
+    return

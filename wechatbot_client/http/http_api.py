@@ -20,8 +20,6 @@ async def _(action: str, response: Response, params=Body(None)) -> None:
     )
     try:
         http_request = HttpRequest(action=action, params=params)
-        if http_request.params is None:
-            http_request.params = {}
     except ValidationError:
         logger.error("<m>http_api</m> - <r>请求参数不正确!</r>")
         return HttpResponse(status=405, msg="请求参数不正确！", data={})
