@@ -1,7 +1,6 @@
 """
 微信客户端抽象，整合各种请求需求
 """
-from .action_check import gen_action_dict
 from .wechat import WeChatManager as WeChatManager
 
 _WeChat = WeChatManager()

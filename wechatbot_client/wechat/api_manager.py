@@ -25,28 +25,28 @@ class ApiManager:
         logger.debug("<y>初始化com组件...</y>")
         if not self.api.init():
             logger.error("<r>未注册com组件，启动失败...</r>")
-            exit(-1)
+            exit(0)
         logger.debug("<g>com组件初始化成功...</g>")
         # 启动微信进程
         logger.debug("<y>正在初始化微信进程...</y>")
         if not self.api.init_wechat_pid():
             logger.error("<r>微信进程启动失败...</r>")
             self.api.close()
-            exit(-1)
+            exit(0)
         logger.debug("<g>找到微信进程...</g>")
         # 注入dll
         logger.debug("<y>正在注入微信...</y>")
         if not self.api.start_service():
             logger.error("<r>微信进程启动失败...</r>")
             self.api.close()
-            exit(-1)
+            exit(0)
         logger.success("<g>dll注入成功...</g>")
         # 等待登录
         logger.info("<y>等待登录...</y>")
         if not self.wait_for_login():
             logger.info("<g>进程关闭...</g>")
             self.api.close()
-            exit(-1)
+            exit(0)
         logger.success("<g>登录完成...</g>")
 
     def wait_for_login(self) -> bool:

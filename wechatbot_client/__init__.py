@@ -6,7 +6,7 @@ from wechatbot_client.config import Config, Env
 from wechatbot_client.driver import Driver
 from wechatbot_client.http import router
 from wechatbot_client.log import default_filter, log_init, logger
-from wechatbot_client.wechat import gen_action_dict, get_wechat
+from wechatbot_client.wechat import get_wechat
 
 _Driver: Driver = None
 """全局后端驱动器"""
@@ -17,7 +17,6 @@ def init() -> None:
     初始化client
     """
     global _Driver
-    gen_action_dict()
     env = Env()
     config = Config(_common_config=env.dict())
     default_filter.level = config.log_level

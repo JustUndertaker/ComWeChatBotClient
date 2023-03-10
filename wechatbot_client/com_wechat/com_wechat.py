@@ -1,11 +1,12 @@
 import asyncio
 import json
 from pathlib import Path
-from typing import Optional, Tuple, Union
+from typing import Literal, Optional, Tuple, Union
 
 import psutil
 from comtypes.client import CreateObject, GetEvents, PumpEvents
 
+from wechatbot_client.action_check import add_action
 from wechatbot_client.log import logger
 from wechatbot_client.utils import escape_tag
 
@@ -137,229 +138,194 @@ class ComWechatApi(ComProgress):
             启动微信
 
         返回:
-            微信pid，为0则失败
+            * `int`: 微信pid，为0则失败
         """
         return self.robot.CStartWeChat()
 
     def start_service(self) -> bool:
         """
-        注入DLL到微信以启动服务
+        说明:
+            注入DLL到微信以启动服务
 
-        Returns
-        -------
-        int
-            0成功,非0失败.
-
+        返回:
+            * `bool`: 操作是否成功
         """
         status = self.robot.CStartRobotService(self.wechat_pid)
         return status == 0
 
     def stop_service(self) -> int:
         """
-        停止服务，会将DLL从微信进程中卸载
+        说明:
+            停止服务，会将DLL从微信进程中卸载
 
-        Returns
-        -------
-        int
-            COM进程pid.
-
+        返回:
+            * `int`: COM进程pid.
         """
 
         com_pid = self.robot.CStopRobotService(self.wechat_pid)
         return com_pid
 
+    @add_action()
     def is_wechat_login(self) -> bool:
         """
-        获取微信登录状态
+        说明:
+            获取微信登录状态
 
-        Returns
-        -------
-        bool
-            微信登录状态.
-
+        返回:
+            * `bool`: 微信登录状态
         """
 
         status = self.robot.CIsWxLogin(self.wechat_pid)
         return status == 1
 
-    def send_text(self, receiver: str, msg: str) -> bool:
+    @add_action()
+    def send_text(self, wxid: str, message: str) -> bool:
         """
-        发送文本消息
+        说明:
+            发送文本消息
 
-        Parameters
-        ----------
-        receiver : str
-            消息接收者wxid.
-        msg : str
-            消息内容.
+        参数:
+            * `wxid`: 对方wxid
+            * `message`: 要发送的内容
 
-        Returns
-        -------
-        int
-            0成功,非0失败.
-
+        返回:
+            * `bool`: 操作是否成功
         """
 
-        status = self.robot.CSendText(self.wechat_pid, receiver, msg)
+        status = self.robot.CSendText(self.wechat_pid, wxid, message)
         return status == 0
 
-    def send_image(self, receiver: str, img_path: str) -> bool:
+    @add_action()
+    def send_image(self, wxid: str, image_path: str) -> bool:
         """
-        发送图片消息
+        说明:
+            发送图片消息
 
-        Parameters
-        ----------
-        receiver : str
-            消息接收者wxid.
-        img_path : str
-            图片绝对路径.
+        参数:
+            * `wxid`: 对方wxid
+            * `image_path`: 图片绝对路径
 
-        Returns
-        -------
-        int
-            0成功,非0失败.
-
+        返回:
+            * `bool`: 发送是否成功
         """
 
-        status = self.robot.CSendImage(self.wechat_pid, receiver, img_path)
+        status = self.robot.CSendImage(self.wechat_pid, wxid, image_path)
         return status == 0
 
-    def send_file(self, receiver: str, filepath: str) -> bool:
+    @add_action()
+    def send_file(self, wxid: str, file_path: str) -> bool:
         """
-        发送文件
+        说明:
+            发送文件
 
-        Parameters
-        ----------
-        receiver : str
-            消息接收者wxid.
-        filepath : str
-            文件绝对路径.
+        参数:
+            * `wxid`: 对方wxid
+            * `file_path`: 图片绝对路径
 
-        Returns
-        -------
-        int
-            0成功,非0失败.
-
+        返回:
+            * `bool`: 发送是否成功
         """
 
-        status = self.robot.CSendFile(self.wechat_pid, receiver, filepath)
+        status = self.robot.CSendFile(self.wechat_pid, wxid, file_path)
         return status == 0
 
-    def send_xml(
+    @add_action()
+    def send_message_card(
         self,
-        receiver: str,
+        wxid: str,
         title: str,
         abstract: str,
         url: str,
-        img_path: Optional[str] = None,
+        image_path: Optional[str] = None,
     ) -> bool:
         """
-        发送XML文章
+        说明:
+            发送消息卡片
 
-        Parameters
-        ----------
-        receiver : str
-            消息接收者wxid.
-        title : str
-            消息卡片标题.
-        abstract : str
-            消息卡片摘要.
-        url : str
-            文章链接.
-        img_path : str or None, optional
-            消息卡片显示的图片绝对路径，不需要可以不指定. The default is None.
+        参数:
+            * `wxid`: 对方wxid
+            * `title`: 消息卡片标题
+            * `abstract`: 消息卡片摘要
+            * `url`: 文章链接
+            * `image_path`: 消息卡片显示的图片绝对路径，不需要可以不指定
 
-        Returns
-        -------
-        int
-            0成功,非0失败.
-
+        返回:
+            * `bool`: 发送是否成功
         """
 
         status = self.robot.CSendArticle(
-            self.wechat_pid, receiver, title, abstract, url, img_path
+            self.wechat_pid, wxid, title, abstract, url, image_path
         )
         return status == 0
 
-    def send_card(self, receiver: str, shared_wxid: str, nickname: str) -> bool:
+    @add_action()
+    def send_contact_card(self, receiver: str, shared_wxid: str, nickname: str) -> bool:
         """
-        发送名片
+        说明:
+            发送名片
 
-        Parameters
-        ----------
-        receiver : str
-            消息接收者wxid.
-        shared_wxid : str
-            被分享人wxid.
-        nickname : str
-            名片显示的昵称.
+        参数:
+            * `wxid`: 对方wxid
+            * `shared_id`: 被分享人wxid
+            * `nickname`: 名片显示的昵称
 
-        Returns
-        -------
-        int
-            0成功,非0失败.
-
+        返回:
+            * `bool`: 是否操作成功
         """
 
         status = self.robot.CSendCard(self.wechat_pid, receiver, shared_wxid, nickname)
         return status == 0
 
-    def send_at_msg(
+    @add_action()
+    def send_at_message(
         self,
-        chatroom_id: str,
+        group_id: str,
         at_users: Union[list[str], str],
-        msg: str,
+        message: str,
         auto_nickname: bool = True,
     ) -> bool:
         """
-        发送群艾特消息，艾特所有人可以将AtUsers设置为`notify@all`
-        无目标群管理权限请勿使用艾特所有人
-        Parameters
-        ----------
-        chatroom_id : str
-            群聊ID.
-        at_users : list or str or tuple
-            被艾特的人列表.
-        msg : str
-            消息内容.
-        auto_nickname : bool, optional
-            是否自动填充被艾特人昵称. 默认自动填充.
+        说明:
+            发送群@消息，艾特所有人可以将AtUsers设置为`notify@all`。
+            无目标群管理权限请勿使用艾特所有人
 
-        Returns
-        -------
-        int
-            0成功,非0失败.
+        参数:
+            * `group_id`: 群聊ID
+            * `at_users`: 被艾特的人列表
+            * `message`: 消息内容
+            * `auto_nickname`: 是否自动填充被艾特人昵称,默认自动填充
 
+        返回:
+            * `bool`: 是否操作成功
         """
-        if "@chatroom" not in chatroom_id:
+        if "@chatroom" not in group_id:
             return False
 
         status = self.robot.CSendAtText(
-            self.wechat_pid, chatroom_id, at_users, msg, auto_nickname
+            self.wechat_pid, group_id, at_users, message, auto_nickname
         )
         return status == 0
 
+    @add_action()
     def get_self_info(self) -> dict:
         """
-        获取个人信息
+        说明:
+            获取个人信息
 
-        Returns
-        -------
-        dict
-            调用成功返回个人信息，否则返回空字典.
-
+        返回:
+            * `dict`: 调用成功返回个人信息，否则返回空字典
         """
         self_info = self.robot.CGetSelfInfo(self.wechat_pid)
         return json.loads(self_info)
 
+    @add_action()
     def get_contacts(self) -> list:
         """
-        获取联系人列表
+        说明:
+            获取所有联系人列表
 
-        Returns
-        -------
-        list
-            调用成功返回通讯录列表，调用失败返回空列表.
+        返回:
+            * `list`: 调用成功返回通讯录列表，调用失败返回空列表
 
         """
 
@@ -370,17 +336,20 @@ class ComWechatApi(ComProgress):
             self.AddressBook = []
         return self.AddressBook
 
-    def get_friend_list(self) -> list:
+    @add_action()
+    def get_friend_list(self, use_cache: bool = True) -> list:
         """
-        从通讯录列表中筛选出好友列表
+        说明:
+            从通讯录列表中筛选出好友列表
 
-        Returns
-        -------
-        list
-            好友列表.
+        参数:
+            * `use_cache`: 是否使用缓存，默认使用
+
+        返回:
+            * `list`: 好友列表
 
         """
-        if not self.AddressBook:
+        if self.AddressBook is None or not use_cache:
             self.get_contacts()
         friend_list = [
             item
@@ -389,32 +358,37 @@ class ComWechatApi(ComProgress):
         ]
         return friend_list
 
-    def get_group_list(self) -> list:
+    @add_action()
+    def get_group_list(self, use_cache: bool = True) -> list:
         """
-        从通讯录列表中筛选出群聊列表
+        说明:
+            从通讯录列表中筛选出群聊列表
 
-        Returns
-        -------
-        list
-            群聊列表.
+        参数:
+            * `use_cache`: 是否使用缓存，默认使用
 
+        返回:
+            * `list`: 群聊列表
         """
-        if not self.AddressBook:
+        if self.AddressBook is None or not use_cache:
             self.get_contacts()
         chatroom_list = [item for item in self.AddressBook if item["wxType"] == 2]
         return chatroom_list
 
-    def get_official_account_list(self) -> list:
+    @add_action()
+    def get_public_account_list(self, use_cache: bool = True) -> list:
         """
-        从通讯录列表中筛选出公众号列表
+        说明:
+            从通讯录列表中筛选出公众号列表
 
-        Returns
-        -------
-        list
-            公众号列表.
+        参数:
+            * `use_cache`: 是否使用缓存，默认使用
+
+        返回:
+            * `list`: 公众号列表
 
         """
-        if not self.AddressBook:
+        if self.AddressBook is None or not use_cache:
             self.get_contacts()
         official_account_list = [
             item
@@ -423,134 +397,129 @@ class ComWechatApi(ComProgress):
         ]
         return official_account_list
 
-    def get_friend_by_remark(self, remark: str) -> Optional[dict]:
+    @add_action()
+    def search_friend_by_remark(
+        self, remark: str, use_cache: bool = True
+    ) -> Optional[dict]:
         """
-        通过备注搜索联系人
+        说明:
+            通过备注搜索联系人
 
-        Parameters
-        ----------
-        remark : str
-            好友备注.
+        参数:
+            * `remark`: 好友备注
+            * `use_cache`: 是否使用缓存，默认使用
 
-        Returns
-        -------
-        dict or None
-            搜索到返回联系人信息，否则返回None.
-
+        返回:
+            * `dict | None`: 搜索到返回联系人信息，否则返回None
         """
-        if not self.AddressBook:
+        if self.AddressBook is None or not use_cache:
             self.get_contacts()
         for item in self.AddressBook:
             if item["wxRemark"] == remark:
                 return item
         return None
 
-    def get_friend_by_wxid(self, wx_number: str) -> Optional[dict]:
+    @add_action()
+    def search_friend_by_wxnumber(
+        self, wxnumber: str, use_cache: bool = True
+    ) -> Optional[dict]:
         """
-        通过微信号搜索联系人
+        说明:
+            通过微信号搜索联系人(非微信id)
 
-        Parameters
-        ----------
-        wx_number : str
-            联系人微信号.
+        参数:
+            * `wxnumber`: 联系人微信号
+            * `use_cache`: 是否使用缓存，默认使用
 
-        Returns
-        -------
-        dict or None
-            搜索到返回联系人信息，否则返回None.
-
+        返回:
+            * `dict | None`: 搜索到返回联系人信息，否则返回None
         """
-        if not self.AddressBook:
+        if self.AddressBook is None or not use_cache:
             self.get_contacts()
         for item in self.AddressBook:
-            if item["wxNumber"] == wx_number:
+            if item["wxNumber"] == wxnumber:
                 return item
         return None
 
-    def get_friend_by_nickname(self, nickname: str) -> Optional[dict]:
+    @add_action()
+    def search_friend_by_nickname(
+        self, nickname: str, use_cache: bool = True
+    ) -> Optional[dict]:
         """
-        通过昵称搜索联系人
+        说明:
+            通过昵称搜索联系人
 
-        Parameters
-        ----------
-        nickname : str
-            联系人昵称.
+        参数:
+            * `nickname`: 联系人昵称
+            * `use_cache`: 是否使用缓存，默认使用
 
-        Returns
-        -------
-        dict or None
-            搜索到返回联系人信息，否则返回None.
-
+        返回:
+            * `dict | None`: 搜索到返回联系人信息，否则返回None
         """
-        if not self.AddressBook:
+        if self.AddressBook is None or not use_cache:
             self.get_contacts()
         for item in self.AddressBook:
             if item["wxNickName"] == nickname:
                 return item
         return None
 
+    @add_action()
     def get_user_info(self, wxid: str) -> dict:
         """
-        通过wxid查询联系人信息
+        说明:
+            通过wxid查询联系人信息
 
-        Parameters
-        ----------
-        wxid : str
-            联系人wxid.
+        参数:
+            * `wxid`: 联系人wxid
 
-        Returns
-        -------
-        dict
-            联系人信息.
+        返回:
+            * `dict`: 联系人信息
 
         """
 
         userinfo = self.robot.CGetWxUserInfo(self.wechat_pid, wxid)
         return json.loads(userinfo)
 
-    def get_group_members(self, chatroom_id: str) -> Optional[dict]:
+    @add_action()
+    def get_group_members(self, group_id: str) -> Optional[dict]:
         """
-        获取群成员信息
+        说明:
+            获取群成员信息
 
-        Parameters
-        ----------
-        chatroom_id : str
-            群聊id.
+        参数:
+            * `group_id`: 群聊id
 
-        Returns
-        -------
-        dict or None
-            获取成功返回群成员信息，失败返回None.
+        返回:
+            * `dict | None`: 获取成功返回群成员信息，失败返回None
 
         """
-        info = dict(self.robot.CGetChatRoomMembers(self.wechat_pid, chatroom_id))
+        info = dict(self.robot.CGetChatRoomMembers(self.wechat_pid, group_id))
         if not info:
             return None
         members = info["members"].split("^G")
-        data = self.GetWxUserInfo(chatroom_id)
+        data = self.get_user_info(group_id)
         data["members"] = []
         for member in members:
-            member_info = self.GetWxUserInfo(member)
+            member_info = self.get_user_info(member)
             data["members"].append(member_info)
         return data
 
+    @add_action()
     def check_friend_status(self, wxid: str) -> int:
         """
-        获取好友状态码
+        说明:
+            检测好友状态
 
-        Parameters
-        ----------
-        wxid : str
-            好友wxid.
+        参数:
+            * `wxid`: 好友wxid
 
-        Returns
-        -------
-        int
-            0x0: 'Unknown',
-            0xB0:'被删除',
-            0xB1:'是好友',
-            0xB2:'已拉黑',
-            0xB5:'被拉黑',
+        返回:
+            * `int`: 好友状态
+                * `0x00`: Unknown
+                * `0xB0`: 被删除
+                * `0xB1`: 是好友
+                * `0xB2`: 已拉黑
+                * `0xB5`: 被拉黑
 
         """
 
@@ -588,15 +557,14 @@ class ComWechatApi(ComProgress):
         status = self.robot.CStopReceiveMessage(self.wechat_pid)
         return status == 0
 
+    @add_action()
     def get_db_handles(self) -> dict:
         """
-        获取数据库句柄和表信息
+        说明:
+            获取数据库句柄和表信息
 
-        Returns
-        -------
-        dict
-            数据库句柄和表信息.
-
+        返回:
+            * `dict`: 数据库句柄和表信息
         """
 
         tables_tuple = self.robot.CGetDbHandles(self.wechat_pid)
@@ -616,21 +584,18 @@ class ComWechatApi(ComProgress):
             )
         return dbs
 
+    @add_action()
     def execute_sql(self, handle: int, sql: str) -> list:
         """
-        执行SQL
+        说明:
+            执行SQL
 
-        Parameters
-        ----------
-        handle : int
-            数据库句柄.
-        sql : str
-            SQL.
+        参数:
+            * `handle`: 数据库句柄
+            * `sql`: SQL语句内容
 
-        Returns
-        -------
-        list
-            查询结果.
+        返回:
+            * `list`: 查询结果
 
         """
 
@@ -648,121 +613,111 @@ class ComWechatApi(ComProgress):
             query_list.append(query_dict)
         return query_list
 
-    def backup_db(self, handle: int, filepath: str) -> bool:
+    @add_action()
+    def backup_db(self, handle: int, file_path: str) -> bool:
         """
-        备份数据库
+        说明:
+            备份数据库
 
-        Parameters
-        ----------
-        handle : int
-            数据库句柄.
-        filepath : int
-            备份文件保存位置.
+        参数:
+            * `handle`: 数据库句柄
+            * `file_path`: 备份文件保存位置
 
-        Returns
-        -------
-        bool
+        返回:
+            * `bool`: 操作是否成功
 
         """
 
-        save_path = Path(filepath)
+        save_path = Path(file_path)
         save_path.mkdir(parents=True, exist_ok=True)
-        status = self.robot.CBackupSQLiteDB(self.wechat_pid, handle, filepath)
+        status = self.robot.CBackupSQLiteDB(self.wechat_pid, handle, file_path)
         return status == 0
 
+    @add_action()
     def verify_friend_apply(self, v3: str, v4: str) -> bool:
         """
-        通过好友请求
+        说明:
+            通过好友请求
 
-        Parameters
-        ----------
-        v3 : str
-            v3数据(encryptUserName).
-        v4 : str
-            v4数据(ticket).
+        参数:
+            * `v3`: v3数据(encryptUserName)
+            * `v4`: v4数据(ticket)
 
-        Returns
-        -------
-        bool.
-
+        返回:
+            * `bool`: 操作是否成功
         """
 
         status = self.robot.CVerifyFriendApply(self.wechat_pid, v3, v4)
         return status == 0
 
+    @add_action()
     def add_friend_by_wxid(self, wxid: str, message: Optional[str]) -> bool:
         """
-        wxid加好友
+        说明:
+            发送好友请求（使用wxid）
 
-        Parameters
-        ----------
-        wxid : str
-            要添加的wxid.
-        message : str or None
-            验证信息.
+        参数:
+            * `wxid`: 要添加的wxid
+            * `message`: 验证信息
 
-        Returns
-        -------
-        int
-            请求发送成功返回0,失败返回非0值.
-
+        返回:
+            * `bool`: 请求是否成功
         """
 
         status = self.robot.CAddFriendByWxid(self.wechat_pid, wxid, message)
         return status == 0
 
+    @add_action()
     def add_friend_by_v3(
-        self, v3: str, message: Optional[str], add_type: int = 0x6
+        self,
+        v3: str,
+        message: Optional[str],
+        add_type: Literal[0x1, 0x3, 0x6, 0xF] = 0x6,
     ) -> bool:
         """
-        v3数据加好友
+        说明:
+            发送好友请求（使用v3数据）
 
-        Parameters
-        ----------
-        v3 : str
-            v3数据(encryptUserName).
-        message : str or None
-            验证信息.
-        add_type : int
-            添加方式(来源).手机号: 0xF;微信号: 0x3;QQ号: 0x1;朋友验证消息: 0x6.
+        参数:
+            * `v3`: v3数据(encryptUserName)
+            * `message`: 验证信息
+            * `add_type`: 添加方式(来源)
+                * `0x1`: QQ号
+                * `0x3`: 微信号
+                * `0x6`: 朋友验证消息
+                * `0xF`: 手机号
 
-        Returns
-        -------
-        int
-            请求发送成功返回0,失败返回非0值.
-
+        返回:
+            * `bool`: 请求是否成功
         """
 
         status = self.robot.CAddFriendByV3(self.wechat_pid, v3, message, add_type)
         return status == 0
 
+    @add_action()
     def get_wechat_version(self) -> str:
         """
-        获取微信版本号
+        说明:
+            获取微信版本号
 
-        Returns
-        -------
-        str
-            微信版本号.
+        返回:
+            * `str`: 微信版本号
 
         """
 
         return self.robot.CGetWeChatVer()
 
+    @add_action()
     def search_user_info(self, keyword: str) -> Optional[dict]:
         """
-        网络查询用户信息
+        说明:
+            网络查询用户信息
 
-        Parameters
-        ----------
-        keyword : str
-            查询关键字，可以是微信号、手机号、QQ号.
+        参数:
+            * `keyword`: 查询关键字，可以是微信号、手机号、QQ号
 
-        Returns
-        -------
-        dict or None
-            查询成功返回用户信息,查询失败返回None.
-
+        返回:
+            * `dict | None`: 查询成功返回用户信息,查询失败返回None
         """
 
         userinfo = self.robot.CSearchContactByNet(self.wechat_pid, keyword)
@@ -770,37 +725,34 @@ class ComWechatApi(ComProgress):
             return dict(userinfo)
         return None
 
+    @add_action()
     def follow_public_number(self, public_id: str) -> bool:
         """
-        关注公众号
+        说明:
+            关注公众号
 
-        Parameters
-        ----------
-        public_id : str
-            公众号id.
+        参数:
+            * `public_id`: 公众号id
 
-        Returns
-        -------
-        int
-            请求成功返回0,失败返回非0值.
+        返回:
+            * `bool`: 操作是否成功
 
         """
 
         status = self.robot.CAddBrandContact(self.wechat_pid, public_id)
         return status == 0
 
+    @add_action()
     def change_wechat_version(self, version: str) -> bool:
         """
-        自定义微信版本号，一定程度上防止自动更新
+        说明:
+            自定义微信版本号，一定程度上防止自动更新
 
-        Parameters
-        ----------
-        version : str
-            版本号，类似`3.7.0.26`
+        参数:
+            * `version`: 版本号，类似`3.7.0.26`
 
-        Returns
-        -------
-        bool
+        返回:
+            * `bool`: 操作是否成功
 
         """
 
@@ -869,224 +821,194 @@ class ComWechatApi(ComProgress):
         status = self.robot.CUnHookVoiceMsg(self.wechat_pid)
         return status == 0
 
-    def delete_user(self, wxid: str) -> bool:
+    @add_action()
+    def delete_friend(self, wxid: str) -> bool:
         """
-        删除好友
+        说明:
+            删除好友
 
-        Parameters
-        ----------
-        wxid : str
-            被删除好友wxid.
+        参数:
+            * `wxid`: 被删除好友wxid
 
-        Returns
-        -------
-        bool
+        返回:
+            * `bool`: 操作是否成功
 
         """
 
         stauts = self.robot.CDeleteUser(self.wechat_pid, wxid)
         return stauts == 0
 
+    @add_action()
     def send_app_msg(self, wxid: str, appid: str) -> bool:
         """
-        发送小程序
+        说明:
+            发送小程序
 
-        Parameters
-        ----------
-        wxid : str
-            消息接收者wxid.
-        appid : str
-            小程序id (在xml中是username，不是appid).
+        参数:
+            * `wxid`: 消息接收者wxid
+            * `appid`: 小程序id (在xml中是username，不是appid)
 
-        Returns
-        -------
-        bool
+        返回:
+            * `bool`: 操作是否成功
 
         """
 
         status = self.robot.CSendAppMsg(self.wechat_pid, wxid, appid)
         return status == 0
 
+    @add_action()
     def edit_remark(self, wxid: str, remark: Optional[str]) -> bool:
         """
-        修改好友或群聊备注
+        说明:
+            修改好友或群聊备注
 
-        Parameters
-        ----------
-        wxid : str
-            wxid或chatroom_id.
-        remark : str or None
-            要修改的备注.
+        参数:
+            * `wxid`: wxid或group_id
+            * `remark`: 要修改的备注
 
-        Returns
-        -------
-        bool
-
+        返回:
+            * `bool`: 操作是否成功
         """
 
         status = self.robot.CEditRemark(self.wechat_pid, wxid, remark)
         return status == 0
 
-    def set_group_name(self, chatroom_id: str, name: str) -> bool:
+    @add_action()
+    def set_group_name(self, group_id: str, name: str) -> bool:
         """
-        修改群名称.请确认具有相关权限再调用。
+        说明:
+            修改群名称.请确认具有相关权限再调用。
 
-        Parameters
-        ----------
-        chatroom_id : str
-            群聊id.
-        name : str
-            要修改为的群名称.
+        参数:
+            * `group_id`: 群聊id
+            * `name`: 要修改为的群名称
 
-        Returns
-        -------
-        bool
-
+        返回:
+            * `bool`: 操作是否成功
         """
 
-        status = self.robot.CSetChatRoomName(self.wechat_pid, chatroom_id, name)
+        status = self.robot.CSetChatRoomName(self.wechat_pid, group_id, name)
         return status == 0
 
+    @add_action()
     def set_group_announcement(
-        self, chatroom_id: str, announcement: Optional[str]
+        self, group_id: str, announcement: Optional[str]
     ) -> bool:
         """
-        设置群公告.请确认具有相关权限再调用。
+        说明:
+            设置群公告.请确认具有相关权限再调用。
 
-        Parameters
-        ----------
-        chatroom_id : str
-            群聊id.
-        announcement : str or None
-            公告内容.
+        参数:
+            * `group_id`: 群聊id
+            * `announcement`: 公告内容
 
-        Returns
-        -------
-        bool
+        返回:
+            * `bool`: 操作是否成功
 
         """
 
         status = self.robot.CSetChatRoomAnnouncement(
-            self.wechat_pid, chatroom_id, announcement
+            self.wechat_pid, group_id, announcement
         )
         return status == 0
 
-    def set_group_nickname(self, chatroom_id: str, nickname: str) -> bool:
+    @add_action()
+    def set_group_nickname(self, group_id: str, nickname: str) -> bool:
         """
-        设置群内个人昵称
+        说明:
+            设置群内个人昵称
 
-        Parameters
-        ----------
-        chatroom_id : str
-            群聊id.
-        nickname : str
-            要修改为的昵称.
+        参数:
+            * `group_id`: 群聊id
+            * `announcement`: 要修改为的昵称
 
-        Returns
-        -------
-        bool
-
+        返回:
+            * `bool`: 操作是否成功
         """
 
         stauts = self.robot.CSetChatRoomSelfNickname(
-            self.wechat_pid, chatroom_id, nickname
+            self.wechat_pid, group_id, nickname
         )
         return stauts == 0
 
-    def get_groupmember_nickname(self, chatroom_id: str, wxid: str) -> str:
+    @add_action()
+    def get_groupmember_nickname(self, group_id: str, wxid: str) -> str:
         """
-        获取群成员昵称
+        说明:
+            获取群成员昵称
 
-        Parameters
-        ----------
-        chatroom_id : str
-            群聊id.
-        wxid : str
-            群成员wxid.
+        参数:
+            * `group_id`: 群聊id
+            * `wxid`: 群成员wxid
 
-        Returns
-        -------
-        str
-            成功返回群成员昵称,失败返回空字符串.
-
+        返回:
+            * `str`: 成功返回群成员昵称,失败返回空字符串
         """
 
-        return self.robot.CGetChatRoomMemberNickname(self.wechat_pid, chatroom_id, wxid)
+        return self.robot.CGetChatRoomMemberNickname(self.wechat_pid, group_id, wxid)
 
-    def delete_groupmember(self, chatroom_id: str, wxid_list: Union[str, list]) -> bool:
+    @add_action()
+    def delete_groupmember(self, group_id: str, wxid_list: Union[str, list]) -> bool:
         """
-        删除群成员.请确认具有相关权限再调用。
+        说明:
+            删除群成员.请确认具有相关权限再调用。
 
-        Parameters
-        ----------
-        chatroom_id : str
-            群聊id.
-        wxid_list : str or list or tuple
-            要删除的成员wxid或wxid列表.
+        参数:
+            * `group_id`: 群聊id
+            * `wxid_list`: 要删除的成员wxid或wxid列表
 
-        Returns
-        -------
-        bool
-
+        返回:
+            * `bool`: 操作是否成功
         """
 
-        status = self.robot.CDelChatRoomMember(self.wechat_pid, chatroom_id, wxid_list)
+        status = self.robot.CDelChatRoomMember(self.wechat_pid, group_id, wxid_list)
         return status == 0
 
-    def add_groupmember(self, chatroom_id: str, wxid_list: Union[str, list]) -> bool:
+    @add_action()
+    def add_groupmember(self, group_id: str, wxid_list: Union[str, list]) -> bool:
         """
-        添加群成员.请确认具有相关权限再调用。
+        说明:
+            添加群成员.请确认具有相关权限再调用。
 
-        Parameters
-        ----------
-        chatroom_id : str
-            群聊id.
-        wxid_list : str or list or tuple
-            要添加的成员wxid或wxid列表.
+        参数:
+            * `group_id`: 群聊id
+            * `wxid_list`: 要添加的成员wxid或wxid列表
 
-        Returns
-        -------
-        bool
-
+        返回:
+            * `bool`: 操作是否成功
         """
 
-        status = self.robot.CAddChatRoomMember(self.wechat_pid, chatroom_id, wxid_list)
+        status = self.robot.CAddChatRoomMember(self.wechat_pid, group_id, wxid_list)
         return status == 0
 
+    @add_action()
     def open_browser(self, url: str) -> bool:
         """
-        打开微信内置浏览器
+        说明:
+            打开微信内置浏览器
 
-        Parameters
-        ----------
-        url : str
-            目标网页url.
+        参数:
+            * `url`: 目标网页url
 
-        Returns
-        -------
-        bool
-
+        返回:
+            * `bool`: 操作是否成功
         """
 
         status = self.robot.COpenBrowser(self.wechat_pid, url)
         return status == 0
 
+    @add_action()
     def get_history_public_msg(self, public_id: str, offset: str = "") -> str:
         """
-        获取公众号历史消息，一次获取十条推送记录
+        说明:
+            获取公众号历史消息，一次获取十条推送记录
 
-        Parameters
-        ----------
-        public_id : str
-            公众号id.
-        offset : str, optional
-            起始偏移，为空的话则从新到久获取十条，该值可从返回数据中取得. The default is "".
+        参数:
+            * `public_id`: 公众号id
+            * `offset`: 起始偏移，为空的话则从新到久获取十条，该值可从返回数据中取得. The default is ""
 
-        Returns
-        -------
-        str
-            成功返回json数据，失败返回错误信息或空字符串.
-
+        返回:
+            * `bool`: 操作是否成功
         """
 
         ret = self.robot.CGetHistoryPublicMsg(self.wechat_pid, public_id, offset)[0]
@@ -1096,25 +1018,21 @@ class ComWechatApi(ComProgress):
             pass
         return ret
 
-    def send_forward_msg(self, wxid: str, msgid: int) -> bool:
+    @add_action()
+    def send_forward_msg(self, wxid: str, message_id: int) -> bool:
         """
-        转发消息，只支持单条转发
+        说明:
+            转发消息，只支持单条转发
 
-        Parameters
-        ----------
-        wxid : str
-            消息接收人wxid.
-        msgid : int
-            消息id，可以在实时消息接口中获取.
+        参数:
+            * `wxid`: 消息接收人wxid
+            * `message_id`: 消息id，可以在实时消息接口中获取.
 
-        Returns
-        -------
-        int
-            成功返回0，失败返回非0值.
-
+        返回:
+            * `bool`: 操作是否成功
         """
 
-        status = self.robot.CForwardMessage(self.wechat_pid, wxid, msgid)
+        status = self.robot.CForwardMessage(self.wechat_pid, wxid, message_id)
         return status == 0
 
     def get_qrcode_image(self) -> bytes:
@@ -1137,20 +1055,17 @@ class ComWechatApi(ComProgress):
         data = self.robot.CGetQrcodeImage(self.wechat_pid)
         return bytes(data)
 
+    @add_action()
     def get_a8key(self, url: str) -> Union[dict, str]:
         """
-        获取A8Key
+        说明:
+            获取A8Key
 
-        Parameters
-        ----------
-        url : str
-            公众号文章链接.
+        参数:
+            * `url`: 公众号文章链接
 
-        Returns
-        -------
-        dict
-            成功返回A8Key信息，失败返回空字符串.
-
+        返回:
+            * `dict | str`: 成功返回A8Key信息，失败返回空字符串
         """
 
         ret = self.robot.CGetA8Key(self.wechat_pid, url)
@@ -1160,27 +1075,22 @@ class ComWechatApi(ComProgress):
             pass
         return ret
 
-    def send_origin_xml(self, wxid: str, xml: str, img_path: str = "") -> bool:
+    @add_action()
+    def send_xml(self, wxid: str, xml: str, image_path: str = "") -> bool:
         """
-        发送原始xml消息
+        说明:
+            发送原始xml消息
 
-        Parameters
-        ----------
-        wxid : str
-            消息接收人.
-        xml : str
-            xml内容.
-        img_path : str, optional
-            图片路径. 默认为空.
+        参数:
+            * `wxid`: 消息接收人
+            * `xml`: xml内容
+            * `image_path`: 图片路径. 默认为空.
 
-        Returns
-        -------
-        int
-            发送成功返回0，发送失败返回非0值.
-
+        返回:
+            * `bool`: 操作是否成功
         """
 
-        status = self.robot.CSendXmlMsg(self.wechat_pid, wxid, xml, img_path)
+        status = self.robot.CSendXmlMsg(self.wechat_pid, wxid, xml, image_path)
         return status == 0
 
     def logout(self) -> bool:
@@ -1197,24 +1107,19 @@ class ComWechatApi(ComProgress):
         status = self.robot.CLogout(self.wechat_pid)
         return status == 0
 
+    @add_action()
     def get_transfer(self, wxid: str, transcationid: str, transferid: str) -> bool:
         """
-        收款
+        说明:
+            收款
 
-        Parameters
-        ----------
-        wxid : str
-            转账人wxid.
-        transcationid : str
-            从转账消息xml中获取.
-        transferid : str
-            从转账消息xml中获取.
+        参数:
+            * `wxid`: 转账人wxid
+            * `transcationid`: 从转账消息xml中获取
+            * `transferid`: 从转账消息xml中获取
 
-        Returns
-        -------
-        int
-            成功返回0，失败返回非0值.
-
+        返回:
+            * `bool`: 操作是否成功
         """
 
         status = self.robot.CGetTransfer(
@@ -1222,25 +1127,21 @@ class ComWechatApi(ComProgress):
         )
         return status == 0
 
-    def send_gif_msg(self, wxid: str, img_path: str) -> bool:
+    @add_action()
+    def send_gif(self, wxid: str, image_path: str) -> bool:
         """
-        发送gif表情
+        说明:
+            发送gif表情
 
-        Parameters
-        ----------
-        wxid : str
-            消息接收者wxid.
-        img_path : str
-            图片绝对路径.
+        参数:
+            * `wxid`: 转账人wxid
+            * `image_path`: 从转账消息xml中获取
 
-        Returns
-        -------
-        int
-            0成功,非0失败.
-
+        返回:
+            * `bool`: 操作是否成功
         """
 
-        status = self.robot.CSendEmotion(self.wechat_pid, wxid, img_path)
+        status = self.robot.CSendEmotion(self.wechat_pid, wxid, image_path)
         return status == 0
 
     def _GetMsgCDN(self, msgid: int) -> str:
