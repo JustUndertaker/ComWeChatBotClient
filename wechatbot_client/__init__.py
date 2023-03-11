@@ -1,12 +1,11 @@
 import importlib
-from functools import partial
 
 from fastapi import FastAPI
 
 from wechatbot_client.config import Config, Env
+from wechatbot_client.driver import Driver
 from wechatbot_client.log import default_filter, log_init, logger
 from wechatbot_client.wechat import WeChatManager
-from wechatbot_client.wechat.driver import Driver
 
 _WeChat: WeChatManager = None
 """微信管理器"""

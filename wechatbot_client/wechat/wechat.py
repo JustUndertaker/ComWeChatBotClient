@@ -8,10 +8,10 @@ from wechatbot_client.action import (
     check_action_params,
 )
 from wechatbot_client.config import Config
+from wechatbot_client.driver import Driver
 from wechatbot_client.log import logger
 
 from .api_manager import ApiManager
-from .driver import Driver
 
 
 class WeChatManager:
