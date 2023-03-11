@@ -26,10 +26,6 @@ def init() -> None:
 
     _WeChat = WeChatManager(config)
     _WeChat.init()
-    driver = _WeChat.driver
-    file_path = config.cache_path
-    driver.on_startup(partial(_WeChat.open_recv_msg, file_path))
-    driver.on_shutdown(_WeChat.close)
 
 
 def run() -> None:
