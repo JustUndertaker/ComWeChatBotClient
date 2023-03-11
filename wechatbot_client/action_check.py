@@ -52,27 +52,24 @@ def check_action_params(request: Request) -> None:
     return
 
 
-def add_action() -> Callable[..., Any]:
+def add_action(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     说明:
         使用此装饰器表示将此函数加入action字典中，会生成验证模型，注意参数的类型标注
     """
 
-    def _wrapper(func: Callable[..., Any]) -> Callable[..., Any]:
-        global ACTION_DICT
-        signature = get_typed_signature(func)
-        field = {}
-        for parameter in signature.parameters.values():
-            name = parameter.name
-            annotation = parameter.annotation
-            default = parameter.default
-            if name != "self":
-                if default == Parameter.empty:
-                    field[name] = (annotation, ...)
-                else:
-                    field[name] = (annotation, default)
-        action_type = create_model(func.__name__, __config__=ModelConfig, **field)
-        ACTION_DICT[func.__name__] = action_type
-        return func
-
-    return _wrapper
+    global ACTION_DICT
+    signature = get_typed_signature(func)
+    field = {}
+    for parameter in signature.parameters.values():
+        name = parameter.name
+        annotation = parameter.annotation
+        default = parameter.default
+        if name != "self":
+            if default == Parameter.empty:
+                field[name] = (annotation, ...)
+            else:
+                field[name] = (annotation, default)
+    action_type = create_model(func.__name__, __config__=ModelConfig, **field)
+    ACTION_DICT[func.__name__] = action_type
+    return func
