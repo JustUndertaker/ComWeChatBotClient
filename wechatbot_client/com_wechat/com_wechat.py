@@ -1134,8 +1134,8 @@ class ComWechatApi(ComProgress):
             发送gif表情
 
         参数:
-            * `wxid`: 转账人wxid
-            * `image_path`: 从转账消息xml中获取
+            * `wxid`: 发送id
+            * `image_path`: 图片路径
 
         返回:
             * `bool`: 操作是否成功
