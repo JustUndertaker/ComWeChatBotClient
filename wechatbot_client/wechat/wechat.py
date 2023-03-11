@@ -9,7 +9,7 @@ from .api_manager import ApiManager
 
 class WeChatManager(Adapter):
     """
-    微信客户端管理
+    微信客户端行为管理
     """
 
     api_manager: ApiManager
@@ -18,6 +18,7 @@ class WeChatManager(Adapter):
     """自身微信id"""
 
     def __init__(self, config: Config) -> None:
+        super().__init__(config)
         self.api_manager = ApiManager()
         self.self_id = None
 

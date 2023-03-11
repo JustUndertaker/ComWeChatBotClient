@@ -1,5 +1,5 @@
 """
-处理driver和websocket管理
+adapter,用来管理driver和websocket
 """
 import asyncio
 import contextlib
