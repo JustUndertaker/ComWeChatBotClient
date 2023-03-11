@@ -1,5 +1,6 @@
 import time
 from pathlib import Path
+from typing import Callable
 
 from wechatbot_client.action import Request, Response
 from wechatbot_client.com_wechat import ComWechatApi
@@ -61,12 +62,6 @@ class ApiManager:
             except KeyboardInterrupt:
                 return False
 
-    def _register_msg_event(self) -> None:
-        """
-        注册消息事件
-        """
-        ...
-
     def open_recv_msg(self, file_path: str) -> None:
         """
         注册接收消息
@@ -92,9 +87,6 @@ class ApiManager:
         if not result:
             logger.error("<r>启动语音hook失败...</r>")
         logger.debug("<g>启动语音hook成功...</g>")
-        # 开始监听
-        self.api.start_msg_recv()
-        logger.info("<g>开始监听消息...</g>")
 
     def close(self) -> None:
         """
@@ -128,3 +120,7 @@ class ApiManager:
             return Response(status=500, msg="内部服务错误...", data={})
         logger.debug(f"<g>调用api成功，返回:</g> {escape_tag(str(result))}")
         return Response(status=200, msg="请求成功", data=result)
+
+    def register_message_handler(self, func: Callable[[str], None]) -> None:
+        """注册一个消息处理器"""
+        self.api.register_message_handler(func)

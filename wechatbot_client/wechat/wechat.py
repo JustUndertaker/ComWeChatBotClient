@@ -1,3 +1,5 @@
+from typing import Callable
+
 from wechatbot_client.action import (
     HttpRequest,
     HttpResponse,
@@ -58,6 +60,12 @@ class WeChatManager:
         管理微信管理模块
         """
         self.api_manager.close()
+
+    def register_message_handler(self, func: Callable[[str], None]) -> None:
+        """
+        注册一个消息处理器
+        """
+        self.api_manager.register_message_handler(func)
 
     async def _handle_api(self, request: Request) -> Response:
         """

@@ -1,10 +1,10 @@
 import asyncio
 import json
 from pathlib import Path
-from typing import Literal, Optional, Tuple, Union
+from typing import Callable, Literal, Optional, Tuple, Union
 
 import psutil
-from comtypes.client import CreateObject, GetEvents, PumpEvents
+from comtypes.client import CreateObject, GetEvents
 
 from wechatbot_client.action import add_action
 from wechatbot_client.log import logger
@@ -16,9 +16,18 @@ class MessageReporter:
     消息接收器
     """
 
+    func: Callable[[str], None] = None
+    """消息处理器"""
+
     def OnGetMessageEvent(self, message: Tuple[str, None]):
         msg = message[0]
         logger.success(f"<g>接收到wechat消息</g> - {escape_tag(msg)}")
+        if self.func:
+            self.func(msg)
+
+    def register_message_handler(self, func: Callable[[str], None]) -> None:
+        """注册一个消息处理器"""
+        self.func = func
 
 
 class ComProgress:
@@ -80,21 +89,9 @@ class ComProgress:
             self.wechat_pid, self.connection_point.cookie
         )
 
-    async def _pump_event(self) -> None:
-        """接收event"""
-        while True:
-            try:
-                await asyncio.sleep(0)
-                PumpEvents(0.01)
-            except KeyboardInterrupt:
-                logger.info("<g>事件接收已关闭，再使用 'ctrl + c' 结束进程...</g>")
-                return
-
-    def start_msg_recv(self) -> None:
-        """
-        开始接收消息
-        """
-        asyncio.create_task(self._pump_event())
+    def register_message_handler(self, func: Callable[[str], None]) -> None:
+        """注册一个消息处理器"""
+        self.msg_reporter.register_message_handler(func)
 
 
 class ComWechatApi(ComProgress):
