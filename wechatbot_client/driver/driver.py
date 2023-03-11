@@ -85,6 +85,7 @@ class Driver:
         """驱动名称: `fastapi`"""
         return "fastapi"
 
+    @property
     def server_app(self) -> FastAPI:
         """`FastAPI APP` 对象"""
         return self._server_app
@@ -147,7 +148,7 @@ class Driver:
             "disable_existing_loggers": False,
             "handlers": {
                 "default": {
-                    "class": "nonebot.log.LoguruHandler",
+                    "class": "wechatbot_client.log.LoguruHandler",
                 },
             },
             "loggers": {
