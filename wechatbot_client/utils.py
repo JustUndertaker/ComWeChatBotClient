@@ -5,7 +5,7 @@ import asyncio
 import inspect
 import re
 from functools import partial, wraps
-from typing import Any, Callable, Coroutine, ForwardRef, ParamSpec, TypeVar
+from typing import Any, Callable, Coroutine, ForwardRef, Optional, ParamSpec, TypeVar
 
 from pydantic.typing import evaluate_forwardref
 
@@ -72,3 +72,25 @@ def get_typed_annotation(param: inspect.Parameter, globalns: dict[str, Any]) -> 
             )
             return inspect.Parameter.empty
     return annotation
+
+
+def logger_wrapper(logger_name: str):
+    """用于打印 adapter 的日志。
+
+    参数:
+        logger_name: adapter 的名称
+
+    返回:
+        日志记录函数
+
+            - level: 日志等级
+            - message: 日志信息
+            - exception: 异常信息
+    """
+
+    def log(level: str, message: str, exception: Optional[Exception] = None):
+        logger.opt(colors=True, exception=exception).log(
+            level, f"<m>{escape_tag(logger_name)}</m> | {message}"
+        )
+
+    return log

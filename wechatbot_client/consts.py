@@ -11,3 +11,5 @@ ONEBOT_VERSION = "12"
 """onebot版本"""
 USER_AGENT = "OneBot/12(ComWeChat)"
 """协议头ua"""
+RECONNECT_INTERVAL = 10
+"""onebot正向ws重连时间"""

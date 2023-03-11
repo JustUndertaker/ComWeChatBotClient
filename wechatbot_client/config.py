@@ -179,6 +179,10 @@ class Config(BaseConfig):
     """下载pc图片超时时间(s)，超时的图片不会解密"""
     timeout_image_send: bool = False
     """超时的图片消息是否继续发送"""
+    onebot_access_token: str
+    """onebot12的access token"""
+    onebot_ws_urls: set[str]
+    """onebot12正向ws的地址"""
 
     class Config:
         extra = "allow"

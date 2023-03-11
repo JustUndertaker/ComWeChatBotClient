@@ -1,25 +1,28 @@
+"""
+通用请求模型
+"""
 import abc
 import urllib.request
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
 from http.cookiejar import Cookie, CookieJar
 from typing import (
     IO,
     Any,
+    Awaitable,
+    Callable,
     Dict,
+    Iterator,
     List,
+    Mapping,
+    MutableMapping,
+    Optional,
     Tuple,
     Union,
-    Mapping,
-    Callable,
-    Iterator,
-    Optional,
-    Awaitable,
-    MutableMapping,
 )
 
-from yarl import URL as URL
 from multidict import CIMultiDict
+from yarl import URL as URL
 
 RawURL = Tuple[bytes, bytes, Optional[int], bytes]
 

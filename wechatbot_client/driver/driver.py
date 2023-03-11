@@ -1,42 +1,26 @@
 """
-
+后端驱动driver
 """
-
-
 import contextlib
 import logging
-from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+import sys
+from typing import Any, AsyncGenerator, Callable, Optional, Tuple, Union
 
 import httpx
 import uvicorn
-from fastapi import FastAPI, Request, UploadFile, status
+from fastapi import FastAPI, Request, UploadFile
 from fastapi.responses import Response
 from pydantic import BaseSettings
-from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
+from starlette.websockets import WebSocket
+from websockets.legacy.client import Connect
 
 from wechatbot_client.config import Config as BaseConfig
-from wechatbot_client.exception import WebSocketClosed
-from wechatbot_client.typing import overrides
 
+from .base import FastAPIWebSocket, ForwardWebSocket
 from .model import FileTypes, HTTPServerSetup, HTTPVersion
 from .model import Request as BaseRequest
 from .model import Response as BaseResponse
-from .model import WebSocket as BaseWebSocket
 from .model import WebSocketServerSetup
-
-
-def catch_closed(func):
-    @wraps(func)
-    async def decorator(*args, **kwargs):
-        try:
-            return await func(*args, **kwargs)
-        except WebSocketDisconnect as e:
-            raise WebSocketClosed(e.code)
-        except KeyError:
-            raise TypeError("WebSocket received unexpected frame type")
-
-    return decorator
 
 
 class Config(BaseSettings):
@@ -52,15 +36,15 @@ class Config(BaseSettings):
     """是否包含适配器路由的 schema，默认为 `True`"""
     fastapi_reload: bool = False
     """开启/关闭冷重载"""
-    fastapi_reload_dirs: Optional[List[str]] = None
+    fastapi_reload_dirs: Optional[list[str]] = None
     """重载监控文件夹列表，默认为 uvicorn 默认值"""
     fastapi_reload_delay: float = 0.25
     """重载延迟，默认为 uvicorn 默认值"""
-    fastapi_reload_includes: Optional[List[str]] = None
+    fastapi_reload_includes: Optional[list[str]] = None
     """要监听的文件列表，支持 glob pattern，默认为 uvicorn 默认值"""
-    fastapi_reload_excludes: Optional[List[str]] = None
+    fastapi_reload_excludes: Optional[list[str]] = None
     """不要监听的文件列表，支持 glob pattern，默认为 uvicorn 默认值"""
-    fastapi_extra: Dict[str, Any] = {}
+    fastapi_extra: dict[str, Any] = {}
     """传递给 `FastAPI` 的其他参数。"""
 
     class Config:
@@ -69,6 +53,9 @@ class Config(BaseSettings):
 
 class Driver:
     """FastAPI 驱动框架。"""
+
+    connects: dict[int, Union[FastAPIWebSocket, ForwardWebSocket]]
+    """维护的连接字典"""
 
     def __init__(self, config: BaseConfig) -> None:
         self.config = config
@@ -80,6 +67,12 @@ class Driver:
             redoc_url=self.fastapi_config.fastapi_redoc_url,
             **self.fastapi_config.fastapi_extra,
         )
+
+    def get_seq(self) -> int:
+        """获取一个seq，用来维护ws连接"""
+        s = self._seq
+        self._seq = (self._seq + 1) % sys.maxsize
+        return s
 
     def type(self) -> str:
         """驱动名称: `fastapi`"""
@@ -182,7 +175,7 @@ class Driver:
             json = await request.json()
 
         data: Optional[dict] = None
-        files: Optional[List[Tuple[str, FileTypes]]] = None
+        files: Optional[list[Tuple[str, FileTypes]]] = None
         with contextlib.suppress(Exception):
             form = await request.form()
             data = {}
@@ -256,55 +249,34 @@ class Driver:
                 request=setup,
             )
 
-
-class FastAPIWebSocket(BaseWebSocket):
-    """FastAPI WebSocket Wrapper"""
-
-    @overrides(BaseWebSocket)
-    def __init__(self, *, request: BaseRequest, websocket: WebSocket) -> None:
-        super().__init__(request=request)
-        self.websocket = websocket
-
-    @property
-    @overrides(BaseWebSocket)
-    def closed(self) -> bool:
-        return (
-            self.websocket.client_state == WebSocketState.DISCONNECTED
-            or self.websocket.application_state == WebSocketState.DISCONNECTED
+    @contextlib.asynccontextmanager
+    async def websocket(
+        self, setup: BaseRequest
+    ) -> AsyncGenerator["ForwardWebSocket", None]:
+        connection = Connect(
+            str(setup.url),
+            extra_headers={**setup.headers, **setup.cookies.as_header(setup)},
+            open_timeout=setup.timeout,
         )
+        async with connection as ws:
+            yield ForwardWebSocket(request=setup, websocket=ws)
 
-    @overrides(BaseWebSocket)
-    async def accept(self) -> None:
-        await self.websocket.accept()
+    def ws_connect(self, websocket: Union[FastAPIWebSocket, ForwardWebSocket]) -> int:
+        """
+        添加websoket连接,返回一个seq
+        """
+        seq = self.get_seq()
+        self.connects[seq] = websocket
+        return seq
 
-    @overrides(BaseWebSocket)
-    async def close(
-        self, code: int = status.WS_1000_NORMAL_CLOSURE, reason: str = ""
-    ) -> None:
-        await self.websocket.close(code, reason)
+    def ws_disconnect(self, seq: int) -> None:
+        """ws断开连接"""
+        self.connects.pop(seq)
 
-    @overrides(BaseWebSocket)
-    async def receive(self) -> Union[str, bytes]:
-        # assert self.websocket.application_state == WebSocketState.CONNECTED
-        msg = await self.websocket.receive()
-        if msg["type"] == "websocket.disconnect":
-            raise WebSocketClosed(msg["code"])
-        return msg["text"] if "text" in msg else msg["bytes"]
-
-    @overrides(BaseWebSocket)
-    @catch_closed
-    async def receive_text(self) -> str:
-        return await self.websocket.receive_text()
-
-    @overrides(BaseWebSocket)
-    @catch_closed
-    async def receive_bytes(self) -> bytes:
-        return await self.websocket.receive_bytes()
-
-    @overrides(BaseWebSocket)
-    async def send_text(self, data: str) -> None:
-        await self.websocket.send({"type": "websocket.send", "text": data})
-
-    @overrides(BaseWebSocket)
-    async def send_bytes(self, data: bytes) -> None:
-        await self.websocket.send({"type": "websocket.send", "bytes": data})
+    def check_websocket_in(
+        self, websocket: Union[FastAPIWebSocket, ForwardWebSocket]
+    ) -> bool:
+        """
+        检测websocket是否在维护字典中
+        """
+        return websocket in self.connects.keys()
