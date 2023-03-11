@@ -2,9 +2,9 @@ from functools import partial
 
 from fastapi import FastAPI
 
+from wechatbot_client.com.http import router
 from wechatbot_client.config import Config, Env
 from wechatbot_client.driver import Driver
-from wechatbot_client.http import router
 from wechatbot_client.log import default_filter, log_init, logger
 from wechatbot_client.wechat import get_wechat
 

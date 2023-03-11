@@ -1,9 +1,9 @@
 import time
 from pathlib import Path
 
+from wechatbot_client.action import Request, Response
 from wechatbot_client.com_wechat import ComWechatApi
 from wechatbot_client.log import logger
-from wechatbot_client.model import Request, Response
 from wechatbot_client.utils import escape_tag
 
 

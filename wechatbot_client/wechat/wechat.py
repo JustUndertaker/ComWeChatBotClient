@@ -1,7 +1,12 @@
-from wechatbot_client.action_check import check_action_params
+from wechatbot_client.action import (
+    HttpRequest,
+    HttpResponse,
+    Request,
+    Response,
+    check_action_params,
+)
 from wechatbot_client.config import Config
 from wechatbot_client.log import logger
-from wechatbot_client.model import HttpRequest, HttpResponse, Request, Response
 
 from .api_manager import ApiManager
 

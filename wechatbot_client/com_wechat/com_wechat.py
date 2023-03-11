@@ -6,7 +6,7 @@ from typing import Literal, Optional, Tuple, Union
 import psutil
 from comtypes.client import CreateObject, GetEvents, PumpEvents
 
-from wechatbot_client.action_check import add_action
+from wechatbot_client.action import add_action
 from wechatbot_client.log import logger
 from wechatbot_client.utils import escape_tag
 

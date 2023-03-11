@@ -8,8 +8,9 @@ from typing import Any, Callable, Type
 from pydantic import BaseConfig, BaseModel, Extra, ValidationError, create_model
 
 from wechatbot_client.log import logger
-from wechatbot_client.model import Request
 from wechatbot_client.utils import get_typed_signature
+
+from .model import Request
 
 ACTION_DICT: dict[str, Type[BaseModel]] = {}
 """action模型字典"""
