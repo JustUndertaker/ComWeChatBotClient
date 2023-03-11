@@ -1,3 +1,4 @@
+import importlib
 from functools import partial
 
 from fastapi import FastAPI
@@ -26,7 +27,6 @@ def init() -> None:
     _WeChat = WeChatManager(config)
     _WeChat.init()
     driver = _WeChat.driver
-    logger.success("<g>http api已开启...</g>")
     file_path = config.cache_path
     driver.on_startup(partial(_WeChat.open_recv_msg, file_path))
     driver.on_shutdown(_WeChat.close)
@@ -68,3 +68,11 @@ def get_app() -> FastAPI:
     """
     driver = get_driver()
     return driver.server_app
+
+
+def load(name: str) -> None:
+    """
+    加载指定的模块
+    """
+    importlib.import_module(name)
+    logger.success(f"<g>加载[{name}]成功...</g>")
