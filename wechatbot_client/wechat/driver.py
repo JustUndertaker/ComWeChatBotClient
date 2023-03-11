@@ -8,7 +8,7 @@ import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from .config import Config as BaseConfig
+from wechatbot_client.config import Config as BaseConfig
 
 
 class Config(BaseModel):

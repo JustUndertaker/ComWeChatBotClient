@@ -2,21 +2,20 @@ from functools import partial
 
 from fastapi import FastAPI
 
-from wechatbot_client.com.http import router
 from wechatbot_client.config import Config, Env
-from wechatbot_client.driver import Driver
 from wechatbot_client.log import default_filter, log_init, logger
-from wechatbot_client.wechat import get_wechat
+from wechatbot_client.wechat import WeChatManager
+from wechatbot_client.wechat.driver import Driver
 
-_Driver: Driver = None
-"""全局后端驱动器"""
+_WeChat: WeChatManager = None
+"""微信管理器"""
 
 
 def init() -> None:
     """
     初始化client
     """
-    global _Driver
+    global _WeChat
     env = Env()
     config = Config(_common_config=env.dict())
     default_filter.level = config.log_level
@@ -24,33 +23,38 @@ def init() -> None:
     logger.info(f"Current <y><b>Env: {env.environment}</b></y>")
     logger.debug(f"Loaded <y><b>Config</b></y>: {str(config.dict())}")
 
-    _Driver = Driver(config)
-    _WeChat = get_wechat()
-    _WeChat.init(config)
-
-    app = _Driver.server_app
-    app.include_router(router)
+    _WeChat = WeChatManager(config)
+    _WeChat.init()
+    driver = _WeChat.driver
     logger.success("<g>http api已开启...</g>")
     file_path = config.cache_path
-    _Driver.on_startup(partial(_WeChat.open_recv_msg, file_path))
-    _Driver.on_shutdown(_WeChat.close)
+    driver.on_startup(partial(_WeChat.open_recv_msg, file_path))
+    driver.on_shutdown(_WeChat.close)
 
 
 def run() -> None:
     """
     启动
     """
-
-    _Driver.run()
+    driver = get_driver()
+    driver.run()
 
 
 def get_driver() -> Driver:
     """
     获取后端驱动器
     """
-    if _Driver is None:
-        raise ValueError("驱动器尚未初始化...")
-    return _Driver
+    wechat = get_wechat()
+    return wechat.driver
+
+
+def get_wechat() -> WeChatManager:
+    """
+    获取wechat管理器
+    """
+    if _WeChat is None:
+        raise ValueError("wechat管理端尚未初始化...")
+    return _WeChat
 
 
 def get_app() -> FastAPI:

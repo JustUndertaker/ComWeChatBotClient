@@ -3,10 +3,10 @@
 from fastapi import APIRouter, Body, Response
 from pydantic.error_wrappers import ValidationError
 
+from wechatbot_client import get_wechat
 from wechatbot_client.action import HttpRequest, HttpResponse
 from wechatbot_client.log import logger
 from wechatbot_client.utils import escape_tag
-from wechatbot_client.wechat import get_wechat
 
 router = APIRouter()
 

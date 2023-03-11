@@ -9,6 +9,7 @@ from wechatbot_client.config import Config
 from wechatbot_client.log import logger
 
 from .api_manager import ApiManager
+from .driver import Driver
 
 
 class WeChatManager:
@@ -26,17 +27,19 @@ class WeChatManager:
     """
     self_id: str
     """自身微信id"""
+    driver: Driver
+    """后端驱动"""
 
-    def __init__(self) -> None:
-        self.config = None
+    def __init__(self, config: Config) -> None:
+        self.config = config
+        self.driver = Driver(config)
         self.api_manager = ApiManager()
         self.self_id = None
 
-    def init(self, config: Config) -> None:
+    def init(self) -> None:
         """
-        初始化wechat管理端，需要在uvicorn.run之前执行
+        初始化wechat管理端
         """
-        self.config = config
         self.api_manager.init()
 
         logger.debug("<y>开始获取wxid...</y>")
