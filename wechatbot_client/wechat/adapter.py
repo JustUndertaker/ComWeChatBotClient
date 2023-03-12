@@ -114,7 +114,7 @@ class Adapter:
                 )
                 if action := self.json_to_ws_action(raw_data):
                     response = await self.action_ws_request(action)
-                    await websocket.send(json.dumps(response, ensure_ascii=False))
+                    await websocket.send(response.json(ensure_ascii=False))
         except WebSocketClosed:
             log(
                 "WARNING",
@@ -152,7 +152,17 @@ class Adapter:
             json_data = json.loads(data)
             if action := self.json_to_action(json_data):
                 response = await self.action_request(action)
-                return response
+                headers = {
+                    "Content-Type": "application/json",
+                    "User-Agent": USER_AGENT,
+                    "X-Impl": IMPL,
+                    "X-OneBot-Version": f"{ONEBOT_VERSION}",
+                }
+                if self.config.access_token != "":
+                    headers["Authorization"] = f"Bearer {self.config.access_token}"
+                return Response(
+                    200, headers=headers, content=response.json(ensure_ascii=False)
+                )
         return Response(204)
 
     async def start_backward(self) -> None:
