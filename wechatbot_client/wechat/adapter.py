@@ -21,7 +21,7 @@ from wechatbot_client.driver import (
     WebSocketServerSetup,
 )
 from wechatbot_client.exception import WebSocketClosed
-from wechatbot_client.onebot12.event import Event
+from wechatbot_client.onebot12 import ActionRequest, Event, WsActionRequest
 from wechatbot_client.utils import escape_tag
 
 from .utils import flattened_to_nested, get_auth_bearer, log
@@ -37,7 +37,7 @@ class Adapter:
     event_models: dict
     """事件模型映射"""
     tasks: list[asyncio.Task]
-    """正向连接ws任务列表"""
+    """反向连接ws任务列表"""
     driver: Driver
     """后端驱动"""
 
@@ -263,3 +263,22 @@ class Adapter:
                 e,
             )
             return None
+
+    @classmethod
+    def json_to_action(cls, json_data: Any) -> Optional[ActionRequest]:
+        """
+        json转换为action
+        """
+        pass
+
+    @classmethod
+    def json_to_ws_action(cls, json_data: Any) -> Optional[WsActionRequest]:
+        """json转换为wsaction"""
+        if not isinstance(json_data, dict):
+            return None
+        try:
+            echo = json_data.pop("echo")
+        except Exception:
+            return None
+        action = cls.json_to_action(json_data)
+        return WsActionRequest(echo=echo, **action.dict())
