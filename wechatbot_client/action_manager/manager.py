@@ -131,9 +131,11 @@ class ApiManager:
                 result = func(**request.params)
         except Exception as e:
             logger.error(f"<r>调用api错误: {e}</r>")
-            return ActionResponse(status=500, msg="内部服务错误...", data={})
+            return ActionResponse(
+                status="failed", retcode=20002, message="内部服务错误", data=None
+            )
         logger.debug(f"<g>调用api成功，返回:</g> {escape_tag(str(result))}")
-        return ActionResponse(status=200, msg="请求成功", data=result)
+        return result
 
     def register_message_handler(self, func: Callable[[str], None]) -> None:
         """注册一个消息处理器"""

@@ -82,7 +82,7 @@ class WeChatManager(Adapter):
                 message="Param参数错误",
             )
         # 调用api
-        return self.action_manager.request(request)
+        return await self.action_manager.request(request)
 
     @overrides(Adapter)
     async def action_ws_request(self, request: WsActionRequest) -> WsActionResponse:
