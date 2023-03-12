@@ -42,8 +42,8 @@ class Filter:
 
 default_format: str = (
     "<g>{time:MM-DD HH:mm:ss}</g> "
-    "[<lvl>{level}</lvl>] "
-    "<c><u>{name}</u></c> | "
+    "[<lvl>{level:^7}</lvl>] "
+    "<c><u>{name:16}</u></c> | "
     # "<c>{function}:{line}</c>| "
     "{message}"
 )
