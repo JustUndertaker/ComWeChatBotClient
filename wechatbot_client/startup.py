@@ -6,8 +6,8 @@ import asyncio
 from comtypes.client import PumpEvents
 
 from wechatbot_client import get_driver, get_wechat
-from wechatbot_client.com.http import router
 from wechatbot_client.config import Config, WebsocketType
+from wechatbot_client.driver import URL, HTTPServerSetup, WebSocketServerSetup
 from wechatbot_client.log import logger
 
 driver = get_driver()
@@ -26,16 +26,20 @@ async def start_up() -> None:
     wechat.open_recv_msg(config.cache_path)
     # 开始监听event
     pump_event_task = asyncio.create_task(pump_event())
-    logger.success("<g>监听消息任务已开启...</g>")
-    driver.server_app.include_router(router)
-    logger.success("<g>http api已开启...</g>")
+    # 开启http路由
+    if config.enable_http_api:
+        wechat.setup_http_server(
+            HTTPServerSetup(URL("/"), "POST", "onebot", wechat._handle_http)
+        )
     # 开启ws连接任务
     if config.websocekt_type == WebsocketType.Forward:
         # 正向ws
-        wechat.start_forward()
+        await wechat.start_forward()
     elif config.websocekt_type == WebsocketType.Backward:
         # 反向ws
-        pass
+        wechat.setup_websocket_server(
+            WebSocketServerSetup(URL("/"), "onebot", wechat._handle_ws)
+        )
 
 
 @driver.on_shutdown

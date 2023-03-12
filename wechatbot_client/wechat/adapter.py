@@ -121,6 +121,28 @@ class Adapter:
                 await websocket.close()
             self.driver.ws_disconnect(seq)
 
+    async def _handle_http(self, request: Request) -> Response:
+        """处理http任务"""
+        self_id = request.headers.get("x-self-id")
+
+        # check self_id
+        if not self_id:
+            log("WARNING", "Missing X-Self-ID Header")
+            return Response(400, content="Missing X-Self-ID Header")
+
+        # check access_token
+        response = self._check_access_token(request)
+        if response is not None:
+            return response
+
+        data = request.content
+        if data is not None:
+            json_data = json.loads(data)
+            if action := self.json_to_action(json_data):
+                # response = await handle_action(action)
+                return response
+        return Response(204)
+
     async def start_forward(self) -> None:
         """
         开启正向ws连接

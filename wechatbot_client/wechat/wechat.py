@@ -50,3 +50,5 @@ class WeChatManager(Adapter):
         注册一个消息处理器
         """
         self.api_manager.register_message_handler(func)
+
+    async def handle_http_request(self)
