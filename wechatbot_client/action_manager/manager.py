@@ -306,12 +306,3 @@ class ActionManager(ApiManager):
             return ActionResponse(
                 status="failed", retcode=35000, data=None, message="操作失败"
             )
-
-    @add_action
-    def leave_group(self, group_id: str) -> ActionResponse:
-        """
-        退出群
-        """
-        return ActionResponse(
-            status="failed", retcode=10002, data=None, message="未实现的action"
-        )

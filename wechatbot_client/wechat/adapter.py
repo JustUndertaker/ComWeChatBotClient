@@ -79,7 +79,7 @@ class Adapter:
         token = get_auth_bearer(request.headers.get("Authorization"))
 
         access_token = self.config.access_token
-        if access_token and access_token != token:
+        if access_token != "" and access_token != token:
             msg = (
                 "Authorization Header is invalid"
                 if token
@@ -176,7 +176,7 @@ class Adapter:
             "User-Agent": USER_AGENT,
             "Sec-WebSocket-Protocol": f"{ONEBOT_VERSION}.{IMPL}",
         }
-        if self.config.access_token:
+        if self.config.access_token != "":
             headers["Authorization"] = f"Bearer {self.config.access_token}"
         req = Request("GET", url, headers=headers, timeout=30.0)
         log("DEBUG", f"<y>正在连接到url: {url}</y>")
