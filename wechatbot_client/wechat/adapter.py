@@ -43,7 +43,7 @@ class Adapter:
     def __init__(self, config: Config) -> None:
         self.config = config
         self.driver = Driver(config)
-        self.task = []
+        self.tasks = []
 
     def setup_http_server(self, setup: HTTPServerSetup) -> None:
         """设置一个 HTTP 服务器路由配置"""

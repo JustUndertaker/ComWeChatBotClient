@@ -6,8 +6,9 @@ from enum import Enum
 from ipaddress import IPv4Address
 from typing import TYPE_CHECKING, Any, Mapping, Optional, Tuple, Union
 
-from pydantic import AnyUrl, BaseSettings, Extra, IPvAnyAddress
+from pydantic import AnyUrl, BaseSettings, Extra, Field, IPvAnyAddress
 from pydantic.env_settings import (
+    DotenvType,
     EnvSettingsSource,
     InitSettingsSource,
     SettingsError,
@@ -164,10 +165,10 @@ class WSUrl(AnyUrl):
 class Config(BaseConfig):
     """主要配置"""
 
-    _env_file: str = ".env"
+    _env_file: DotenvType = ".env", ".env.prod"
     host: IPvAnyAddress = IPv4Address("127.0.0.1")
     """服务host"""
-    port: int = 8000
+    port: int = Field(default=8080, ge=1, le=65535)
     """服务端口"""
     access_token: str = ""
     """访问令牌"""

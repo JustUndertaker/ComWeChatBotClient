@@ -46,7 +46,7 @@ async def shutdown() -> None:
     if pump_event_task:
         if not pump_event_task.done():
             pump_event_task.cancel()
-    wechat.stop_forward()
+    await wechat.stop_forward()
     wechat.close()
 
 
