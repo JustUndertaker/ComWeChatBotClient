@@ -209,10 +209,9 @@ class Adapter:
                                 if isinstance(data, str)
                                 else msgpack.unpackb(data)
                             )
-                            event = self.json_to_event(raw_data)
-                            if not event:
-                                continue
-                            # asyncio.create_task(handle_event(event))
+                            if action := self.json_to_ws_action(raw_data):
+                                response = await self.action_ws_request(action)
+                                await ws.send(response.json(ensure_ascii=False))
                     except WebSocketClosed as e:
                         log(
                             "ERROR",
