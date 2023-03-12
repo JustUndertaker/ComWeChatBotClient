@@ -1,3 +1,4 @@
+aiosqlite==0.17.0
 anyio==3.6.2
 APScheduler==3.10.1
 certifi==2022.12.7
@@ -10,6 +11,7 @@ h11==0.14.0
 httpcore==0.16.3
 httpx==0.23.3
 idna==3.4
+iso8601==1.1.0
 loguru==0.6.0
 mccabe==0.7.0
 msgpack==1.0.5
@@ -19,6 +21,7 @@ psutil==5.9.4
 pycodestyle==2.10.0
 pydantic==1.10.6
 pyflakes==3.0.1
+pypika-tortoise==0.1.6
 python-dotenv==1.0.0
 pytz==2022.7.1
 pytz-deprecation-shim==0.1.0.post0
@@ -27,6 +30,7 @@ setuptools==65.6.3
 six==1.16.0
 sniffio==1.3.0
 starlette==0.25.0
+tortoise-orm==0.19.3
 typing_extensions==4.5.0
 tzdata==2022.7
 tzlocal==4.2
