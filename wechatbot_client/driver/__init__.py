@@ -3,9 +3,9 @@
 同时使用uvicorn管理各种任务
 """
 
+from .driver import BackwardWebSocket as BackwardWebSocket
 from .driver import Driver as Driver
 from .driver import FastAPIWebSocket as FastAPIWebSocket
-from .driver import ForwardWebSocket as ForwardWebSocket
 from .model import URL as URL
 from .model import ContentTypes as ContentTypes
 from .model import Cookies as Cookies

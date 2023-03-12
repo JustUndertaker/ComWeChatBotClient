@@ -16,7 +16,7 @@ from websockets.legacy.client import Connect
 
 from wechatbot_client.config import Config as BaseConfig
 
-from .base import FastAPIWebSocket, ForwardWebSocket
+from .base import BackwardWebSocket, FastAPIWebSocket
 from .model import FileTypes, HTTPServerSetup, HTTPVersion
 from .model import Request as BaseRequest
 from .model import Response as BaseResponse
@@ -54,7 +54,7 @@ class Config(BaseSettings):
 class Driver:
     """FastAPI 驱动框架。"""
 
-    connects: dict[int, Union[FastAPIWebSocket, ForwardWebSocket]]
+    connects: dict[int, Union[FastAPIWebSocket, BackwardWebSocket]]
     """维护的连接字典"""
 
     def __init__(self, config: BaseConfig) -> None:
@@ -252,16 +252,16 @@ class Driver:
     @contextlib.asynccontextmanager
     async def websocket(
         self, setup: BaseRequest
-    ) -> AsyncGenerator["ForwardWebSocket", None]:
+    ) -> AsyncGenerator["BackwardWebSocket", None]:
         connection = Connect(
             str(setup.url),
             extra_headers={**setup.headers, **setup.cookies.as_header(setup)},
             open_timeout=setup.timeout,
         )
         async with connection as ws:
-            yield ForwardWebSocket(request=setup, websocket=ws)
+            yield BackwardWebSocket(request=setup, websocket=ws)
 
-    def ws_connect(self, websocket: Union[FastAPIWebSocket, ForwardWebSocket]) -> int:
+    def ws_connect(self, websocket: Union[FastAPIWebSocket, BackwardWebSocket]) -> int:
         """
         添加websoket连接,返回一个seq
         """
@@ -274,7 +274,7 @@ class Driver:
         self.connects.pop(seq)
 
     def check_websocket_in(
-        self, websocket: Union[FastAPIWebSocket, ForwardWebSocket]
+        self, websocket: Union[FastAPIWebSocket, BackwardWebSocket]
     ) -> bool:
         """
         检测websocket是否在维护字典中

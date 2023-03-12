@@ -20,8 +20,8 @@ from wechatbot_client.config import Config
 from wechatbot_client.consts import IMPL, ONEBOT_VERSION, USER_AGENT
 from wechatbot_client.driver import (
     URL,
+    BackwardWebSocket,
     Driver,
-    ForwardWebSocket,
     HTTPServerSetup,
     Request,
     Response,
@@ -69,7 +69,9 @@ class Adapter:
         return await self.driver.request(setup)
 
     @contextlib.asynccontextmanager
-    async def websocket(self, setup: Request) -> AsyncGenerator[ForwardWebSocket, None]:
+    async def websocket(
+        self, setup: Request
+    ) -> AsyncGenerator[BackwardWebSocket, None]:
         """建立一个 WebSocket 客户端连接请求"""
         async with self.driver.websocket(setup) as ws:
             yield ws

@@ -100,7 +100,7 @@ class FastAPIWebSocket(BaseWebSocket):
         await self.websocket.send({"type": "websocket.send", "bytes": data})
 
 
-class ForwardWebSocket(BaseWebSocket):
+class BackwardWebSocket(BaseWebSocket):
     """Websockets WebSocket Wrapper"""
 
     @overrides(BaseWebSocket)
