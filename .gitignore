@@ -130,3 +130,4 @@ DWeChatRobot.dll
 logs/
 file_cache/
 data.json
+data/

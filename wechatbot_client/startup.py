@@ -8,6 +8,7 @@ from comtypes.client import PumpEvents
 from wechatbot_client import get_driver, get_wechat
 from wechatbot_client.config import Config, WebsocketType
 from wechatbot_client.driver import URL, HTTPServerSetup, WebSocketServerSetup
+from wechatbot_client.file_manager import database_close, database_init
 from wechatbot_client.log import logger
 from wechatbot_client.test import router
 
@@ -23,6 +24,8 @@ async def start_up() -> None:
     """
     global pump_event_task
     config: Config = wechat.config
+    # 开启数据库
+    await database_init()
     # 注册消息事件
     wechat.open_recv_msg(config.cache_path)
     # 开始监听event
@@ -50,6 +53,8 @@ async def shutdown() -> None:
     """
     关闭行为管理
     """
+    # 关闭数据库
+    await database_close()
     if pump_event_task:
         if not pump_event_task.done():
             pump_event_task.cancel()

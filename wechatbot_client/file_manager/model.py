@@ -1,8 +1,11 @@
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Optional
 
-from tortoise import fields
+from tortoise import Tortoise, fields
 from tortoise.models import Model
+
+from wechatbot_client.log import logger
 
 
 class FileCache(Model):
@@ -95,3 +98,28 @@ class FileCache(Model):
         重置数据库，将所有记录删除
         """
         await cls.all().delete()
+
+
+async def database_init() -> None:
+    """
+    数据库初始化
+    """
+    logger.debug("<y>正在注册数据库...</y>")
+    Path("./data").mkdir(exist_ok=True)
+    database_path = "./data/data.db"
+    db_url = f"sqlite://{database_path}"
+    # 这里填要加载的表
+    models = [
+        "wechatbot_client.file_manager.model",
+    ]
+    modules = {"models": models}
+    await Tortoise.init(db_url=db_url, modules=modules)
+    await Tortoise.generate_schemas()
+    logger.info("<g>数据库初始化成功...</g>")
+
+
+async def database_close() -> None:
+    """
+    关闭数据库
+    """
+    await Tortoise.close_connections()
