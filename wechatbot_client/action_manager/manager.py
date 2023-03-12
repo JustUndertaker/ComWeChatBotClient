@@ -3,13 +3,13 @@ from pathlib import Path
 from typing import Callable, Literal
 
 from wechatbot_client.com_wechat import ComWechatApi
-from wechatbot_client.consts import PREFIX
+from wechatbot_client.consts import IMPL, ONEBOT_VERSION, PREFIX, VERSION
 from wechatbot_client.log import logger
 from wechatbot_client.onebot12 import Message
 from wechatbot_client.utils import escape_tag
 
-from .action import ActionRequest, ActionResponse
-from .check import add_action
+from .action import ActionRequest, ActionResponse, BotSelf
+from .check import add_action, get_supported_actions
 
 
 class ApiManager:
@@ -135,6 +135,35 @@ class ActionManager(ApiManager):
     """
     action管理器，实现所有action，这里只定义与com交互的action方法
     """
+
+    @add_action
+    def get_supported_actions(self) -> ActionResponse:
+        """
+        获取支持的动作列表
+        """
+        actions = get_supported_actions()
+        return ActionResponse(status="ok", retcode=0, data=actions)
+
+    @add_action
+    def get_status(self) -> ActionResponse:
+        """
+        获取运行状态
+        """
+        bot = {"self": BotSelf(user_id=self.get_wxid()).dict(), "online": True}
+        data = {"good": True, "bots": [bot]}
+        return ActionResponse(status="ok", retcode=0, data=data)
+
+    @add_action
+    def get_version(self) -> ActionResponse:
+        """
+        获取版本信息
+        """
+        data = {
+            "impl": IMPL,
+            "version": VERSION,
+            "onebot_version": ONEBOT_VERSION,
+        }
+        return ActionResponse(status="ok", retcode=0, data=data)
 
     @add_action
     def send_message(
