@@ -178,7 +178,8 @@ class Adapter:
         }
         if self.config.access_token:
             headers["Authorization"] = f"Bearer {self.config.access_token}"
-        req = Request("POST", url, headers=headers, timeout=30.0)
+        req = Request("GET", url, headers=headers, timeout=30.0)
+        log("DEBUG", f"<y>正在连接到url: {url}</y>")
         while True:
             try:
                 async with self.websocket(req) as ws:
@@ -210,7 +211,7 @@ class Adapter:
                         log(
                             "ERROR",
                             "<r><bg #f8bbd0>处理来自 websocket 的数据时出错"
-                            f"{escape_tag(str(url))}. Trying to reconnect...</bg #f8bbd0></r>",
+                            f"{escape_tag(str(url))} 正在尝试重连...</bg #f8bbd0></r>",
                             e,
                         )
                     finally:
@@ -219,9 +220,8 @@ class Adapter:
             except Exception as e:
                 log(
                     "ERROR",
-                    "<r><bg #f8bbd0>Error while setup websocket to "
-                    f"{escape_tag(str(url))}. Trying to reconnect...</bg #f8bbd0></r>",
-                    e,
+                    "<r><bg #f8bbd0>连接到 "
+                    f"{escape_tag(str(url))} 时出错{e} 正在尝试重连...</bg #f8bbd0></r>",
                 )
 
             await asyncio.sleep(self.config.reconnect_interval / 1000)
