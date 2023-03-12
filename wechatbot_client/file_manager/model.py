@@ -5,6 +5,7 @@ from typing import Optional, Tuple
 from tortoise import Tortoise, fields
 from tortoise.models import Model
 
+from wechatbot_client.consts import DATABASE_PATH
 from wechatbot_client.log import logger
 
 
@@ -106,8 +107,8 @@ async def database_init() -> None:
     数据库初始化
     """
     logger.debug("<y>正在注册数据库...</y>")
-    Path("./data").mkdir(exist_ok=True)
-    database_path = "./data/data.db"
+    Path(f"./{DATABASE_PATH}").mkdir(exist_ok=True)
+    database_path = f"./{DATABASE_PATH}/data.db"
     db_url = f"sqlite://{database_path}"
     # 这里填要加载的表
     models = [

@@ -8,6 +8,8 @@ from typing import Union
 
 from loguru._logger import Core, Logger
 
+from wechatbot_client.consts import LOG_PATH
+
 logger = Logger(
     core=Core(),
     exception=None,
@@ -77,9 +79,13 @@ logger_id = logger.add(
 
 def log_init(log_days: int) -> None:
     """日志初始化"""
-    Path("./logs/info").mkdir(parents=True, exist_ok=True)
-    Path("./logs/debug").mkdir(parents=True, exist_ok=True)
-    Path("./logs/error").mkdir(parents=True, exist_ok=True)
+    cwd = Path(".") / LOG_PATH
+    info_path = cwd / "info"
+    debug_path = cwd / "debug"
+    error_path = cwd / "error"
+    info_path.mkdir(parents=True, exist_ok=True)
+    debug_path.mkdir(parents=True, exist_ok=True)
+    error_path.mkdir(parents=True, exist_ok=True)
     # 日志文件记录格式
     file_format = (
         "<g>{time:MM-DD HH:mm:ss}</g> "
@@ -96,11 +102,8 @@ def log_init(log_days: int) -> None:
         "<c>{function}:{line}</c>| "
         "{message}"
     )
-
-    # info文件
-    info_path = "./logs/info/"
     logger.add(
-        info_path + "{time:YYYY-MM-DD}.log",
+        f"./{LOG_PATH}/info/" + "{time:YYYY-MM-DD}.log",
         rotation="00:00",
         retention=f"{log_days} days",
         level="INFO",
@@ -108,11 +111,8 @@ def log_init(log_days: int) -> None:
         filter=default_filter,
         encoding="utf-8",
     )
-
-    # debug文件
-    debug_path = "./logs/debug/"
     logger.add(
-        debug_path + "{time:YYYY-MM-DD}.log",
+        f"./{LOG_PATH}/debug/" + "{time:YYYY-MM-DD}.log",
         rotation="00:00",
         retention=f"{log_days} days",
         level="DEBUG",
@@ -120,11 +120,8 @@ def log_init(log_days: int) -> None:
         filter=default_filter,
         encoding="utf-8",
     )
-
-    # error文件
-    error_path = "./logs/error/"
     logger.add(
-        error_path + "{time:YYYY-MM-DD}.log",
+        f"./{LOG_PATH}/error/" + "{time:YYYY-MM-DD}.log",
         rotation="00:00",
         retention=f"{log_days} days",
         level="ERROR",

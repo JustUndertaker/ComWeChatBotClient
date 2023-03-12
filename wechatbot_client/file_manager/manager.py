@@ -5,7 +5,7 @@ from uuid import uuid4
 from httpx import AsyncClient
 from yarl import URL
 
-from wechatbot_client.config import Config
+from wechatbot_client.consts import FILE_CACHE
 from wechatbot_client.utils import logger_wrapper
 
 from .model import FileCache
@@ -21,8 +21,8 @@ class FileManager:
     file_path: Path
     """文件缓存地址"""
 
-    def __init__(self, config: Config) -> None:
-        self.file_path = Path(config.cache_path) / "temp"
+    def __init__(self) -> None:
+        self.file_path = Path(f"./{FILE_CACHE}/temp")
         self.file_path.mkdir(parents=True, exist_ok=True)
 
     async def cache_file_id_from_url(

@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Callable, Literal, Optional, Union
 
 from wechatbot_client.com_wechat import ComWechatApi
-from wechatbot_client.config import Config
 from wechatbot_client.consts import IMPL, ONEBOT_VERSION, PREFIX, VERSION
 from wechatbot_client.file_manager import FileManager
 from wechatbot_client.log import logger
@@ -26,13 +25,12 @@ class ApiManager:
 
     def __init__(self) -> None:
         self.com_api = ComWechatApi()
-        self.file_manager = None
+        self.file_manager = FileManager()
 
-    def init(self, config: Config) -> None:
+    def init(self) -> None:
         """
         初始化com
         """
-        self.file_manager = FileManager(config)
         # 初始化com组件
         logger.debug("<y>初始化com组件...</y>")
         if not self.com_api.init():

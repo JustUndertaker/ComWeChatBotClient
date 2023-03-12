@@ -7,6 +7,7 @@ from comtypes.client import PumpEvents
 
 from wechatbot_client import get_driver, get_wechat
 from wechatbot_client.config import Config, WebsocketType
+from wechatbot_client.consts import FILE_CACHE
 from wechatbot_client.driver import URL, HTTPServerSetup, WebSocketServerSetup
 from wechatbot_client.file_manager import database_close, database_init
 from wechatbot_client.log import logger
@@ -27,7 +28,7 @@ async def start_up() -> None:
     # 开启数据库
     await database_init()
     # 注册消息事件
-    wechat.open_recv_msg(config.cache_path)
+    wechat.open_recv_msg(f"./{FILE_CACHE}")
     # 开始监听event
     pump_event_task = asyncio.create_task(pump_event())
     # 开启http路由

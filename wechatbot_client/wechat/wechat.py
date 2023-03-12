@@ -34,7 +34,7 @@ class WeChatManager(Adapter):
         """
         初始化wechat管理端
         """
-        self.action_manager.init(self.config)
+        self.action_manager.init()
 
         logger.debug("<y>开始获取wxid...</y>")
         self.self_id = self.action_manager.get_wxid()

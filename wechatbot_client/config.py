@@ -194,8 +194,6 @@ class Config(BaseConfig):
     """默认日志等级"""
     log_days: int = 10
     """日志保存天数"""
-    cache_path: str = "./file_cache"
-    """文件缓存目录"""
     cache_days: int = 3
     """文件缓存天数"""
 
