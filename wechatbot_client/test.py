@@ -5,7 +5,6 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, Body, Response
 from pydantic import BaseModel
-from pydantic.error_wrappers import ValidationError
 
 from wechatbot_client import get_wechat
 from wechatbot_client.log import logger

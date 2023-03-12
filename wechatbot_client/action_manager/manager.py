@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Callable, Literal
 
 from wechatbot_client.com_wechat import ComWechatApi
+from wechatbot_client.consts import PREFIX
 from wechatbot_client.log import logger
 from wechatbot_client.onebot12 import Message
 from wechatbot_client.utils import escape_tag
@@ -157,11 +158,14 @@ class ActionManager(ApiManager):
         """
         info = self.com_api.get_self_info()
         data = {
-            "user_id": info["WxId"],
-            "user_name": info["Name"],
-            "user_displayname": "",  # 加入拓展字段
+            "user_id": info["wxId"],
+            "user_name": info["wxNickName"],
+            "user_displayname": "",
+            f"{PREFIX}.sex": info["Sex"],  # 性别
+            f"{PREFIX}.wx_number": info["wxNumber"],  # 微信号
+            f"{PREFIX}.avatar": info["wxBigAvatar"],  # 头像
         }
-        return ActionResponse(status="ok", retcode=200, data=data)
+        return ActionResponse(status="ok", retcode=0, data=data)
 
     @add_action
     def get_user_info(self, user_id: str) -> ActionResponse:
@@ -171,19 +175,37 @@ class ActionManager(ApiManager):
         info = self.com_api.get_user_info(user_id)
         data = {
             "user_id": user_id,
-            "user_name": info["Name"],
+            "user_name": info["wxNickName"],
             "user_displayname": "",
-            "user_remark": info["remark"],  # 加入拓展字段
+            "user_remark": info["wxRemark"],
+            f"{PREFIX}.avatar": info["wxBigAvatar"],  # 头像
+            f"{PREFIX}.wx_number": info["wxNumber"],  # 微信号
+            f"{PREFIX}.nation": info["wxNation"],  # 国家
+            f"{PREFIX}.province": info["wxProvince"],  # 省份
+            f"{PREFIX}.city": info["wxCity"],  # 城市
+            f"{PREFIX}.remark": info["wxRemark"],  # 备注
+            f"{PREFIX}.signatrue": info["wxSignature"],  # 个签
+            f"{PREFIX}.v3": info["wxV3"],  # v3信息
         }
-        return ActionResponse(status="ok", retcode=200, data=data)
+        return ActionResponse(status="ok", retcode=0, data=data)
 
     @add_action
     def get_friend_list(self) -> ActionResponse:
         """
         获取好友列表
         """
-        data = self.com_api.get_friend_list()
-        return ActionResponse(status="ok", retcode=200, data=data)
+        res = self.com_api.get_friend_list()
+        data = [
+            {
+                "user_id": one["wxid"],
+                "user_name": one["wxNickName"],
+                "user_displayname": "",
+                "user_remark": one["wxRemark"],
+                f"{PREFIX}.verify_flag": one["wxVerifyFlag"],  # 好友标志
+            }
+            for one in res
+        ]
+        return ActionResponse(status="ok", retcode=0, data=data)
 
     @add_action
     def get_group_info(self, group_id: str) -> ActionResponse:
@@ -192,60 +214,104 @@ class ActionManager(ApiManager):
         """
         info = self.com_api.get_user_info(group_id)
         data = {
-            "group_id": group_id,
-            "group_name": info["name"],  # 加入拓展字段
+            "group_id": info["wxId"],
+            "group_name": info["wxNickName"],  # 加入拓展字段
+            f"{PREFIX}.avatar": info["wxSmallAvatar"],  # 头像
+            f"{PREFIX}.v3": info["wxV3"],  # v3信息
         }
-        return ActionResponse(status="ok", retcode=200, data=data)
+        return ActionResponse(status="ok", retcode=0, data=data)
 
     @add_action
     def get_group_list(self) -> ActionResponse:
         """
         获取群列表
         """
-        data = self.com_api.get_group_list()
-        return ActionResponse(status="ok", retcode=200, data=data)
+        res = self.com_api.get_group_list()
+        data = [
+            {
+                "group_id": one["wxId"],
+                "group_name": one["wxNickName"],
+            }
+            for one in res
+        ]
+        return ActionResponse(status="ok", retcode=0, data=data)
 
     @add_action
     def get_group_member_info(self, group_id: str, user_id: str) -> ActionResponse:
         """
         获取群成员信息
         """
-        info = self.com_api.get_group_members(group_id)
-        data = {
-            "user_id": user_id,
-            "user_name": info["name"],
-            "user_displayname": "",  # 加入拓展字段
-        }
-        return ActionResponse(status="ok", retcode=200, data=data)
+        res = self.com_api.get_group_members(group_id)
+        members = res["members"]
+        flag = False
+        for one in members:
+            if one["wxId"] == user_id:
+                data = {
+                    "user_id": one["wxId"],
+                    "user_name": one["wxNickName"],
+                    "user_displayname": "",
+                    "user_remark": one["wxRemark"],
+                    f"{PREFIX}.avatar": one["wxBigAvatar"],  # 头像
+                    f"{PREFIX}.wx_number": one["wxNumber"],  # 微信号
+                    f"{PREFIX}.nation": one["wxNation"],  # 国家
+                    f"{PREFIX}.province": one["wxProvince"],  # 省份
+                    f"{PREFIX}.city": one["wxCity"],  # 城市
+                    f"{PREFIX}.remark": one["wxRemark"],  # 备注
+                    f"{PREFIX}.signatrue": one["wxSignature"],  # 个签
+                    f"{PREFIX}.v3": one["wxV3"],  # v3信息
+                }
+                flag = True
+                break
+        if not flag:
+            return ActionResponse(
+                status="failed", retcode=35001, data=None, message="群内没有该联系人"
+            )
+        return ActionResponse(status="ok", retcode=0, data=data)
 
     @add_action
     def get_group_member_list(self, group_id: str) -> ActionResponse:
         """
         获取群成员列表
         """
-        info = self.com_api.get_group_members(group_id)
+        res = self.com_api.get_group_members(group_id)
+        members = res["members"]
         data = [
             {
-                "user_id": member["wxid"],
-                "user_name": member["name"],
+                "user_id": one["wxId"],
+                "user_name": one["wxNickName"],
                 "user_displayname": "",
+                "user_remark": one["wxRemark"],
+                f"{PREFIX}.avatar": one["wxBigAvatar"],  # 头像
+                f"{PREFIX}.wx_number": one["wxNumber"],  # 微信号
+                f"{PREFIX}.nation": one["wxNation"],  # 国家
+                f"{PREFIX}.province": one["wxProvince"],  # 省份
+                f"{PREFIX}.city": one["wxCity"],  # 城市
+                f"{PREFIX}.remark": one["wxRemark"],  # 备注
+                f"{PREFIX}.signatrue": one["wxSignature"],  # 个签
+                f"{PREFIX}.v3": one["wxV3"],  # v3信息
             }
-            for member in info
+            for one in members
         ]
-        return ActionResponse(status="ok", retcode=200, data=data)
+        return ActionResponse(status="ok", retcode=0, data=data)
 
     @add_action
     def set_group_name(self, group_id: str, group_name: str) -> ActionResponse:
         """
         设置群名称
         """
-        self.com_api.set_group_name(group_id, group_name)
-        return ActionResponse(status="ok", retcode=200, data=None)
+        res = self.com_api.set_group_name(group_id, group_name)
+        if res:
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
 
     @add_action
     def leave_group(self, group_id: str) -> ActionResponse:
         """
         退出群
         """
-        self.com_api.delete_groupmember()
-        return ActionResponse(status="ok", retcode=200, data=None)
+        return ActionResponse(
+            status="failed", retcode=10002, data=None, message="未实现的action"
+        )
