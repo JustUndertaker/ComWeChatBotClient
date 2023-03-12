@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 from tortoise import Tortoise, fields
 from tortoise.models import Model
@@ -55,7 +55,7 @@ class FileCache(Model):
         return True
 
     @classmethod
-    async def get_file(cls, file_id: str) -> Optional[str]:
+    async def get_file(cls, file_id: str) -> Optional[Tuple[str, str]]:
         """
         说明:
             根据id查找文件名
@@ -65,10 +65,11 @@ class FileCache(Model):
 
         返回:
             * `str | None`: 找到的文件路径
+            * `str`: 文件名
         """
         model = await cls.filter(file_id=file_id).first()
         if model:
-            return model.file_path
+            return model.file_path, model.file_name
         return None
 
     @classmethod

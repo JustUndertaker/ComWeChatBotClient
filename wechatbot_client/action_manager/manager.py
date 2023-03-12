@@ -1,9 +1,12 @@
 import time
+from inspect import iscoroutinefunction
 from pathlib import Path
-from typing import Callable, Literal, Union
+from typing import Callable, Literal, Optional, Union
 
 from wechatbot_client.com_wechat import ComWechatApi
+from wechatbot_client.config import Config
 from wechatbot_client.consts import IMPL, ONEBOT_VERSION, PREFIX, VERSION
+from wechatbot_client.file_manager import FileManager
 from wechatbot_client.log import logger
 from wechatbot_client.onebot12 import Message
 from wechatbot_client.utils import escape_tag
@@ -19,14 +22,17 @@ class ApiManager:
 
     com_api: ComWechatApi
     """com交互api"""
+    file_manager: FileManager
 
     def __init__(self) -> None:
         self.com_api = ComWechatApi()
+        self.file_manager = None
 
-    def init(self) -> None:
+    def init(self, config: Config) -> None:
         """
         初始化com
         """
+        self.file_manager = FileManager(config)
         # 初始化com组件
         logger.debug("<y>初始化com组件...</y>")
         if not self.com_api.init():
@@ -106,7 +112,7 @@ class ApiManager:
         info = self.com_api.get_self_info()
         return info["wxId"]
 
-    def request(self, request: ActionRequest) -> ActionResponse:
+    async def request(self, request: ActionRequest) -> ActionResponse:
         """
         说明:
             发送action请求，获取返回值
@@ -119,7 +125,10 @@ class ApiManager:
         """
         func = getattr(self, request.action)
         try:
-            result = func(**request.params)
+            if iscoroutinefunction(func):
+                result = await func(**request.params)
+            else:
+                result = func(**request.params)
         except Exception as e:
             logger.error(f"<r>调用api错误: {e}</r>")
             return ActionResponse(status=500, msg="内部服务错误...", data={})
@@ -335,6 +344,73 @@ class ActionManager(ApiManager):
             return ActionResponse(
                 status="failed", retcode=35000, data=None, message="操作失败"
             )
+
+    @standard_action
+    async def upload_file(
+        self,
+        type: Literal["url", "path", "data"],
+        name: str,
+        url: Optional[str] = None,
+        headers: Optional[dict[str, str]] = None,
+        path: Optional[str] = None,
+        data: Optional[bytes] = None,
+        sha256: Optional[str] = None,
+    ) -> ActionResponse:
+        """
+        上传文件
+        """
+        if type == "url":
+            if url is None:
+                return ActionResponse(
+                    status="failed", retcode=10003, data=None, message="缺少url参数"
+                )
+            file_id = await self.file_manager.cache_file_id_from_url(url, name, headers)
+            if file_id is None:
+                return ActionResponse(
+                    status="failed", retcode=33000, data=None, message="下载文件失败"
+                )
+            return ActionResponse(status="ok", retcode=0, data={"file_id": file_id})
+        if type == "path":
+            if path is None:
+                return ActionResponse(
+                    status="failed", retcode=10003, data=None, message="缺少path参数"
+                )
+            file_id = await self.file_manager.cache_file_id_from_path(path, name)
+            if file_id is None:
+                return ActionResponse(
+                    status="failed", retcode=32000, data=None, message="操作文件失败"
+                )
+            return ActionResponse(status="ok", retcode=0, data={"file_id": file_id})
+        if data is None:
+            return ActionResponse(
+                status="failed", retcode=10003, data=None, message="缺少data参数"
+            )
+        file_id = await self.file_manager.cache_file_id_from_data(data, name)
+        return ActionResponse(status="ok", retcode=0, data={"file_id": file_id})
+
+    @standard_action
+    async def get_file(
+        self, file_id: str, type: Literal["url", "path", "data"]
+    ) -> ActionResponse:
+        """
+        获取文件
+        """
+        file_path, file_name = await self.file_manager.get_file(file_id)
+        if file_path is None:
+            return ActionResponse(
+                status="failed", retcode=32000, data=None, message="未找到该文件"
+            )
+        if type == "url":
+            pass
+        if type == "path":
+            return ActionResponse(
+                status="ok", retcode=0, data={"name": file_name, "path": file_path}
+            )
+        with open(file_path, mode="rb") as f:
+            data = f.read()
+        return ActionResponse(
+            status="ok", retcode=0, data={"name": file_name, "data": data}
+        )
 
     @expand_action
     def get_public_account_list(self) -> ActionResponse:

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 from uuid import uuid4
 
 from httpx import AsyncClient
@@ -106,7 +106,7 @@ class FileManager:
         )
         return file_id
 
-    async def get_file(self, file_id: str) -> Optional[str]:
+    async def get_file(self, file_id: str) -> Optional[Tuple[str, str]]:
         """
         通过file_id获取文件
         """
