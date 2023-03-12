@@ -8,8 +8,7 @@ from typing import Callable, ParamSpec, Type, TypeVar
 from pydantic import BaseConfig, BaseModel, Extra, ValidationError, create_model
 
 from wechatbot_client.consts import PREFIX
-from wechatbot_client.log import logger
-from wechatbot_client.utils import get_typed_signature
+from wechatbot_client.utils import get_typed_signature, logger_wrapper
 
 from .action import ActionRequest
 
@@ -18,6 +17,7 @@ ACTION_DICT: dict[str, Type[BaseModel]] = {}
 
 P = ParamSpec("P")
 R = TypeVar("R")
+log = logger_wrapper("Action Manager")
 
 
 class ModelConfig(BaseConfig):
@@ -46,13 +46,13 @@ def check_action_params(request: ActionRequest) -> None:
 
     action_model = ACTION_DICT.get(request.action)
     if action_model is None:
-        logger.error(f"<r>未实现的action:{request.action}</r>")
+        log("ERROR", f"<r>未实现的action:{request.action}</r>")
         raise TypeError(f"未实现的action:{request.action}")
 
     try:
         action_model.parse_obj(request.params)
     except ValidationError as e:
-        logger.error(f"<r>action参数错误:{e}</r>")
+        log("ERROR", f"<r>action参数错误:{e}</r>")
         raise ValueError("请求参数错误...")
     return
 

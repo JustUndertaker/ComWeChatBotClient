@@ -30,9 +30,11 @@ from wechatbot_client.driver import (
 )
 from wechatbot_client.exception import WebSocketClosed
 from wechatbot_client.onebot12 import Event
-from wechatbot_client.utils import escape_tag
+from wechatbot_client.utils import escape_tag, logger_wrapper
 
-from .utils import flattened_to_nested, get_auth_bearer, log
+from .utils import flattened_to_nested, get_auth_bearer
+
+log = logger_wrapper("OneBot V12")
 
 
 class Adapter:

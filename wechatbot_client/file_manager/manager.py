@@ -11,7 +11,7 @@ from wechatbot_client.utils import logger_wrapper
 
 from .model import FileCache
 
-log = logger_wrapper("FileManager")
+log = logger_wrapper("File Manager")
 
 
 class FileManager:

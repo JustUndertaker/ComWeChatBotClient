@@ -9,10 +9,12 @@ from wechatbot_client.action_manager import (
     check_action_params,
 )
 from wechatbot_client.config import Config
-from wechatbot_client.log import logger
 from wechatbot_client.typing import overrides
+from wechatbot_client.utils import logger_wrapper
 
 from .adapter import Adapter
+
+log = logger_wrapper("WeChat Manager")
 
 
 class WeChatManager(Adapter):
@@ -36,10 +38,10 @@ class WeChatManager(Adapter):
         """
         self.action_manager.init()
 
-        logger.debug("<y>开始获取wxid...</y>")
+        log("DEBUG", "<y>开始获取wxid...</y>")
         self.self_id = self.action_manager.get_wxid()
-        logger.debug("<g>微信id获取成功...</g>")
-        logger.info("<g>初始化完成，启动uvicorn...</g>")
+        log("DEBUG", "<g>微信id获取成功...</g>")
+        log("INFO", "<g>初始化完成，启动uvicorn...</g>")
 
     def open_recv_msg(self, file_path: str) -> None:
         """

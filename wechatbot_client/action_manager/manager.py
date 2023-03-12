@@ -6,12 +6,13 @@ from typing import Callable, Literal, Optional, Union
 from wechatbot_client.com_wechat import ComWechatApi
 from wechatbot_client.consts import IMPL, ONEBOT_VERSION, PREFIX, VERSION
 from wechatbot_client.file_manager import FileManager
-from wechatbot_client.log import logger
 from wechatbot_client.onebot12 import Message
-from wechatbot_client.utils import escape_tag
+from wechatbot_client.utils import escape_tag, logger_wrapper
 
 from .action import ActionRequest, ActionResponse, BotSelf
 from .check import expand_action, get_supported_actions, standard_action
+
+log = logger_wrapper("Action Manager")
 
 
 class ApiManager:
@@ -32,32 +33,32 @@ class ApiManager:
         初始化com
         """
         # 初始化com组件
-        logger.debug("<y>初始化com组件...</y>")
+        log("DEBUG", "<y>初始化com组件...</y>")
         if not self.com_api.init():
-            logger.error("<r>未注册com组件，启动失败...</r>")
+            log("ERROR", "<r>未注册com组件，启动失败...</r>")
             exit(0)
-        logger.debug("<g>com组件初始化成功...</g>")
+        log("DEBUG", "<g>com组件初始化成功...</g>")
         # 启动微信进程
-        logger.debug("<y>正在初始化微信进程...</y>")
+        log("DEBUG", "<y>正在初始化微信进程...</y>")
         if not self.com_api.init_wechat_pid():
-            logger.error("<r>微信进程启动失败...</r>")
+            log("ERROR", "<r>微信进程启动失败...</r>")
             self.com_api.close()
             exit(0)
-        logger.debug("<g>找到微信进程...</g>")
+        log("DEBUG", "<g>找到微信进程...</g>")
         # 注入dll
-        logger.debug("<y>正在注入微信...</y>")
+        log("DEBUG", "<y>正在注入微信...</y>")
         if not self.com_api.start_service():
-            logger.error("<r>微信进程启动失败...</r>")
+            log("ERROR", "<r>微信进程启动失败...</r>")
             self.com_api.close()
             exit(0)
-        logger.success("<g>dll注入成功...</g>")
+        log("SUCCESS", "<g>dll注入成功...</g>")
         # 等待登录
-        logger.info("<y>等待登录...</y>")
+        log("INFO", "<y>等待登录...</y>")
         if not self.wait_for_login():
-            logger.info("<g>进程关闭...</g>")
+            log("INFO", "<g>进程关闭...</g>")
             self.com_api.close()
             exit(0)
-        logger.success("<g>登录完成...</g>")
+        log("SUCCESS", "<g>登录完成...</g>")
 
     def wait_for_login(self) -> bool:
         """
@@ -77,25 +78,25 @@ class ApiManager:
         """
         # 注册消息事件
         self.com_api.register_msg_event()
-        logger.debug("<g>注册消息事件成功...</g>")
+        log("DEBUG", "<g>注册消息事件成功...</g>")
         # 启动消息hook
         result = self.com_api.start_receive_message()
         if not result:
-            logger.error("<r>启动消息hook失败...</r>")
-        logger.debug("<g>启动消息hook成功...</g>")
+            log("ERROR", "<r>启动消息hook失败...</r>")
+        log("DEBUG", "<g>启动消息hook成功...</g>")
         # 启动图片hook
         file = Path(file_path)
         img_file = file / "image"
         result = self.com_api.hook_image_msg(str(img_file.absolute()))
         if not result:
-            logger.error("<r>启动图片hook失败...</r>")
-        logger.debug("<g>启动图片hook成功...</g>")
+            log("ERROR", "<r>启动图片hook失败...</r>")
+        log("DEBUG", "<g>启动图片hook成功...</g>")
         # 启动语音hook
         voice_file = file / "voice"
         result = self.com_api.hook_voice_msg(str(voice_file.absolute()))
         if not result:
-            logger.error("<r>启动语音hook失败...</r>")
-        logger.debug("<g>启动语音hook成功...</g>")
+            log("ERROR", "<r>启动语音hook失败...</r>")
+        log("DEBUG", "<g>启动语音hook成功...</g>")
 
     def close(self) -> None:
         """
@@ -128,11 +129,11 @@ class ApiManager:
             else:
                 result = func(**request.params)
         except Exception as e:
-            logger.error(f"<r>调用api错误: {e}</r>")
+            log("ERROR", f"<r>调用api错误: {e}</r>")
             return ActionResponse(
                 status="failed", retcode=20002, message="内部服务错误", data=None
             )
-        logger.debug(f"<g>调用api成功，返回:</g> {escape_tag(str(result))}")
+        log("DEBUG", f"<g>调用api成功，返回:</g> {escape_tag(str(result))}")
         return result
 
     def register_message_handler(self, func: Callable[[str], None]) -> None:

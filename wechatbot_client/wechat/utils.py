@@ -1,10 +1,6 @@
 from typing import Optional, TypeVar
 
-from wechatbot_client.utils import logger_wrapper
-
 T = TypeVar("T")
-
-log = logger_wrapper("OneBot V12")
 
 
 def get_auth_bearer(access_token: Optional[str] = None) -> Optional[str]:

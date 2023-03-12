@@ -6,8 +6,9 @@ from typing import Callable, Literal, Optional, Tuple, Union
 import psutil
 from comtypes.client import CreateObject, GetEvents
 
-from wechatbot_client.log import logger
-from wechatbot_client.utils import escape_tag
+from wechatbot_client.utils import escape_tag, logger_wrapper
+
+log = logger_wrapper("Com WeChat")
 
 
 class MessageReporter:
@@ -20,7 +21,7 @@ class MessageReporter:
 
     def OnGetMessageEvent(self, message: Tuple[str, None]):
         msg = message[0]
-        logger.success(f"<g>接收到wechat消息</g> - {escape_tag(msg)}")
+        log("SUCCESS", f"<g>接收到wechat消息</g> - {escape_tag(msg)}")
         if self.func:
             self.func(msg)
 
