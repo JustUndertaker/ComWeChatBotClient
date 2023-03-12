@@ -6,7 +6,6 @@ from typing import Callable, Literal, Optional, Tuple, Union
 import psutil
 from comtypes.client import CreateObject, GetEvents
 
-from wechatbot_client.action import add_action
 from wechatbot_client.log import logger
 from wechatbot_client.utils import escape_tag
 
@@ -162,7 +161,6 @@ class ComWechatApi(ComProgress):
         com_pid = self.robot.CStopRobotService(self.wechat_pid)
         return com_pid
 
-    @add_action
     def is_wechat_login(self) -> bool:
         """
         说明:
@@ -175,7 +173,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CIsWxLogin(self.wechat_pid)
         return status == 1
 
-    @add_action
     def send_text(self, wxid: str, message: str) -> bool:
         """
         说明:
@@ -192,7 +189,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CSendText(self.wechat_pid, wxid, message)
         return status == 0
 
-    @add_action
     def send_image(self, wxid: str, image_path: str) -> bool:
         """
         说明:
@@ -209,7 +205,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CSendImage(self.wechat_pid, wxid, image_path)
         return status == 0
 
-    @add_action
     def send_file(self, wxid: str, file_path: str) -> bool:
         """
         说明:
@@ -226,7 +221,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CSendFile(self.wechat_pid, wxid, file_path)
         return status == 0
 
-    @add_action
     def send_message_card(
         self,
         wxid: str,
@@ -255,7 +249,6 @@ class ComWechatApi(ComProgress):
         )
         return status == 0
 
-    @add_action
     def send_contact_card(self, receiver: str, shared_wxid: str, nickname: str) -> bool:
         """
         说明:
@@ -273,7 +266,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CSendCard(self.wechat_pid, receiver, shared_wxid, nickname)
         return status == 0
 
-    @add_action
     def send_at_message(
         self,
         group_id: str,
@@ -303,7 +295,6 @@ class ComWechatApi(ComProgress):
         )
         return status == 0
 
-    @add_action
     def get_self_info(self) -> dict:
         """
         说明:
@@ -315,7 +306,6 @@ class ComWechatApi(ComProgress):
         self_info = self.robot.CGetSelfInfo(self.wechat_pid)
         return json.loads(self_info)
 
-    @add_action
     def get_contacts(self) -> list:
         """
         说明:
@@ -333,7 +323,6 @@ class ComWechatApi(ComProgress):
             self.AddressBook = []
         return self.AddressBook
 
-    @add_action
     def get_friend_list(self, use_cache: bool = True) -> list:
         """
         说明:
@@ -355,7 +344,6 @@ class ComWechatApi(ComProgress):
         ]
         return friend_list
 
-    @add_action
     def get_group_list(self, use_cache: bool = True) -> list:
         """
         说明:
@@ -372,7 +360,6 @@ class ComWechatApi(ComProgress):
         chatroom_list = [item for item in self.AddressBook if item["wxType"] == 2]
         return chatroom_list
 
-    @add_action
     def get_public_account_list(self, use_cache: bool = True) -> list:
         """
         说明:
@@ -394,7 +381,6 @@ class ComWechatApi(ComProgress):
         ]
         return official_account_list
 
-    @add_action
     def search_friend_by_remark(
         self, remark: str, use_cache: bool = True
     ) -> Optional[dict]:
@@ -416,7 +402,6 @@ class ComWechatApi(ComProgress):
                 return item
         return None
 
-    @add_action
     def search_friend_by_wxnumber(
         self, wxnumber: str, use_cache: bool = True
     ) -> Optional[dict]:
@@ -438,7 +423,6 @@ class ComWechatApi(ComProgress):
                 return item
         return None
 
-    @add_action
     def search_friend_by_nickname(
         self, nickname: str, use_cache: bool = True
     ) -> Optional[dict]:
@@ -460,7 +444,6 @@ class ComWechatApi(ComProgress):
                 return item
         return None
 
-    @add_action
     def get_user_info(self, wxid: str) -> dict:
         """
         说明:
@@ -477,7 +460,6 @@ class ComWechatApi(ComProgress):
         userinfo = self.robot.CGetWxUserInfo(self.wechat_pid, wxid)
         return json.loads(userinfo)
 
-    @add_action
     def get_group_members(self, group_id: str) -> Optional[dict]:
         """
         说明:
@@ -501,7 +483,6 @@ class ComWechatApi(ComProgress):
             data["members"].append(member_info)
         return data
 
-    @add_action
     def check_friend_status(self, wxid: str) -> int:
         """
         说明:
@@ -554,7 +535,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CStopReceiveMessage(self.wechat_pid)
         return status == 0
 
-    @add_action
     def get_db_handles(self) -> dict:
         """
         说明:
@@ -581,7 +561,6 @@ class ComWechatApi(ComProgress):
             )
         return dbs
 
-    @add_action
     def execute_sql(self, handle: int, sql: str) -> list:
         """
         说明:
@@ -610,7 +589,6 @@ class ComWechatApi(ComProgress):
             query_list.append(query_dict)
         return query_list
 
-    @add_action
     def backup_db(self, handle: int, file_path: str) -> bool:
         """
         说明:
@@ -630,7 +608,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CBackupSQLiteDB(self.wechat_pid, handle, file_path)
         return status == 0
 
-    @add_action
     def verify_friend_apply(self, v3: str, v4: str) -> bool:
         """
         说明:
@@ -647,7 +624,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CVerifyFriendApply(self.wechat_pid, v3, v4)
         return status == 0
 
-    @add_action
     def add_friend_by_wxid(self, wxid: str, message: Optional[str]) -> bool:
         """
         说明:
@@ -664,7 +640,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CAddFriendByWxid(self.wechat_pid, wxid, message)
         return status == 0
 
-    @add_action
     def add_friend_by_v3(
         self,
         v3: str,
@@ -691,7 +666,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CAddFriendByV3(self.wechat_pid, v3, message, add_type)
         return status == 0
 
-    @add_action
     def get_wechat_version(self) -> str:
         """
         说明:
@@ -704,7 +678,6 @@ class ComWechatApi(ComProgress):
 
         return self.robot.CGetWeChatVer()
 
-    @add_action
     def search_user_info(self, keyword: str) -> Optional[dict]:
         """
         说明:
@@ -722,7 +695,6 @@ class ComWechatApi(ComProgress):
             return dict(userinfo)
         return None
 
-    @add_action
     def follow_public_number(self, public_id: str) -> bool:
         """
         说明:
@@ -739,7 +711,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CAddBrandContact(self.wechat_pid, public_id)
         return status == 0
 
-    @add_action
     def change_wechat_version(self, version: str) -> bool:
         """
         说明:
@@ -818,7 +789,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CUnHookVoiceMsg(self.wechat_pid)
         return status == 0
 
-    @add_action
     def delete_friend(self, wxid: str) -> bool:
         """
         说明:
@@ -835,7 +805,6 @@ class ComWechatApi(ComProgress):
         stauts = self.robot.CDeleteUser(self.wechat_pid, wxid)
         return stauts == 0
 
-    @add_action
     def send_app_msg(self, wxid: str, appid: str) -> bool:
         """
         说明:
@@ -853,7 +822,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CSendAppMsg(self.wechat_pid, wxid, appid)
         return status == 0
 
-    @add_action
     def edit_remark(self, wxid: str, remark: Optional[str]) -> bool:
         """
         说明:
@@ -870,7 +838,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CEditRemark(self.wechat_pid, wxid, remark)
         return status == 0
 
-    @add_action
     def set_group_name(self, group_id: str, name: str) -> bool:
         """
         说明:
@@ -887,7 +854,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CSetChatRoomName(self.wechat_pid, group_id, name)
         return status == 0
 
-    @add_action
     def set_group_announcement(
         self, group_id: str, announcement: Optional[str]
     ) -> bool:
@@ -909,7 +875,6 @@ class ComWechatApi(ComProgress):
         )
         return status == 0
 
-    @add_action
     def set_group_nickname(self, group_id: str, nickname: str) -> bool:
         """
         说明:
@@ -928,7 +893,6 @@ class ComWechatApi(ComProgress):
         )
         return stauts == 0
 
-    @add_action
     def get_groupmember_nickname(self, group_id: str, wxid: str) -> str:
         """
         说明:
@@ -944,7 +908,6 @@ class ComWechatApi(ComProgress):
 
         return self.robot.CGetChatRoomMemberNickname(self.wechat_pid, group_id, wxid)
 
-    @add_action
     def delete_groupmember(self, group_id: str, wxid_list: Union[str, list]) -> bool:
         """
         说明:
@@ -961,7 +924,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CDelChatRoomMember(self.wechat_pid, group_id, wxid_list)
         return status == 0
 
-    @add_action
     def add_groupmember(self, group_id: str, wxid_list: Union[str, list]) -> bool:
         """
         说明:
@@ -978,7 +940,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CAddChatRoomMember(self.wechat_pid, group_id, wxid_list)
         return status == 0
 
-    @add_action
     def open_browser(self, url: str) -> bool:
         """
         说明:
@@ -994,7 +955,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.COpenBrowser(self.wechat_pid, url)
         return status == 0
 
-    @add_action
     def get_history_public_msg(self, public_id: str, offset: str = "") -> str:
         """
         说明:
@@ -1015,7 +975,6 @@ class ComWechatApi(ComProgress):
             pass
         return ret
 
-    @add_action
     def send_forward_msg(self, wxid: str, message_id: int) -> bool:
         """
         说明:
@@ -1052,7 +1011,6 @@ class ComWechatApi(ComProgress):
         data = self.robot.CGetQrcodeImage(self.wechat_pid)
         return bytes(data)
 
-    @add_action
     def get_a8key(self, url: str) -> Union[dict, str]:
         """
         说明:
@@ -1072,7 +1030,6 @@ class ComWechatApi(ComProgress):
             pass
         return ret
 
-    @add_action
     def send_xml(self, wxid: str, xml: str, image_path: str = "") -> bool:
         """
         说明:
@@ -1104,7 +1061,6 @@ class ComWechatApi(ComProgress):
         status = self.robot.CLogout(self.wechat_pid)
         return status == 0
 
-    @add_action
     def get_transfer(self, wxid: str, transcationid: str, transferid: str) -> bool:
         """
         说明:
@@ -1124,7 +1080,6 @@ class ComWechatApi(ComProgress):
         )
         return status == 0
 
-    @add_action
     def send_gif(self, wxid: str, image_path: str) -> bool:
         """
         说明:

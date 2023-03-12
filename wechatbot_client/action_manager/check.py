@@ -74,3 +74,10 @@ def add_action(func: Callable[..., Any]) -> Callable[..., Any]:
     action_type = create_model(func.__name__, __config__=ModelConfig, **field)
     ACTION_DICT[func.__name__] = action_type
     return func
+
+
+def get_supported_actions() -> list[str]:
+    """
+    获取支持的动作列表
+    """
+    return list(ACTION_DICT.keys())
