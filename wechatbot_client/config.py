@@ -2,10 +2,11 @@
 配置模块
 """
 import os
+from enum import Enum
 from ipaddress import IPv4Address
-from typing import TYPE_CHECKING, Any, Mapping, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Tuple, Union
 
-from pydantic import BaseSettings, Extra, IPvAnyAddress
+from pydantic import AnyUrl, BaseSettings, Extra, IPvAnyAddress
 from pydantic.env_settings import (
     EnvSettingsSource,
     InitSettingsSource,
@@ -143,46 +144,59 @@ class Env(BaseConfig):
         env_file = ".env"
 
 
+class WebsocketType(str, Enum):
+    """websocket连接枚举"""
+
+    Unable = "None"
+    """不开启ws"""
+    Forward = "Forward"
+    """正向ws"""
+    Backward = "Backward"
+    """反向ws"""
+
+
+class WSUrl(AnyUrl):
+    """ws或wss url"""
+
+    allow_schemes = {"ws", "wss"}
+
+
 class Config(BaseConfig):
     """主要配置"""
 
     _env_file: str = ".env"
-    smart: bool = True
-    """是否注入当前wechat"""
     host: IPvAnyAddress = IPv4Address("127.0.0.1")
-    """http服务地址"""
+    """服务host"""
     port: int = 8000
-    """http服务端口"""
-    http_post_url: str = ""
-    """http post上报地址，如果不填则不上报"""
-    ws_address: str = ""
-    """反向ws连接地址，如果不填则不会连接ws"""
+    """服务端口"""
     access_token: str = ""
-    """密钥"""
+    """访问令牌"""
+    enable_http_api: bool = False
+    """是否开启http api"""
+    event_enabled: bool = False
+    """是否启用 get_latest_events 元动作"""
+    event_buffer_size: int = 0
+    """事件缓冲区大小，超过该大小将会丢弃最旧的事件，0 表示不限大小"""
+    enable_http_webhook: bool = False
+    """是否启用http webhook"""
+    webhook_url: str = ""
+    """webhook 上报地址"""
+    webhook_timeout: int = 5000
+    """上报请求超时时间，单位：毫秒，0 表示不超时"""
+    websocekt_type: WebsocketType = WebsocketType.Backward
+    """websocket连接方式"""
+    websocket_url: WSUrl = "ws://127.0.0.1/onebot/v12/ws/"
+    """反向 WebSocket 连接地址"""
+    reconnect_interval: int = 5000
+    """反向 WebSocket 重连间隔"""
     log_level: Union[int, str] = "INFO"
     """默认日志等级"""
     log_days: int = 10
     """日志保存天数"""
-    msg_filter: Set[int] = {}
-    """事件过滤列表"""
-    report_self: bool = False
-    """是否上报自身消息"""
     cache_path: str = "./file_cache"
     """文件缓存目录"""
     cache_days: int = 3
     """文件缓存天数"""
-    image_path: str = "./image_decode"
-    """聊天图片解密地址"""
-    image_days: int = 0
-    """聊天解密图片保存天数，为0则不清理缓存"""
-    image_timeout: int = 30
-    """下载pc图片超时时间(s)，超时的图片不会解密"""
-    timeout_image_send: bool = False
-    """超时的图片消息是否继续发送"""
-    onebot_access_token: str
-    """onebot12的access token"""
-    onebot_ws_urls: set[str]
-    """onebot12正向ws的地址"""
 
     class Config:
         extra = "allow"

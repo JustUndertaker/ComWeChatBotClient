@@ -9,7 +9,6 @@ from typing import Any, AsyncGenerator, Generator, Optional, Type, cast
 import msgpack
 
 from wechatbot_client.config import Config
-from wechatbot_client.consts import RECONNECT_INTERVAL
 from wechatbot_client.driver import (
     URL,
     Driver,
@@ -70,7 +69,7 @@ class Adapter:
         """
         token = get_auth_bearer(request.headers.get("Authorization"))
 
-        access_token = self.config.onebot_access_token
+        access_token = self.config.access_token
         if access_token and access_token != token:
             msg = (
                 "Authorization Header is invalid"
@@ -122,29 +121,28 @@ class Adapter:
                 await websocket.close()
             self.driver.ws_disconnect(seq)
 
-    async def _start_forward(self) -> None:
+    async def start_forward(self) -> None:
         """
         开启正向ws连接
         """
-        for url in self.config.onebot_ws_urls:
-            try:
-                ws_url = URL(url)
-                self.tasks.append(asyncio.create_task(self._forward_ws(ws_url)))
-            except Exception as e:
-                log(
-                    "ERROR",
-                    f"<r><bg #f8bbd0>Bad url {escape_tag(url)} "
-                    "in onebot forward websocket config</bg #f8bbd0></r>",
-                    e,
-                )
+        try:
+            ws_url = URL(self.config.websocket_url)
+            self.tasks.append(asyncio.create_task(self._forward_ws(ws_url)))
+        except Exception as e:
+            log(
+                "ERROR",
+                f"<r><bg #f8bbd0>Bad url {escape_tag(self.config.websocket_url)} "
+                "in websocket_url config</bg #f8bbd0></r>",
+                e,
+            )
 
     async def _forward_ws(self, url: URL) -> None:
         """
         正向连接ws任务
         """
         headers = {}
-        if self.config.onebot_access_token:
-            headers["Authorization"] = f"Bearer {self.config.onebot_access_token}"
+        if self.config.access_token:
+            headers["Authorization"] = f"Bearer {self.config.access_token}"
         req = Request("GET", url, headers=headers, timeout=30.0)
         while True:
             try:
@@ -191,9 +189,10 @@ class Adapter:
                     e,
                 )
 
-            await asyncio.sleep(RECONNECT_INTERVAL)
+            await asyncio.sleep(self.config.reconnect_interval / 1000)
 
-    async def _stop_forward(self) -> None:
+    async def stop_forward(self) -> None:
+        """关闭正向ws连接任务"""
         for task in self.tasks:
             if not task.done():
                 task.cancel()
