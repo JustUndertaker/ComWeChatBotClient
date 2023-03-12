@@ -148,7 +148,7 @@ class Env(BaseConfig):
 class WebsocketType(str, Enum):
     """websocket连接枚举"""
 
-    Unable = "None"
+    Unable = "Unable"
     """不开启ws"""
     Forward = "Forward"
     """正向ws"""

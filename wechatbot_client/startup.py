@@ -9,6 +9,7 @@ from wechatbot_client import get_driver, get_wechat
 from wechatbot_client.config import Config, WebsocketType
 from wechatbot_client.driver import URL, HTTPServerSetup, WebSocketServerSetup
 from wechatbot_client.log import logger
+from wechatbot_client.test import router
 
 driver = get_driver()
 wechat = get_wechat()
@@ -40,6 +41,8 @@ async def start_up() -> None:
     elif config.websocekt_type == WebsocketType.Backward:
         # 反向ws，连接应用端
         await wechat.start_backward()
+    logger.debug("开启测试http路由")
+    driver._server_app.include_router(router)
 
 
 @driver.on_shutdown
