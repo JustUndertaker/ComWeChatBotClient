@@ -4,10 +4,18 @@ adapter,用来管理driver和websocket
 import asyncio
 import contextlib
 import json
+from abc import abstractmethod
 from typing import Any, AsyncGenerator, Generator, Optional, Type, cast
 
 import msgpack
+from pydantic import ValidationError
 
+from wechatbot_client.action_manager import (
+    ActionRequest,
+    ActionResponse,
+    WsActionRequest,
+    WsActionResponse,
+)
 from wechatbot_client.config import Config
 from wechatbot_client.consts import IMPL, ONEBOT_VERSION, USER_AGENT
 from wechatbot_client.driver import (
@@ -21,7 +29,7 @@ from wechatbot_client.driver import (
     WebSocketServerSetup,
 )
 from wechatbot_client.exception import WebSocketClosed
-from wechatbot_client.onebot12 import ActionRequest, Event, WsActionRequest
+from wechatbot_client.onebot12 import Event
 from wechatbot_client.utils import escape_tag
 
 from .utils import flattened_to_nested, get_auth_bearer, log
@@ -80,7 +88,7 @@ class Adapter:
             log("WARNING", msg)
             return Response(403, content=msg)
 
-    async def _handle_ws(self, websocket: WebSocket) -> None:
+    async def handle_ws(self, websocket: WebSocket) -> None:
         """
         当有新的ws连接时的任务
         """
@@ -102,8 +110,9 @@ class Adapter:
                 raw_data = (
                     json.loads(data) if isinstance(data, str) else msgpack.unpackb(data)
                 )
-                if event := self.json_to_event(raw_data):
-                    asyncio.create_task(self.handle_event(event))
+                if action := self.json_to_ws_action(raw_data):
+                    response = await self.action_ws_request(action)
+                    await websocket.send(json.dumps(response, ensure_ascii=False))
         except WebSocketClosed:
             log(
                 "WARNING",
@@ -122,7 +131,7 @@ class Adapter:
                 await websocket.close()
             self.driver.ws_disconnect(seq)
 
-    async def _handle_http(self, request: Request) -> Response:
+    async def handle_http(self, request: Request) -> Response:
         """处理http任务"""
         self_id = request.headers.get("x-self-id")
 
@@ -140,7 +149,7 @@ class Adapter:
         if data is not None:
             json_data = json.loads(data)
             if action := self.json_to_action(json_data):
-                # response = await handle_action(action)
+                response = await self.action_request(action)
                 return response
         return Response(204)
 
@@ -269,7 +278,13 @@ class Adapter:
         """
         json转换为action
         """
-        pass
+        if not isinstance(json_data, dict):
+            return None
+        try:
+            action = ActionRequest.parse_obj(json_data)
+        except ValidationError:
+            return None
+        return action
 
     @classmethod
     def json_to_ws_action(cls, json_data: Any) -> Optional[WsActionRequest]:
@@ -281,4 +296,20 @@ class Adapter:
         except Exception:
             return None
         action = cls.json_to_action(json_data)
+        if action is None:
+            return None
         return WsActionRequest(echo=echo, **action.dict())
+
+    @abstractmethod
+    async def action_request(self, request: ActionRequest) -> ActionResponse:
+        """
+        处理action的方法
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def action_ws_request(self, request: WsActionRequest) -> WsActionResponse:
+        """
+        处理wsaction的方法
+        """
+        raise NotImplementedError

@@ -29,13 +29,13 @@ async def start_up() -> None:
     # 开启http路由
     if config.enable_http_api:
         wechat.setup_http_server(
-            HTTPServerSetup(URL("/"), "POST", "onebot", wechat._handle_http)
+            HTTPServerSetup(URL("/"), "POST", "onebot", wechat.handle_http)
         )
     # 开启ws连接任务
     if config.websocekt_type == WebsocketType.Forward:
         # 正向ws，建立监听
         wechat.setup_websocket_server(
-            WebSocketServerSetup(URL("/"), "onebot", wechat._handle_ws)
+            WebSocketServerSetup(URL("/"), "onebot", wechat.handle_ws)
         )
     elif config.websocekt_type == WebsocketType.Backward:
         # 反向ws，连接应用端
