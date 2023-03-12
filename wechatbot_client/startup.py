@@ -33,13 +33,13 @@ async def start_up() -> None:
         )
     # 开启ws连接任务
     if config.websocekt_type == WebsocketType.Forward:
-        # 正向ws
-        await wechat.start_forward()
-    elif config.websocekt_type == WebsocketType.Backward:
-        # 反向ws
+        # 正向ws，建立监听
         wechat.setup_websocket_server(
             WebSocketServerSetup(URL("/"), "onebot", wechat._handle_ws)
         )
+    elif config.websocekt_type == WebsocketType.Backward:
+        # 反向ws，连接应用端
+        await wechat.start_backward()
 
 
 @driver.on_shutdown

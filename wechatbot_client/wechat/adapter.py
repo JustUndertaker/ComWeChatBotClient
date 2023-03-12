@@ -9,6 +9,7 @@ from typing import Any, AsyncGenerator, Generator, Optional, Type, cast
 import msgpack
 
 from wechatbot_client.config import Config
+from wechatbot_client.consts import IMPL, ONEBOT_VERSION, USER_AGENT
 from wechatbot_client.driver import (
     URL,
     Driver,
@@ -143,13 +144,13 @@ class Adapter:
                 return response
         return Response(204)
 
-    async def start_forward(self) -> None:
+    async def start_backward(self) -> None:
         """
-        开启正向ws连接
+        开启反向ws连接应用端
         """
         try:
             ws_url = URL(self.config.websocket_url)
-            self.tasks.append(asyncio.create_task(self._forward_ws(ws_url)))
+            self.tasks.append(asyncio.create_task(self._backward_ws(ws_url)))
         except Exception as e:
             log(
                 "ERROR",
@@ -158,14 +159,17 @@ class Adapter:
                 e,
             )
 
-    async def _forward_ws(self, url: URL) -> None:
+    async def _backward_ws(self, url: URL) -> None:
         """
-        正向连接ws任务
+        反向ws连接任务
         """
-        headers = {}
+        headers = {
+            "User-Agent": USER_AGENT,
+            "Sec-WebSocket-Protocol": f"{ONEBOT_VERSION}.{IMPL}",
+        }
         if self.config.access_token:
             headers["Authorization"] = f"Bearer {self.config.access_token}"
-        req = Request("GET", url, headers=headers, timeout=30.0)
+        req = Request("POST", url, headers=headers, timeout=30.0)
         while True:
             try:
                 async with self.websocket(req) as ws:
