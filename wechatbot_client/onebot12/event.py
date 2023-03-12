@@ -1,11 +1,36 @@
-from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Extra
 
-from wechatbot_client.consts import PLATFORM, VERSION
+from wechatbot_client.consts import PLATFORM
 
 from .message import Message
+
+
+class BotSelf(BaseModel):
+    """机器人自身"""
+
+    platform: str = PLATFORM
+    """消息平台"""
+    user_id: str
+    """机器人用户 ID"""
+
+
+class BaseEvent(BaseModel, extra=Extra.allow):
+    """
+    基础事件
+    """
+
+    id: str
+    """事件id"""
+    time: float
+    """时间"""
+    type: Literal["message", "notice", "request", "meta"]
+    """类型"""
+    detail_type: str
+    """细节类型"""
+    sub_type: str = ""
+    """子类型"""
 
 
 class Event(BaseModel, extra=Extra.allow):
@@ -14,22 +39,8 @@ class Event(BaseModel, extra=Extra.allow):
     参考文档：[OneBot 文档](https://12.1bot.dev)
     """
 
-    id: str
-    """消息id"""
-    impl: str = f"{PLATFORM}.{VERSION}"
-    """实现端"""
-    platform: str = PLATFORM
-    """平台"""
-    self_id: str
-    """自身id"""
-    time: datetime
-    """时间"""
-    type: Literal["message", "notice", "request", "meta"]
-    """类型"""
-    detail_type: str
-    """细节类型"""
-    sub_type: str = ""
-    """子类型"""
+    self: BotSelf
+    """自身标识"""
 
 
 class MessageEvent(Event):
@@ -191,7 +202,7 @@ class RequestEvent(Event):
     type: Literal["request"] = "request"
 
 
-class MetaEvent(Event):
+class MetaEvent(BaseEvent):
     """元事件"""
 
     type: Literal["meta"] = "meta"
