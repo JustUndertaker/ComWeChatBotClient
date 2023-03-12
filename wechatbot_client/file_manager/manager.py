@@ -1,4 +1,5 @@
 from pathlib import Path
+from shutil import copyfile
 from typing import Optional, Tuple
 from uuid import uuid4
 
@@ -63,7 +64,7 @@ class FileManager:
     async def cache_file_id_from_path(self, path: str, name: str) -> Optional[str]:
         """
         说明:
-            从路径缓存一个文件，不会更改文件名称
+            从路径缓存一个文件
 
         参数:
             * `path`: 文件路径
@@ -72,16 +73,17 @@ class FileManager:
         返回:
             * `str | None`: 文件id，文件不存在时为None
         """
-        file_path = Path(path)
-        if not file_path.exists():
+        get_path = Path(path)
+        if not get_path.exists():
             log("ERROR", "缓存的文件不存在")
             return None
         file_id = str(uuid4())
+        file_path = self.file_path / f"{file_id}{name}"
+        copyfile(get_path, file_path)
         await FileCache.create_file_cache(
             file_id=file_id,
             file_path=str(file_path.absolute()),
             file_name=name,
-            flag=False,
         )
         return file_id
 

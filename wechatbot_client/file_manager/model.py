@@ -21,8 +21,6 @@ class FileCache(Model):
     """文件名"""
     file_path = fields.CharField(max_length=255)
     """文件路径"""
-    cache_flag = fields.BooleanField()
-    """flag，是否为要清理的文件"""
 
     class Meta:
         table = "file_cache"
@@ -30,7 +28,7 @@ class FileCache(Model):
 
     @classmethod
     async def create_file_cache(
-        cls, file_id: str, file_path: str, file_name: str, flag: bool = True
+        cls, file_id: str, file_path: str, file_name: str
     ) -> bool:
         """
         说明:
@@ -40,7 +38,6 @@ class FileCache(Model):
             * `file_id`: 文件名
             * `file_path`: 文件路径
             * `file_name`: 文件名
-            * `flag`: 清理标记，为`False`的文件在清理时不会返回`path`
 
         返回:
             * `bool`: 缓存是否成功
@@ -51,7 +48,6 @@ class FileCache(Model):
             file_path=file_path,
             file_name=file_name,
             create_time=time,
-            cache_flag=flag,
         )
         return True
 
