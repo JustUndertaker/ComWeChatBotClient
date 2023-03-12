@@ -6,7 +6,6 @@ from wechatbot_client.action_manager import (
     ActionResponse,
     WsActionRequest,
     WsActionResponse,
-    add_action,
     check_action_params,
 )
 from wechatbot_client.config import Config

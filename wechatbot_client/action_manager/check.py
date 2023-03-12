@@ -3,17 +3,21 @@
 """
 
 from inspect import Parameter
-from typing import Any, Callable, Type
+from typing import Callable, ParamSpec, Type, TypeVar
 
 from pydantic import BaseConfig, BaseModel, Extra, ValidationError, create_model
 
+from wechatbot_client.consts import PREFIX
 from wechatbot_client.log import logger
 from wechatbot_client.utils import get_typed_signature
 
 from .action import ActionRequest
 
 ACTION_DICT: dict[str, Type[BaseModel]] = {}
-"""action模型字典"""
+"""标准action模型字典"""
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 class ModelConfig(BaseConfig):
@@ -53,10 +57,10 @@ def check_action_params(request: ActionRequest) -> None:
     return
 
 
-def add_action(func: Callable[..., Any]) -> Callable[..., Any]:
+def standard_action(func: Callable[P, R]) -> Callable[P, R]:
     """
     说明:
-        使用此装饰器表示将此函数加入action字典中，会生成验证模型，注意参数的类型标注
+        使用此装饰器表示将此函数加入标准action字典中，会生成验证模型，注意参数的类型标注
     """
 
     global ACTION_DICT
@@ -73,6 +77,31 @@ def add_action(func: Callable[..., Any]) -> Callable[..., Any]:
                 field[name] = (annotation, default)
     action_type = create_model(func.__name__, __config__=ModelConfig, **field)
     ACTION_DICT[func.__name__] = action_type
+    return func
+
+
+def expand_action(func: Callable[P, R]) -> Callable[P, R]:
+    """
+    说明:
+        使用此装饰器表示将此函数加入拓展action字典中，会生成验证模型，注意参数的类型标注
+        拓展action会使用<PREFIX>.action
+    """
+
+    global ACTION_DICT
+    signature = get_typed_signature(func)
+    field = {}
+    for parameter in signature.parameters.values():
+        name = parameter.name
+        annotation = parameter.annotation
+        default = parameter.default
+        if name != "self":
+            if default == Parameter.empty:
+                field[name] = (annotation, ...)
+            else:
+                field[name] = (annotation, default)
+    action_type = create_model(func.__name__, __config__=ModelConfig, **field)
+    action_name = f"{PREFIX}.{func.__name__}"
+    ACTION_DICT[action_name] = action_type
     return func
 
 

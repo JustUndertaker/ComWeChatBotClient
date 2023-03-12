@@ -955,7 +955,7 @@ class ComWechatApi(ComProgress):
         status = self.robot.COpenBrowser(self.wechat_pid, url)
         return status == 0
 
-    def get_history_public_msg(self, public_id: str, offset: str = "") -> str:
+    def get_history_public_msg(self, public_id: str, offset: str = "") -> dict:
         """
         说明:
             获取公众号历史消息，一次获取十条推送记录

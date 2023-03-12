@@ -1,6 +1,6 @@
 import time
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Callable, Literal, Union
 
 from wechatbot_client.com_wechat import ComWechatApi
 from wechatbot_client.consts import IMPL, ONEBOT_VERSION, PREFIX, VERSION
@@ -9,7 +9,7 @@ from wechatbot_client.onebot12 import Message
 from wechatbot_client.utils import escape_tag
 
 from .action import ActionRequest, ActionResponse, BotSelf
-from .check import add_action, get_supported_actions
+from .check import expand_action, get_supported_actions, standard_action
 
 
 class ApiManager:
@@ -133,10 +133,10 @@ class ApiManager:
 
 class ActionManager(ApiManager):
     """
-    action管理器，实现所有action，这里只定义与com交互的action方法
+    action管理器，实现所有action
     """
 
-    @add_action
+    @standard_action
     def get_supported_actions(self) -> ActionResponse:
         """
         获取支持的动作列表
@@ -144,7 +144,7 @@ class ActionManager(ApiManager):
         actions = get_supported_actions()
         return ActionResponse(status="ok", retcode=0, data=actions)
 
-    @add_action
+    @standard_action
     def get_status(self) -> ActionResponse:
         """
         获取运行状态
@@ -153,7 +153,7 @@ class ActionManager(ApiManager):
         data = {"good": True, "bots": [bot]}
         return ActionResponse(status="ok", retcode=0, data=data)
 
-    @add_action
+    @standard_action
     def get_version(self) -> ActionResponse:
         """
         获取版本信息
@@ -165,7 +165,7 @@ class ActionManager(ApiManager):
         }
         return ActionResponse(status="ok", retcode=0, data=data)
 
-    @add_action
+    @standard_action
     def send_message(
         self,
         detail_type: Literal["private", "group", "channel"],
@@ -180,7 +180,7 @@ class ActionManager(ApiManager):
         """
         pass
 
-    @add_action
+    @standard_action
     def get_self_info(self) -> ActionResponse:
         """
         获取机器人自身信息
@@ -196,7 +196,7 @@ class ActionManager(ApiManager):
         }
         return ActionResponse(status="ok", retcode=0, data=data)
 
-    @add_action
+    @standard_action
     def get_user_info(self, user_id: str) -> ActionResponse:
         """
         获取用户信息
@@ -218,7 +218,7 @@ class ActionManager(ApiManager):
         }
         return ActionResponse(status="ok", retcode=0, data=data)
 
-    @add_action
+    @standard_action
     def get_friend_list(self) -> ActionResponse:
         """
         获取好友列表
@@ -236,7 +236,7 @@ class ActionManager(ApiManager):
         ]
         return ActionResponse(status="ok", retcode=0, data=data)
 
-    @add_action
+    @standard_action
     def get_group_info(self, group_id: str) -> ActionResponse:
         """
         获取群信息
@@ -250,7 +250,7 @@ class ActionManager(ApiManager):
         }
         return ActionResponse(status="ok", retcode=0, data=data)
 
-    @add_action
+    @standard_action
     def get_group_list(self) -> ActionResponse:
         """
         获取群列表
@@ -265,7 +265,7 @@ class ActionManager(ApiManager):
         ]
         return ActionResponse(status="ok", retcode=0, data=data)
 
-    @add_action
+    @standard_action
     def get_group_member_info(self, group_id: str, user_id: str) -> ActionResponse:
         """
         获取群成员信息
@@ -297,7 +297,7 @@ class ActionManager(ApiManager):
             )
         return ActionResponse(status="ok", retcode=0, data=data)
 
-    @add_action
+    @standard_action
     def get_group_member_list(self, group_id: str) -> ActionResponse:
         """
         获取群成员列表
@@ -323,13 +323,419 @@ class ActionManager(ApiManager):
         ]
         return ActionResponse(status="ok", retcode=0, data=data)
 
-    @add_action
+    @standard_action
     def set_group_name(self, group_id: str, group_name: str) -> ActionResponse:
         """
         设置群名称
         """
         res = self.com_api.set_group_name(group_id, group_name)
         if res:
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def get_public_account_list(self) -> ActionResponse:
+        """
+        获取公众号列表
+        """
+        res = self.com_api.get_public_account_list()
+        data = [
+            {
+                "user_id": one["wxid"],
+                "user_name": one["wxNickName"],
+                "wx_number": one["wxNumber"],
+            }
+            for one in res
+        ]
+        return ActionResponse(status="ok", retcode=0, data=data)
+
+    @expand_action
+    def follow_public_number(self, public_id: str) -> ActionResponse:
+        """
+        说明:
+            关注公众号
+
+        参数:
+            * `public_id`: 公众号id
+        """
+        status = self.com_api.follow_public_number(public_id)
+        if status:
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def search_friend_by_remark(self, remark: str) -> ActionResponse:
+        """
+        通过备注搜索联系人
+        """
+        info = self.com_api.search_friend_by_remark(remark)
+        if info is None:
+            return ActionResponse(
+                status="failed", retcode=35001, data=None, message="未找到联系人"
+            )
+        data = {
+            "user_id": info["wxId"],
+            "user_name": info["wxNickName"],
+            "user_displayname": "",
+            "user_remark": info["wxRemark"],
+            f"{PREFIX}.avatar": info["wxBigAvatar"],  # 头像
+            f"{PREFIX}.wx_number": info["wxNumber"],  # 微信号
+            f"{PREFIX}.nation": info["wxNation"],  # 国家
+            f"{PREFIX}.province": info["wxProvince"],  # 省份
+            f"{PREFIX}.city": info["wxCity"],  # 城市
+            f"{PREFIX}.remark": info["wxRemark"],  # 备注
+            f"{PREFIX}.signatrue": info["wxSignature"],  # 个签
+            f"{PREFIX}.v3": info["wxV3"],  # v3信息
+        }
+        return ActionResponse(status="ok", retcode=0, data=data)
+
+    @expand_action
+    def search_friend_by_wxnumber(self, wx_number: str) -> ActionResponse:
+        """
+        通过微信号搜索联系人
+        """
+        info = self.com_api.search_friend_by_wxnumber(wx_number)
+        if info is None:
+            return ActionResponse(
+                status="failed", retcode=35001, data=None, message="未找到联系人"
+            )
+        data = {
+            "user_id": info["wxId"],
+            "user_name": info["wxNickName"],
+            "user_displayname": "",
+            "user_remark": info["wxRemark"],
+            f"{PREFIX}.avatar": info["wxBigAvatar"],  # 头像
+            f"{PREFIX}.wx_number": info["wxNumber"],  # 微信号
+            f"{PREFIX}.nation": info["wxNation"],  # 国家
+            f"{PREFIX}.province": info["wxProvince"],  # 省份
+            f"{PREFIX}.city": info["wxCity"],  # 城市
+            f"{PREFIX}.remark": info["wxRemark"],  # 备注
+            f"{PREFIX}.signatrue": info["wxSignature"],  # 个签
+            f"{PREFIX}.v3": info["wxV3"],  # v3信息
+        }
+        return ActionResponse(status="ok", retcode=0, data=data)
+
+    @expand_action
+    def search_friend_by_nickname(self, nickname: str) -> ActionResponse:
+        """
+        通过昵称搜索联系人
+        """
+        info = self.com_api.search_friend_by_nickname(nickname)
+        if info is None:
+            return ActionResponse(
+                status="failed", retcode=35001, data=None, message="未找到联系人"
+            )
+        data = {
+            "user_id": info["wxId"],
+            "user_name": info["wxNickName"],
+            "user_displayname": "",
+            "user_remark": info["wxRemark"],
+            f"{PREFIX}.avatar": info["wxBigAvatar"],  # 头像
+            f"{PREFIX}.wx_number": info["wxNumber"],  # 微信号
+            f"{PREFIX}.nation": info["wxNation"],  # 国家
+            f"{PREFIX}.province": info["wxProvince"],  # 省份
+            f"{PREFIX}.city": info["wxCity"],  # 城市
+            f"{PREFIX}.remark": info["wxRemark"],  # 备注
+            f"{PREFIX}.signatrue": info["wxSignature"],  # 个签
+            f"{PREFIX}.v3": info["wxV3"],  # v3信息
+        }
+        return ActionResponse(status="ok", retcode=0, data=data)
+
+    @expand_action
+    def check_friend_status(self, user_id: str) -> ActionResponse:
+        """
+        说明:
+            检测好友状态
+
+        参数:
+            * `wxid`: 好友wxid
+
+        返回:
+            * `int`: 好友状态
+                * `0x00`: Unknown
+                * `0xB0`: 被删除
+                * `0xB1`: 是好友
+                * `0xB2`: 已拉黑
+                * `0xB5`: 被拉黑
+        """
+        data = self.com_api.check_friend_status(user_id)
+        return ActionResponse(status="ok", retcode=0, data=data)
+
+    @expand_action
+    def get_db_handles(self) -> ActionResponse:
+        """
+        获取数据库句柄和表信息
+        """
+        data = self.com_api.get_db_handles()
+        return ActionResponse(status="ok", retcode=0, data=data)
+
+    @expand_action
+    def execute_sql(self, handle: int, sql: str) -> ActionResponse:
+        """
+        执行SQL
+        """
+        data = self.com_api.execute_sql(handle, sql)
+        return ActionResponse(status="ok", retcode=0, data=data)
+
+    @expand_action
+    def backup_db(self, handle: int, file_path: str) -> ActionResponse:
+        """
+        备份数据库
+        """
+        status = self.com_api.backup_db(handle, file_path)
+        if status:
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=32000, data=None, message="备份数据库失败"
+            )
+
+    @expand_action
+    def verify_friend_apply(self, v3: str, v4: str) -> ActionResponse:
+        """
+        说明:
+            通过好友请求
+
+        参数:
+            * `v3`: v3数据(encryptUserName)
+            * `v4`: v4数据(ticket)
+        """
+        status = self.com_api.verify_friend_apply(v3, v4)
+        if status:
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def add_friend_by_id(self, user_id: str) -> ActionResponse:
+        """
+        说明:
+            发送好友请求（使用wxid）
+        """
+        status = self.com_api.add_friend_by_wxid(user_id)
+        if status:
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def add_friend_by_v3(self, v3: str) -> ActionResponse:
+        """
+        说明:
+            发送好友请求（使用v3数据）
+        """
+        status = self.com_api.add_friend_by_v3(v3)
+        if status:
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def get_wechat_version(self) -> ActionResponse:
+        """
+        获取微信版本
+        """
+        data = self.com_api.get_wechat_version()
+        return ActionResponse(status="ok", retcode=0, data=data)
+
+    @expand_action
+    def change_wechat_version(self, version: str) -> ActionResponse:
+        """
+        说明:
+            自定义微信版本号，一定程度上防止自动更新
+
+        参数:
+            * `version`: 版本号，类似`3.7.0.26`
+        """
+        status = self.com_api.change_wechat_version(version)
+        if status:
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def delete_friend(self, user_id: str) -> ActionResponse:
+        """
+        删除好友
+        """
+        status = self.com_api.delete_friend(user_id)
+        if status:
+            self.com_api.get_contacts()
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def edit_remark(self, user_id: str, remark: str) -> ActionResponse:
+        """
+        说明:
+            修改好友或群聊备注
+
+        参数:
+            * `user_id`: wxid或group_id
+            * `remark`: 要修改的备注
+        """
+        status = self.com_api.edit_remark(user_id, remark)
+        if status:
+            self.com_api.get_contacts()
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def set_group_announcement(
+        self, group_id: str, announcement: str
+    ) -> ActionResponse:
+        """
+        设置群公告.请确认具有相关权限再调用。
+        """
+        status = self.com_api.set_group_announcement(group_id, announcement)
+        if status:
+            self.com_api.get_contacts()
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def set_group_nickname(self, group_id: str, nickname: str) -> ActionResponse:
+        """
+        说明:
+            设置群内个人昵称
+        """
+        status = self.com_api.set_group_nickname(group_id, nickname)
+        if status:
+            self.com_api.get_contacts()
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def get_groupmember_nickname(self, group_id: str, user_id: str) -> ActionResponse:
+        """
+        说明:
+            获取群成员昵称
+        """
+        status = self.com_api.get_groupmember_nickname(group_id, user_id)
+        if status:
+            self.com_api.get_contacts()
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def kick_groupmember(
+        self, group_id: str, user_list: Union[str, list[str]]
+    ) -> ActionResponse:
+        """
+        说明:
+            删除群成员.请确认具有相关权限再调用。
+
+        参数:
+            * `group_id`: 群聊id
+            * `user_list`: 要删除的成员wxid或wxid列表
+        """
+        status = self.com_api.delete_groupmember(group_id, user_list)
+        if status:
+            self.com_api.get_contacts()
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def invite_groupmember(
+        self, group_id: str, user_list: Union[str, list[str]]
+    ) -> ActionResponse:
+        """
+        说明:
+            添加群成员.请确认具有相关权限再调用。
+
+        参数:
+            * `group_id`: 群聊id
+            * `user_list`: 要添加的成员wxid或wxid列表
+        """
+        status = self.com_api.add_groupmember(group_id, user_list)
+        if status:
+            self.com_api.get_contacts()
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def get_history_public_msg(
+        self, public_id: str, offset: str = ""
+    ) -> ActionResponse:
+        """
+        说明:
+            获取公众号历史消息，一次获取十条推送记录
+
+        参数:
+            * `public_id`: 公众号id
+            * `offset`: 起始偏移，为空的话则从新到久获取十条，该值可从返回数据中取得. The default is ""
+        """
+        data = self.com_api.get_history_public_msg(public_id, offset)
+        return ActionResponse(status="ok", retcode=0, data=data)
+
+    @expand_action
+    def send_forward_msg(self, user_id: str, message_id: int) -> ActionResponse:
+        """
+        说明:
+            转发消息，只支持单条转发
+
+        参数:
+            * `wxid`: 消息接收人wxid
+            * `message_id`: 消息id，可以在实时消息接口中获取.
+        """
+        status = self.com_api.send_forward_msg(user_id, message_id)
+        if status:
+            self.com_api.get_contacts()
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )
+
+    @expand_action
+    def send_xml(self, user_id: str, xml: str, image_path: str = "") -> ActionResponse:
+        """
+        说明:
+            发送原始xml消息
+
+        参数:
+            * `user_id`: 消息接收人
+            * `xml`: xml内容
+            * `image_path`: 图片路径. 默认为空.
+        """
+        status = self.com_api.send_xml(user_id, xml, image_path)
+        if status:
+            self.com_api.get_contacts()
             return ActionResponse(status="ok", retcode=0, data=None)
         else:
             return ActionResponse(
