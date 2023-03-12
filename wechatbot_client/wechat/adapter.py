@@ -217,8 +217,8 @@ class Adapter:
 
             await asyncio.sleep(self.config.reconnect_interval / 1000)
 
-    async def stop_forward(self) -> None:
-        """关闭正向ws连接任务"""
+    async def stop_backward(self) -> None:
+        """关闭反向ws连接任务"""
         for task in self.tasks:
             if not task.done():
                 task.cancel()
