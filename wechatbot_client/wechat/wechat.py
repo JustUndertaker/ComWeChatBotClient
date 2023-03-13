@@ -68,7 +68,7 @@ class WeChatManager(Adapter):
         """
         # 验证action
         try:
-            check_action_params(request)
+            request = check_action_params(request)
         except TypeError:
             return ActionResponse(
                 status="failed",

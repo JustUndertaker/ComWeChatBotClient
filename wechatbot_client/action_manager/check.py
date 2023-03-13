@@ -26,7 +26,7 @@ class ModelConfig(BaseConfig):
     extra = Extra.forbid
 
 
-def check_action_params(request: ActionRequest) -> None:
+def check_action_params(request: ActionRequest) -> ActionRequest:
     """
     说明:
         检测action的参数合法性，会检测`action`是否存在，同时param类型是否符合
@@ -35,7 +35,7 @@ def check_action_params(request: ActionRequest) -> None:
         * `request`：action请求
 
     返回:
-        * `None`: 检测通过
+        * `ActionRequest`: action的函数名
 
     错误:
         * `TypeError`: 未实现action
@@ -54,7 +54,8 @@ def check_action_params(request: ActionRequest) -> None:
     except ValidationError as e:
         log("ERROR", f"<r>action参数错误:{e}</r>")
         raise ValueError("请求参数错误...")
-    return
+    request.action = action_model.__name__
+    return request
 
 
 def standard_action(func: Callable[P, R]) -> Callable[P, R]:
