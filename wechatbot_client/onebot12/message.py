@@ -20,12 +20,29 @@ class MessageSegment(BaseMessageSegment["Message"]):
 
     @overrides(BaseMessageSegment)
     def __str__(self) -> str:
-        if self.type == "text":
-            return self.data.get("text", "")
-        params = ",".join(
-            [f"{k}={str(v)}" for k, v in self.data.items() if v is not None]
-        )
-        return f"[{self.type}:{params}]"
+        match self.type:
+            case "text":
+                return self.data.get("text", "")
+            case "mention":
+                return f"@{self.data['user_id']} "
+            case "mention_all":
+                return "notify@all"
+            case "image":
+                return "[图片]"
+            case "voice":
+                return "[语音]"
+            case "video":
+                return "[视频]"
+            case "file":
+                return "[文件]"
+            case "location":
+                return f"[位置]:{self.data['title']} "
+            case "card":
+                return f"[名片]:{self.data['nickname']} "
+            case "link":
+                return f"[链接]:{self.data['tittle']} "
+            case _:
+                return ""
 
     @overrides(BaseMessageSegment)
     def is_text(self) -> bool:
@@ -47,30 +64,24 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return MessageSegment("mention_all", {})
 
     @staticmethod
-    def image(file_id: str, file_path: str) -> "MessageSegment":
+    def image(file_id: str) -> "MessageSegment":
         """图片消息"""
-        return MessageSegment("image", {"file_path": file_path, "file_id": file_id})
+        return MessageSegment("image", {"file_id": file_id})
 
     @staticmethod
-    def voice(file_id: str, file_path: str) -> "MessageSegment":
+    def voice(file_id: str) -> "MessageSegment":
         """语音消息"""
-        return MessageSegment(
-            "voice", {f"{PLATFORM}.file_path": file_path, "file_id": file_id}
-        )
+        return MessageSegment("voice", {"file_id": file_id})
 
     @staticmethod
-    def video(file_id: str, file_path: str) -> "MessageSegment":
+    def video(file_id: str) -> "MessageSegment":
         """视频消息"""
-        return MessageSegment(
-            "video", {f"{PLATFORM}.file_path": file_path, "file_id": file_id}
-        )
+        return MessageSegment("video", {"file_id": file_id})
 
     @staticmethod
-    def file(file_id: str, file_path: str) -> "MessageSegment":
+    def file(file_id: str) -> "MessageSegment":
         """文件消息"""
-        return MessageSegment(
-            "file", {f"{PLATFORM}.file_path": file_path, "file_id": file_id}
-        )
+        return MessageSegment("file", {"file_id": file_id})
 
     @staticmethod
     def location(
@@ -99,7 +110,8 @@ class MessageSegment(BaseMessageSegment["Message"]):
 
     @staticmethod
     def card(
-        user_id: str,  # 联系人id
+        v3: str,  # v3信息
+        v4: str,  # v4消息
         head_url: str,  # 头像url
         nickname: str,  # 昵称
         province: str,  # 省
@@ -110,7 +122,8 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return MessageSegment(
             f"{PLATFORM}.card",
             {
-                "user_id": user_id,
+                "v3": v3,
+                "v4": v4,
                 "head_url": head_url,
                 "nickname": nickname,
                 "province": province,

@@ -33,7 +33,7 @@ class BaseEvent(BaseModel, extra=Extra.allow):
     """子类型"""
 
 
-class Event(BaseModel, extra=Extra.allow):
+class Event(BaseEvent, extra=Extra.allow):
     """OneBot V12 协议事件，字段与 OneBot 一致
 
     参考文档：[OneBot 文档](https://12.1bot.dev)
@@ -194,6 +194,20 @@ class GetGroupFileNotice(NoticeEvent):
     """发送方id"""
     group_id: str
     """群聊id"""
+
+
+class RevokeMessageNotice(NoticeEvent):
+    """
+    撤回消息通知
+    """
+
+    detail_type = f"{PLATFORM}.revoke_message"
+    group_id: str
+    """群id"""
+    user_id: str
+    """用户id"""
+    revoke_id: str
+    """撤回消息id"""
 
 
 class RequestEvent(Event):
