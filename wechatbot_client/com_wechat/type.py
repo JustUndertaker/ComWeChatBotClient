@@ -48,5 +48,7 @@ class AppType(IntEnum):
     """引用消息"""
     APP = 33
     """小程序"""
+    GROUP_ANNOUNCEMENT = 87
+    """群公告"""
     TRANSFER = 2000
     """转账"""

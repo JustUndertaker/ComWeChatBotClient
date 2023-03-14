@@ -16,8 +16,13 @@ from wechatbot_client.onebot12.event import (
     BotSelf,
     Event,
     FriendRequestEvent,
+    GetGroupAnnouncementNotice,
     GetGroupFileNotice,
+    GetGroupPokeNotice,
+    GetGroupRedBagNotice,
     GetPrivateFileNotice,
+    GetPrivatePokeNotice,
+    GetPrivateRedBagNotice,
     GroupMessageDeleteEvent,
     GroupMessageEvent,
     PrivateMessageDeleteEvent,
@@ -35,7 +40,7 @@ APP_HANDLERS: dict[
     int, Callable[["MessageHandler", WechatMessage, Element], Optional[E]]
 ] = {}
 """app消息处理函数列表"""
-SYS_HANDLERS: list[Callable[[WechatMessage, Element], Optional[E]]] = []
+SYS_HANDLERS: list[Callable[[WechatMessage], Optional[E]]] = []
 """系统消息处理函数列表"""
 GROUP_SYS_HANDLERS: list[Callable[[WechatMessage, Element], Optional[E]]] = []
 """群系统消息处理函数列表"""
@@ -70,7 +75,7 @@ def add_app_handler(_tpye: int) -> Callable[[WechatMessage], Optional[E]]:
 
 
 def add_sys_handler(
-    func: Callable[[WechatMessage, Element], Optional[E]]
+    func: Callable[[WechatMessage], Optional[E]]
 ) -> Callable[[WechatMessage], Optional[E]]:
     """添加系统处理器"""
     global SYS_HANDLERS
@@ -457,11 +462,9 @@ class MessageHandler(Generic[E]):
         """
         处理系统消息
         """
-        raw_xml = msg.message
-        xml_obj = ET.fromstring(raw_xml)
         result = None
         for handler in SYS_HANDLERS:
-            result = handler(msg, xml_obj)
+            result = handler(msg)
             if result is not None:
                 break
         return result
@@ -691,6 +694,23 @@ class AppMessageHandler(Generic[E]):
         )
 
     @classmethod
+    @add_app_handler(AppType.GROUP_ANNOUNCEMENT)
+    def handle_announcement(
+        cls, msg_handler: MessageHandler, msg: WechatMessage, app: Element
+    ) -> E:
+        """处理群公告"""
+        event_id = str(uuid4())
+        text = app.find("textannouncement").text
+        return GetGroupAnnouncementNotice(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            group_id=msg.sender,
+            user_id=msg.wxid,
+            text=text,
+        )
+
+    @classmethod
     @add_app_handler(AppType.TRANSFER)
     def handle_transfer(
         cls, msg_handler: MessageHandler, msg: WechatMessage, app: Element
@@ -709,9 +729,51 @@ class SysMessageHandler(Generic[E]):
 
     @classmethod
     @add_sys_handler
-    def event(cls, msg: WechatMessage, xml_obj: Element) -> Optional[E]:
+    def read_bag(cls, msg: WechatMessage) -> Optional[E]:
         """"""
-        pass
+        if msg.message != "收到红包，请在手机上查看":
+            return None
+        event_id = str(uuid4())
+        # 检测是否为群聊
+        if "@chatroom" in msg.sender:
+            return GetGroupRedBagNotice(
+                id=event_id,
+                time=msg.timestamp,
+                self=BotSelf(user_id=msg.self),
+                user_id=msg.wxid,
+                group_id=msg.sender,
+            )
+        return GetPrivateRedBagNotice(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            user_id=msg.wxid,
+        )
+
+    @classmethod
+    @add_sys_handler
+    def poke(cls, msg: WechatMessage) -> Optional[E]:
+        """
+        拍一拍
+        """
+        if " 拍了拍我" not in msg.message:
+            return None
+        event_id = str(uuid4())
+        # 检测是否为群聊
+        if "@chatroom" in msg.sender:
+            return GetGroupPokeNotice(
+                id=event_id,
+                time=msg.timestamp,
+                self=BotSelf(user_id=msg.self),
+                user_id=msg.wxid,
+                group_id=msg.sender,
+            )
+        return GetPrivatePokeNotice(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            user_id=msg.wxid,
+        )
 
 
 class GroupSysMsgHandler(Generic[E]):
@@ -721,6 +783,8 @@ class GroupSysMsgHandler(Generic[E]):
 
     @classmethod
     @add_group_sys_handler
-    def event(cls, msg: WechatMessage, xml_obj: Element) -> Optional[E]:
+    def event(cls, msg: WechatMessage) -> Optional[E]:
         """"""
-        pass
+        if msg.message != "收到红包，请在手机上查看":
+            return None
+        return

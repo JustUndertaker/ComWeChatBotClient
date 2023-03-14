@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, Extra
 
 from wechatbot_client.consts import PLATFORM, PREFIX
 
@@ -203,6 +203,64 @@ class GetGroupFileNotice(NoticeEvent):
     """发送方id"""
     group_id: str
     """群聊id"""
+
+
+class GetPrivateRedBagNotice(NoticeEvent):
+    """
+    私聊获取红包提示
+    """
+
+    detail_type = f"{PLATFORM}.get_private_redbag"
+    user_id: str
+    """发送方id"""
+
+
+class GetGroupRedBagNotice(NoticeEvent):
+    """
+    群聊获取红包提示
+    """
+
+    detail_type = f"{PLATFORM}.get_group_redbag"
+    group_id: str
+    """群id"""
+    user_id: str
+    """发送方"""
+
+
+class GetPrivatePokeNotice(NoticeEvent):
+    """
+    私聊拍一拍
+    """
+
+    detail_type = f"{PLATFORM}.get_private_poke"
+    user_id: str
+    """发送方id"""
+
+
+class GetGroupPokeNotice(NoticeEvent):
+    """
+    群聊拍一拍
+    """
+
+    detail_type = f"{PLATFORM}.get_group_poke"
+    group_id: str
+    """群id"""
+    user_id: str
+    """发送方"""
+
+
+class GetGroupAnnouncementNotice(NoticeEvent):
+    """
+    群公告
+    """
+
+    detail_type = f"{PLATFORM}.get_group_announcement"
+    group_id: str
+    """群id"""
+    user_id: str
+    """操作者"""
+    text: str
+    """公告内容"""
 
 
 class RequestEvent(Event):
