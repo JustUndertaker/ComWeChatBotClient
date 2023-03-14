@@ -140,6 +140,19 @@ class MessageSegment(BaseMessageSegment["Message"]):
             {"tittle": tittle, "des": des, "url": url, "image": image},
         )
 
+    @staticmethod
+    def app(
+        appid: str,
+        title: str,
+        url: str,
+    ) -> "MessageSegment":
+        """
+        app消息
+        """
+        return MessageSegment(
+            f"{PLATFORM}.app", {"appid": appid, "title": title, "url": url}
+        )
+
 
 class Message(BaseMessage[MessageSegment]):
     @classmethod

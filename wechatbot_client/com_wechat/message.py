@@ -656,6 +656,41 @@ class AppMessageHandler(Generic[E]):
         )
 
     @classmethod
+    @add_app_handler(AppType.APP)
+    def handle_app(
+        cls, msg_handler: MessageHandler, msg: WechatMessage, app: Element
+    ) -> E:
+        """
+        处理app消息
+        """
+        event_id = str(uuid4())
+        title = app.find("./title").text
+        url = app.find("./url").text
+        app_id = app.find("./weappinfo/username").text
+        message = Message(MessageSegment.app(app_id, title, url))
+        # 检测是否为群聊
+        if "@chatroom" in msg.sender:
+            return GroupMessageEvent(
+                id=event_id,
+                time=msg.timestamp,
+                self=BotSelf(user_id=msg.self),
+                message_id=str(msg.msgid),
+                message=message,
+                alt_message=str(message),
+                user_id=msg.wxid,
+                group_id=msg.sender,
+            )
+        return PrivateMessageEvent(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            message_id=str(msg.msgid),
+            message=message,
+            alt_message=str(message),
+            user_id=msg.wxid,
+        )
+
+    @classmethod
     @add_app_handler(AppType.TRANSFER)
     def handle_transfer(
         cls, msg_handler: MessageHandler, msg: WechatMessage, app: Element
@@ -663,7 +698,8 @@ class AppMessageHandler(Generic[E]):
         """
         处理转账消息
         """
-        pass
+        # 告辞
+        return None
 
 
 class SysMessageHandler(Generic[E]):

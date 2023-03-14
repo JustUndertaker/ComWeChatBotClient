@@ -806,23 +806,6 @@ class ComWechatApi(ComProgress):
         stauts = self.robot.CDeleteUser(self.wechat_pid, wxid)
         return stauts == 0
 
-    def send_app_msg(self, wxid: str, appid: str) -> bool:
-        """
-        说明:
-            发送小程序
-
-        参数:
-            * `wxid`: 消息接收者wxid
-            * `appid`: 小程序id (在xml中是username，不是appid)
-
-        返回:
-            * `bool`: 操作是否成功
-
-        """
-
-        status = self.robot.CSendAppMsg(self.wechat_pid, wxid, appid)
-        return status == 0
-
     def edit_remark(self, wxid: str, remark: Optional[str]) -> bool:
         """
         说明:
