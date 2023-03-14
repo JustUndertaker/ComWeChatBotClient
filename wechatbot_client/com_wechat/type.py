@@ -27,10 +27,12 @@ class WxType(IntEnum):
     """位置消息"""
     APP_MSG = 49
     """应用消息"""
+    CREATE_ROOM = 51
+    """创建房间"""
     SYSTEM_MSG = 10000
-    """系统消息"""
-    REVOKE_NOTICE = 10002
-    """撤回消息"""
+    """个人系统消息"""
+    GROUP_SYS_MSG = 10002
+    """群系统消息"""
 
 
 class XmlType(IntEnum):

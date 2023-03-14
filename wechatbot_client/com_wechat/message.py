@@ -2,20 +2,24 @@
 这里将comwechat收到的message解析为event
 """
 import re
+from inspect import iscoroutinefunction
 from pathlib import Path
 from typing import Callable, Generic, Optional, TypeVar
 from urllib.parse import unquote
 from uuid import uuid4
 from xml.etree import ElementTree as ET
+from xml.etree.ElementTree import Element
 
 from wechatbot_client.file_manager import FileManager
 from wechatbot_client.onebot12 import Message, MessageSegment
 from wechatbot_client.onebot12.event import (
     BotSelf,
     Event,
+    FriendRequestEvent,
+    GroupMessageDeleteEvent,
     GroupMessageEvent,
+    PrivateMessageDeleteEvent,
     PrivateMessageEvent,
-    RevokeMessageNotice,
 )
 
 from .model import Message as WechatMessage
@@ -25,10 +29,12 @@ E = TypeVar("E", bound=Event)
 
 HANDLE_DICT: dict[int, Callable[[WechatMessage], E]] = {}
 """消息处理器字典"""
-APP_HANDLERS: list[Callable[[WechatMessage], E]] = []
+APP_HANDLERS: list[Callable[[WechatMessage, Element], Optional[E]]] = []
 """app消息处理函数列表"""
-SYS_HANDLERS: list[Callable[[WechatMessage], Optional[E]]] = []
+SYS_HANDLERS: list[Callable[[WechatMessage, Element], Optional[E]]] = []
 """系统消息处理函数列表"""
+GROUP_SYS_HANDLERS: list[Callable[[WechatMessage, Element], Optional[E]]] = []
+"""群系统消息处理函数列表"""
 
 
 def add_handler(_tpye: int) -> Callable[[WechatMessage], E]:
@@ -51,12 +57,32 @@ def get_handler(_type: int) -> Callable[[WechatMessage], E]:
     return HANDLE_DICT[_type]
 
 
-def add_app_handler(func: Callable[[WechatMessage], E]) -> Callable[[WechatMessage], E]:
+def add_app_handler(
+    func: Callable[[WechatMessage, Element], Optional[E]]
+) -> Callable[[WechatMessage], Optional[E]]:
     """
     添加app_handler
     """
     global APP_HANDLERS
     APP_HANDLERS.append(func)
+    return func
+
+
+def add_sys_handler(
+    func: Callable[[WechatMessage, Element], Optional[E]]
+) -> Callable[[WechatMessage], Optional[E]]:
+    """添加系统处理器"""
+    global SYS_HANDLERS
+    SYS_HANDLERS.append(func)
+    return func
+
+
+def add_group_sys_handler(
+    func: Callable[[WechatMessage, Element], Optional[E]]
+) -> Callable[[WechatMessage], Optional[E]]:
+    """添加系统处理器"""
+    global GROUP_SYS_HANDLERS
+    GROUP_SYS_HANDLERS.append(func)
     return func
 
 
@@ -73,6 +99,32 @@ class MessageHandler(Generic[E]):
     """视频文件路径"""
     file_manager: FileManager
     """文件处理器"""
+
+    def __init__(
+        self,
+        image_path: str,
+        voice_path: str,
+        video_path: str,
+        file_manager: FileManager,
+    ) -> None:
+        self.image_path = image_path
+        self.voice_path = voice_path
+        self.video_path = video_path
+        self.file_manager = file_manager
+
+    async def handle_message(self, msg: WechatMessage) -> Optional[E]:
+        """
+        处理消息，返回事件
+        """
+        _type = msg.type
+        handler = HANDLE_DICT.get(_type)
+        if handler is None:
+            return None
+        if iscoroutinefunction(handler):
+            result = await handler(msg)
+        else:
+            result = handler(msg)
+        return result
 
     def _find_file(file_path: str) -> Optional[Path]:
         """
@@ -197,43 +249,6 @@ class MessageHandler(Generic[E]):
             user_id=msg.wxid,
         )
 
-    @add_handler(WxType.EMOJI_MSG)
-    async def handle_emoji(self, msg: WechatMessage) -> E:
-        """
-        处理gif表情
-        """
-        event_id = str(uuid4())
-        # 获取文件名
-        raw_xml = msg.message
-        xml_obj = ET.fromstring(raw_xml)
-        emoji_url = xml_obj.find("./emoji").attrib.get("cdnurl")
-        emoji = unquote(emoji_url)
-        file_id = await self.file_manager.cache_file_id_from_url(
-            emoji, f"{msg.msgid}.gif"
-        )
-        message = Message(MessageSegment.image(file_id=file_id))
-        # 检测是否为群聊
-        if "@chatroom" in msg.sender:
-            return GroupMessageEvent(
-                id=event_id,
-                time=msg.timestamp,
-                self=BotSelf(user_id=msg.self),
-                message_id=str(msg.msgid),
-                message=message,
-                alt_message=str(message),
-                user_id=msg.wxid,
-                group_id=msg.sender,
-            )
-        return PrivateMessageEvent(
-            id=event_id,
-            time=msg.timestamp,
-            self=BotSelf(user_id=msg.self),
-            message_id=str(msg.msgid),
-            message=message,
-            alt_message=str(message),
-            user_id=msg.wxid,
-        )
-
     @add_handler(WxType.VOICE_MSG)
     def handle_voice(self, msg: WechatMessage) -> E:
         """
@@ -267,15 +282,28 @@ class MessageHandler(Generic[E]):
             user_id=msg.wxid,
         )
 
-    @add_handler(WxType.VIDEO_MSG)
-    def handle_video(self, msg: WechatMessage) -> E:
+    @add_handler(WxType.FRIEND_REQUEST)
+    def handle_friend_request(self, msg: WechatMessage) -> E:
         """
-        处理视频
+        处理好友请求
         """
         event_id = str(uuid4())
-        video_img = Path(self.video_path + msg.thumb_path)
-        video_name = video_img.stem
-        return
+        raw_xml = msg.message
+        xml_obj = ET.fromstring(raw_xml)
+        attrib = xml_obj.attrib
+        return FriendRequestEvent(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            user_id=attrib["fromusername"],
+            v3=attrib["encryptusername"],
+            v4=attrib["ticket"],
+            nickname=attrib["fromnickname"],
+            content=attrib["content"],
+            country=attrib["country"],
+            province=attrib["province"],
+            city=attrib["city"],
+        )
 
     @add_handler(WxType.CARD_MSG)
     def handle_card(self, msg: WechatMessage) -> E:
@@ -296,6 +324,53 @@ class MessageHandler(Generic[E]):
                 sex=attrib["sex"],
             )
         )
+        # 检测是否为群聊
+        if "@chatroom" in msg.sender:
+            return GroupMessageEvent(
+                id=event_id,
+                time=msg.timestamp,
+                self=BotSelf(user_id=msg.self),
+                message_id=str(msg.msgid),
+                message=message,
+                alt_message=str(message),
+                user_id=msg.wxid,
+                group_id=msg.sender,
+            )
+        return PrivateMessageEvent(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            message_id=str(msg.msgid),
+            message=message,
+            alt_message=str(message),
+            user_id=msg.wxid,
+        )
+
+    @add_handler(WxType.VIDEO_MSG)
+    def handle_video(self, msg: WechatMessage) -> E:
+        """
+        处理视频
+        """
+        event_id = str(uuid4())
+        video_img = Path(self.video_path + msg.thumb_path)
+        video_name = video_img.stem
+        return
+
+    @add_handler(WxType.EMOJI_MSG)
+    async def handle_emoji(self, msg: WechatMessage) -> E:
+        """
+        处理gif表情
+        """
+        event_id = str(uuid4())
+        # 获取文件名
+        raw_xml = msg.message
+        xml_obj = ET.fromstring(raw_xml)
+        emoji_url = xml_obj.find("./emoji").attrib.get("cdnurl")
+        emoji = unquote(emoji_url)
+        file_id = await self.file_manager.cache_file_id_from_url(
+            emoji, f"{msg.msgid}.gif"
+        )
+        message = Message(MessageSegment.image(file_id=file_id))
         # 检测是否为群聊
         if "@chatroom" in msg.sender:
             return GroupMessageEvent(
@@ -357,21 +432,103 @@ class MessageHandler(Generic[E]):
             user_id=msg.wxid,
         )
 
-    @add_handler(WxType.REVOKE_NOTICE)
-    def handle_revoke(self, msg: WechatMessage) -> E:
+    @add_handler(WxType.APP_MSG)
+    def handle_app(self, msg: WechatMessage) -> Optional[E]:
+        """
+        处理app消息
+        """
+        raw_xml = msg.message
+        xml_obj = ET.fromstring(raw_xml)
+        result = None
+        for handler in APP_HANDLERS:
+            result = handler(msg, xml_obj)
+            if result is not None:
+                break
+        return result
+
+    @add_handler(WxType.SYSTEM_MSG)
+    def handle_sys(self, msg: WechatMessage) -> Optional[E]:
+        """
+        处理系统消息
+        """
+        raw_xml = msg.message
+        xml_obj = ET.fromstring(raw_xml)
+        result = None
+        for handler in SYS_HANDLERS:
+            result = handler(msg, xml_obj)
+            if result is not None:
+                break
+        return result
+
+    @add_handler(WxType.GROUP_SYS_MSG)
+    def handle_group_sys(self, msg: WechatMessage) -> Optional[E]:
         """
         撤回消息事件
         """
+        raw_xml = msg.message
+        xml_obj = ET.fromstring(raw_xml)
+        result = None
+        for handler in GROUP_SYS_HANDLERS:
+            result = handler(msg, xml_obj)
+            if result is not None:
+                break
+        return result
         event_id = str(uuid4())
         raw_xml = msg.message
         xml_obj = ET.fromstring(raw_xml)
-        message_id = xml_obj.find("./revokemsg/newmsgid").text
-        return RevokeMessageNotice(
+        msg_obj = xml_obj.find("./revokemsg/newmsgid")
+        if msg_obj is None:
+            return None
+        message_id = msg_obj.text
+        # 检测是否为群聊
+        if "@chatroom" in msg.sender:
+            return GroupMessageDeleteEvent(
+                id=event_id,
+                time=msg.timestamp,
+                self=BotSelf(user_id=msg.self),
+                message_id=message_id,
+                group_id=msg.sender,
+                user_id=msg.wxid,
+                operator_id="",
+            )
+        return PrivateMessageDeleteEvent(
             id=event_id,
             time=msg.timestamp,
             self=BotSelf(user_id=msg.self),
-            message_id=str(msg.msgid),
-            group_id=msg.sender,
-            user_id=msg.wxid,
-            revoke_id=message_id,
+            message_id=message_id,
         )
+
+
+class AppMessageHandler(Generic[E]):
+    """
+    app消息处理器
+    """
+
+    @classmethod
+    @add_app_handler
+    def event(cls, msg: WechatMessage, xml_obj: Element) -> Optional[E]:
+        """"""
+
+
+class SysMessageHandler(Generic[E]):
+    """
+    系统消息处理器
+    """
+
+    @classmethod
+    @add_sys_handler
+    def event(cls, msg: WechatMessage, xml_obj: Element) -> Optional[E]:
+        """"""
+        pass
+
+
+class GroupSysMsgHandler(Generic[E]):
+    """
+    群系统消息处理器
+    """
+
+    @classmethod
+    @add_group_sys_handler
+    def event(cls, msg: WechatMessage, xml_obj: Element) -> Optional[E]:
+        """"""
+        pass

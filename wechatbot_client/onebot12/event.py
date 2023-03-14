@@ -1,8 +1,8 @@
 from typing import Literal
 
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, Extra, Field
 
-from wechatbot_client.consts import PLATFORM
+from wechatbot_client.consts import PLATFORM, PREFIX
 
 from .message import Message
 
@@ -88,6 +88,7 @@ class FriendIncreaseEvent(NoticeEvent):
     """添加id"""
 
 
+# 无通知
 class FriendDecreaseEvent(NoticeEvent):
     """好友减少事件"""
 
@@ -196,24 +197,34 @@ class GetGroupFileNotice(NoticeEvent):
     """群聊id"""
 
 
-class RevokeMessageNotice(NoticeEvent):
-    """
-    撤回消息通知
-    """
-
-    detail_type = f"{PLATFORM}.revoke_message"
-    group_id: str
-    """群id"""
-    user_id: str
-    """用户id"""
-    revoke_id: str
-    """撤回消息id"""
-
-
 class RequestEvent(Event):
     """请求事件"""
 
     type: Literal["request"] = "request"
+
+
+class FriendRequestEvent(RequestEvent):
+    """
+    好友请求
+    """
+
+    detail_type: str = f"{PREFIX}.friend_request"
+    user_id: str
+    """添加id"""
+    v3: str
+    """v3信息"""
+    v4: str
+    """v4信息"""
+    nickname: str
+    """昵称"""
+    content: str
+    """附加的话"""
+    country: str
+    """国家"""
+    province: str
+    """省份"""
+    city: str
+    """城市"""
 
 
 class MetaEvent(BaseEvent):
