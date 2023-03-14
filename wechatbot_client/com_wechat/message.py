@@ -16,6 +16,8 @@ from wechatbot_client.onebot12.event import (
     BotSelf,
     Event,
     FriendRequestEvent,
+    GetGroupFileNotice,
+    GetPrivateFileNotice,
     GroupMessageDeleteEvent,
     GroupMessageEvent,
     PrivateMessageDeleteEvent,
@@ -23,13 +25,15 @@ from wechatbot_client.onebot12.event import (
 )
 
 from .model import Message as WechatMessage
-from .type import WxType
+from .type import AppType, WxType
 
 E = TypeVar("E", bound=Event)
 
 HANDLE_DICT: dict[int, Callable[[WechatMessage], E]] = {}
 """消息处理器字典"""
-APP_HANDLERS: list[Callable[[WechatMessage, Element], Optional[E]]] = []
+APP_HANDLERS: dict[
+    int, Callable[["MessageHandler", WechatMessage, Element], Optional[E]]
+] = {}
 """app消息处理函数列表"""
 SYS_HANDLERS: list[Callable[[WechatMessage, Element], Optional[E]]] = []
 """系统消息处理函数列表"""
@@ -50,22 +54,19 @@ def add_handler(_tpye: int) -> Callable[[WechatMessage], E]:
     return _handle
 
 
-def get_handler(_type: int) -> Callable[[WechatMessage], E]:
-    """
-    获取消息处理器
-    """
-    return HANDLE_DICT[_type]
-
-
-def add_app_handler(
-    func: Callable[[WechatMessage, Element], Optional[E]]
-) -> Callable[[WechatMessage], Optional[E]]:
+def add_app_handler(_tpye: int) -> Callable[[WechatMessage], Optional[E]]:
     """
     添加app_handler
     """
-    global APP_HANDLERS
-    APP_HANDLERS.append(func)
-    return func
+
+    def _handle(
+        func: Callable[[WechatMessage, Element], Optional[E]]
+    ) -> Callable[[WechatMessage, Element], Optional[E]]:
+        global APP_HANDLERS
+        APP_HANDLERS[_tpye] = func
+        return func
+
+    return _handle
 
 
 def add_sys_handler(
@@ -433,17 +434,22 @@ class MessageHandler(Generic[E]):
         )
 
     @add_handler(WxType.APP_MSG)
-    def handle_app(self, msg: WechatMessage) -> Optional[E]:
+    async def handle_app(self, msg: WechatMessage) -> Optional[E]:
         """
         处理app消息
         """
         raw_xml = msg.message
         xml_obj = ET.fromstring(raw_xml)
+        app = xml_obj.find("./appmsg")
+        _type = int(app.find("./type").text)
         result = None
-        for handler in APP_HANDLERS:
-            result = handler(msg, xml_obj)
-            if result is not None:
-                break
+        handler = APP_HANDLERS.get(_type)
+        if handler is None:
+            return None
+        if iscoroutinefunction(handler):
+            result = await handler(self, msg, app)
+        else:
+            result = handler(self, msg, app)
         return result
 
     @add_handler(WxType.SYSTEM_MSG)
@@ -505,9 +511,159 @@ class AppMessageHandler(Generic[E]):
     """
 
     @classmethod
-    @add_app_handler
-    def event(cls, msg: WechatMessage, xml_obj: Element) -> Optional[E]:
-        """"""
+    @add_app_handler(AppType.LINK_MSG)
+    def handle_link(
+        cls, msg_handler: MessageHandler, msg: WechatMessage, app: Element
+    ) -> E:
+        """
+        处理链接
+        """
+        event_id = str(uuid4())
+        title = app.find("./title").text
+        des = app.find("./des").text
+        url = app.find("./url").text.replace(" ", "")
+        image_path = msg.filepath
+        if image_path != "":
+            image_path = msg_handler.image_path + image_path
+        message = Message(
+            MessageSegment.link(tittle=title, des=des, url=url, image=image_path)
+        )
+        # 检测是否为群聊
+        if "@chatroom" in msg.sender:
+            return GroupMessageEvent(
+                id=event_id,
+                time=msg.timestamp,
+                self=BotSelf(user_id=msg.self),
+                message_id=str(msg.msgid),
+                message=message,
+                alt_message=str(message),
+                user_id=msg.wxid,
+                group_id=msg.sender,
+            )
+        return PrivateMessageEvent(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            message_id=str(msg.msgid),
+            message=message,
+            alt_message=str(message),
+            user_id=msg.wxid,
+        )
+
+    @classmethod
+    @add_app_handler(AppType.FILE_NOTICE)
+    def handle_file(
+        cls, msg_handler: MessageHandler, msg: WechatMessage, app: Element
+    ) -> E:
+        """
+        处理文件消息
+        """
+        event_id = str(uuid4())
+        file_name = app.find("./title").text
+        md5 = app.find("./md5").text
+        appattach = app.find("./appattach")
+        file_length = int(appattach.find("./totalen").text)
+        # 判断是否为通知还是下载完成
+        overwrite_newmsgid = appattach.find("./overwrite_newmsgid")
+        if overwrite_newmsgid is None:
+            # 通知事件
+            # 检测是否为群聊
+            if "@chatroom" in msg.sender:
+                return GetGroupFileNotice(
+                    id=event_id,
+                    time=msg.timestamp,
+                    self=BotSelf(user_id=msg.self),
+                    message_id=msg.msgid,
+                    user_id=msg.wxid,
+                    group_id=msg.sender,
+                    file_name=file_name,
+                    file_length=file_length,
+                    md5=md5,
+                )
+            else:
+                return GetPrivateFileNotice(
+                    id=event_id,
+                    time=msg.timestamp,
+                    self=BotSelf(user_id=msg.self),
+                    message_id=msg.msgid,
+                    user_id=msg.wxid,
+                    file_name=file_name,
+                    file_length=file_length,
+                    md5=md5,
+                )
+
+        # 文件消息
+        file_path = msg_handler.image_path + msg.filepath
+        file_id = msg_handler.file_manager.cache_file_id_from_path(file_path, file_name)
+        message = Message(MessageSegment.file(file_id=file_id))
+        # 检测是否为群聊
+        if "@chatroom" in msg.sender:
+            return GroupMessageEvent(
+                id=event_id,
+                time=msg.timestamp,
+                self=BotSelf(user_id=msg.self),
+                message_id=str(msg.msgid),
+                message=message,
+                alt_message=str(message),
+                user_id=msg.wxid,
+                group_id=msg.sender,
+            )
+        return PrivateMessageEvent(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            message_id=str(msg.msgid),
+            message=message,
+            alt_message=str(message),
+            user_id=msg.wxid,
+        )
+
+    @classmethod
+    @add_app_handler(AppType.QUOTE)
+    def handle_quote(
+        cls, msg_handler: MessageHandler, msg: WechatMessage, app: Element
+    ) -> E:
+        """
+        处理引用
+        """
+        event_id = str(uuid4())
+        text = app.find("./title").text
+        from_msgid = app.find("./refermsg/svrid").text
+        from_user = app.find("./refermsg/fromusr").text
+        message = MessageSegment.reply(
+            message_id=from_msgid, user_id=from_user
+        ) + MessageSegment.text(text)
+        # 检测是否为群聊
+        if "@chatroom" in msg.sender:
+            return GroupMessageEvent(
+                id=event_id,
+                time=msg.timestamp,
+                self=BotSelf(user_id=msg.self),
+                message_id=str(msg.msgid),
+                message=message,
+                alt_message=str(message),
+                user_id=msg.wxid,
+                group_id=msg.sender,
+            )
+        return PrivateMessageEvent(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            message_id=str(msg.msgid),
+            message=message,
+            alt_message=str(message),
+            user_id=msg.wxid,
+        )
+
+    @classmethod
+    @add_app_handler(AppType.TRANSFER)
+    def handle_transfer(
+        cls, msg_handler: MessageHandler, msg: WechatMessage, app: Element
+    ) -> E:
+        """
+        处理转账消息
+        """
+        pass
 
 
 class SysMessageHandler(Generic[E]):

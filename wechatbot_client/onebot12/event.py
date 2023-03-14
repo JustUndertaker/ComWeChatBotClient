@@ -172,8 +172,12 @@ class GetPrivateFileNotice(NoticeEvent):
 
     detail_type = f"{PLATFORM}.get_private_file"
 
-    file_path: str
-    """文件路径"""
+    file_name: str
+    """文件名"""
+    file_length: int
+    """文件长度"""
+    md5: str
+    """文件md5"""
     message_id: str
     """消息id"""
     user_id: str
@@ -187,8 +191,12 @@ class GetGroupFileNotice(NoticeEvent):
 
     detail_type = f"{PLATFORM}.get_group_file"
 
-    file_path: str
-    """文件路径"""
+    file_name: str
+    """文件名"""
+    file_length: int
+    """文件长度"""
+    md5: str
+    """文件md5"""
     message_id: str
     """消息id"""
     user_id: str

@@ -35,9 +35,9 @@ class WxType(IntEnum):
     """群系统消息"""
 
 
-class XmlType(IntEnum):
+class AppType(IntEnum):
     """
-    xml消息类型
+    App消息类型
     """
 
     LINK_MSG = 5

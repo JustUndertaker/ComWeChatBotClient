@@ -213,7 +213,7 @@ class ComWechatApi(ComProgress):
 
         参数:
             * `wxid`: 对方wxid
-            * `file_path`: 图片绝对路径
+            * `file_path`: 文件绝对路径
 
         返回:
             * `bool`: 发送是否成功

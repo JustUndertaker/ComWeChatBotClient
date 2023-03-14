@@ -102,11 +102,9 @@ class MessageSegment(BaseMessageSegment["Message"]):
         )
 
     @staticmethod
-    def reply(
-        message_id: str,
-    ) -> "MessageSegment":
+    def reply(message_id: str, user_id: str) -> "MessageSegment":
         """引用消息"""
-        return MessageSegment("reply", {"message_id": message_id})
+        return MessageSegment("reply", {"message_id": message_id, "user_id": user_id})
 
     @staticmethod
     def card(
