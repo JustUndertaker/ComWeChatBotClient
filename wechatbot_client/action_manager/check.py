@@ -10,7 +10,7 @@ from pydantic import BaseConfig, BaseModel, Extra, ValidationError, create_model
 from wechatbot_client.consts import PREFIX
 from wechatbot_client.utils import get_typed_signature, logger_wrapper
 
-from .action import ActionRequest
+from .model import ActionRequest
 
 ACTION_DICT: dict[str, Type[BaseModel]] = {}
 """标准action模型字典"""

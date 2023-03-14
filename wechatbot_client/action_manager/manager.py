@@ -9,8 +9,8 @@ from wechatbot_client.file_manager import FileManager
 from wechatbot_client.onebot12 import Message
 from wechatbot_client.utils import escape_tag, logger_wrapper
 
-from .action import ActionRequest, ActionResponse, BotSelf
 from .check import expand_action, get_supported_actions, standard_action
+from .model import ActionRequest, ActionResponse, BotSelf
 
 log = logger_wrapper("Action Manager")
 
