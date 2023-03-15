@@ -310,3 +310,11 @@ class HeartbeatMetaEvent(MetaEvent):
     detail_type: Literal["heartbeat"] = "heartbeat"
     interval: int
     status: Status
+
+
+class ConnectEvent(MetaEvent):
+    """连接事件"""
+
+    detail_type: Literal["connect"] = "connect"
+    version: dict[str, str]
+    """版本"""

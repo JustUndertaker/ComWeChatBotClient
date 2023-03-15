@@ -4,8 +4,10 @@ adapter,用来管理driver和websocket
 import asyncio
 import contextlib
 import json
+import time
 from abc import abstractmethod
 from typing import Any, AsyncGenerator, Optional, Union, cast
+from uuid import uuid4
 
 import msgpack
 from pydantic import ValidationError
@@ -17,7 +19,7 @@ from wechatbot_client.action_manager import (
     WsActionResponse,
 )
 from wechatbot_client.config import Config, WebsocketType
-from wechatbot_client.consts import IMPL, ONEBOT_VERSION, USER_AGENT
+from wechatbot_client.consts import IMPL, ONEBOT_VERSION, USER_AGENT, VERSION
 from wechatbot_client.driver import (
     URL,
     BackwardWebSocket,
@@ -30,7 +32,7 @@ from wechatbot_client.driver import (
     WebSocketServerSetup,
 )
 from wechatbot_client.exception import WebSocketClosed
-from wechatbot_client.onebot12 import Event
+from wechatbot_client.onebot12 import ConnectEvent, Event
 from wechatbot_client.utils import escape_tag, logger_wrapper
 
 from .utils import get_auth_bearer
@@ -39,6 +41,19 @@ log = logger_wrapper("OneBot V12")
 
 HTTP_EVENT_LIST: list[Event] = []
 """get_latest_events的event储存"""
+
+
+def get_connet_event() -> ConnectEvent:
+    """
+    生成连接事件
+    """
+    event_id = str(uuid4())
+    data = {
+        "impl": IMPL,
+        "version": VERSION,
+        "onebot_version": ONEBOT_VERSION,
+    }
+    return ConnectEvent(id=event_id, time=time.time(), version=data)
 
 
 class Adapter:
@@ -111,7 +126,12 @@ class Adapter:
         # 后续处理代码
         seq = self.driver.ws_connect(websocket)
         log("SUCCESS", f"新的websocket连接，编号为: {seq}...")
-
+        # 发送元事件
+        event = get_connet_event()
+        try:
+            await websocket.send(event.json(ensure_ascii=False))
+        except Exception as e:
+            log("ERROR", f"发送connect事件失败:{e}")
         try:
             while True:
                 data = await websocket.receive()
@@ -223,6 +243,12 @@ class Adapter:
                     )
                     seq = self.driver.ws_connect(ws)
                     log("SUCCESS", f"<y>新的websocket连接，编号为: {seq}...")
+                    # 发送connect事件
+                    event = get_connet_event()
+                    try:
+                        await ws.send(event.json(ensure_ascii=False))
+                    except Exception as e:
+                        log("ERROR", f"发送connect事件失败:{e}")
                     try:
                         while True:
                             data = await ws.receive()
