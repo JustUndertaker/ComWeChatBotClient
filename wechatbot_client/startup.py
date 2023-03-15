@@ -2,6 +2,9 @@
 启动行为管理，将各类业务剥离开
 """
 import asyncio
+import time
+from functools import partial
+from uuid import uuid4
 
 from comtypes.client import PumpEvents
 
@@ -11,6 +14,8 @@ from wechatbot_client.consts import FILE_CACHE
 from wechatbot_client.driver import URL, HTTPServerSetup, WebSocketServerSetup
 from wechatbot_client.file_manager import database_close, database_init
 from wechatbot_client.log import logger
+from wechatbot_client.onebot12 import HeartbeatMetaEvent
+from wechatbot_client.scheduler import scheduler, scheduler_init, scheduler_shutdown
 from wechatbot_client.test import router
 
 driver = get_driver()
@@ -25,6 +30,15 @@ async def start_up() -> None:
     """
     global pump_event_task
     config: Config = wechat.config
+    # 开启定时器
+    scheduler_init()
+    # 开启心跳事件
+    if config.heartbeat_enabled:
+        scheduler.add_job(
+            func=partial(heartbeat_event, config.heartbeat_interval),
+            trigger="interval",
+            seconds=int(config.heartbeat_interval / 1000),
+        )
     # 开启数据库
     await database_init()
     # 注册消息事件
@@ -54,6 +68,8 @@ async def shutdown() -> None:
     """
     关闭行为管理
     """
+    # 关闭定时器
+    scheduler_shutdown()
     # 关闭数据库
     await database_close()
     if pump_event_task:
@@ -72,3 +88,12 @@ async def pump_event() -> None:
         except KeyboardInterrupt:
             logger.info("<g>事件接收已关闭，再使用 'ctrl + c' 结束进程...</g>")
             return
+
+
+async def heartbeat_event(interval: int) -> None:
+    """
+    心跳事件
+    """
+    event_id = str(uuid4())
+    event = HeartbeatMetaEvent(id=event_id, time=time.time(), interval=interval)
+    await wechat.handle_event(event)

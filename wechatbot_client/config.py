@@ -172,6 +172,10 @@ class Config(BaseConfig):
     """服务端口"""
     access_token: str = ""
     """访问令牌"""
+    heartbeat_enabled: bool = False
+    """是否开启心跳"""
+    heartbeat_interval: int = 5000
+    """心跳间隔"""
     enable_http_api: bool = False
     """是否开启http api"""
     event_enabled: bool = False
