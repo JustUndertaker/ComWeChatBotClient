@@ -4,7 +4,7 @@
 import contextlib
 import logging
 import sys
-from typing import Any, Callable, Optional, Tuple, Union
+from typing import Any, AsyncGenerator, Callable, Optional, Tuple, Union
 
 import httpx
 import uvicorn
@@ -12,7 +12,7 @@ from fastapi import FastAPI, Request, UploadFile
 from fastapi.responses import Response
 from pydantic import BaseSettings
 from starlette.websockets import WebSocket
-from websockets.legacy.client import connect
+from websockets.legacy.client import Connect
 
 from wechatbot_client.config import Config as BaseConfig
 
@@ -252,14 +252,18 @@ class Driver:
                 request=setup,
             )
 
-    async def start_websocket(self, setup: BaseRequest) -> "BackwardWebSocket":
+    @contextlib.asynccontextmanager
+    async def start_websocket(
+        self, setup: BaseRequest
+    ) -> AsyncGenerator["BackwardWebSocket", None]:
         """创建一个websocket连接请求"""
-        connection = await connect(
+        connection = Connect(
             str(setup.url),
             extra_headers={**setup.headers, **setup.cookies.as_header(setup)},
             open_timeout=setup.timeout,
         )
-        return BackwardWebSocket(request=setup, websocket=connection)
+        async with connection as ws:
+            yield BackwardWebSocket(request=setup, websocket=ws)
 
     def ws_connect(self, websocket: Union[FastAPIWebSocket, BackwardWebSocket]) -> int:
         """
