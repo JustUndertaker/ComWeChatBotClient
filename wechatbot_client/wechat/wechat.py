@@ -55,8 +55,8 @@ class WeChatManager(Adapter):
         self.self_id = info["wxId"]
         video_path = Path(info["wxFilePath"]).parent
         cache_path = Path(f"./{FILE_CACHE}")
-        image_path = cache_path / "image"
-        voice_path = cache_path / "voice"
+        image_path = cache_path / "image" / self.self_id
+        voice_path = cache_path / "voice" / self.self_id
         self.message_handler = MessageHandler(
             image_path, voice_path, video_path, self.file_manager
         )

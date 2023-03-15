@@ -132,7 +132,7 @@ class MessageHandler(Generic[E]):
             result = handler(self, msg)
         return result
 
-    def _find_file(file_path: str) -> Optional[Path]:
+    def _find_file(self, file_path: str) -> Optional[Path]:
         """
         找个图片
         """
