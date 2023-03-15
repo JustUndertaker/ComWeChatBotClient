@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Callable
 
 from pydantic import ValidationError
 
@@ -32,6 +31,7 @@ class WeChatManager(Adapter):
     self_id: str
     """自身微信id"""
     file_manager: FileManager
+    """文件管理模块"""
     action_manager: ActionManager
     """api管理模块"""
     message_handler: MessageHandler
@@ -60,6 +60,7 @@ class WeChatManager(Adapter):
         self.message_handler = MessageHandler(
             image_path, voice_path, video_path, self.file_manager
         )
+        self.action_manager.register_message_handler(self.handle_msg)
         log("DEBUG", "<g>微信id获取成功...</g>")
         log("INFO", "<g>初始化完成，启动uvicorn...</g>")
 
@@ -74,12 +75,6 @@ class WeChatManager(Adapter):
         管理微信管理模块
         """
         self.action_manager.close()
-
-    def register_message_handler(self, func: Callable[[str], None]) -> None:
-        """
-        注册一个消息处理器
-        """
-        self.action_manager.register_message_handler(func)
 
     @overrides(Adapter)
     async def action_request(self, request: ActionRequest) -> ActionResponse:
@@ -133,10 +128,4 @@ class WeChatManager(Adapter):
         if event is None:
             log("DEBUG", "生成事件失败")
             return
-        await self.send_event(event)
-
-    async def send_event(self, event: Event) -> None:
-        """
-        发送event消息
-        """
-        pass
+        await self.handle_event(event)

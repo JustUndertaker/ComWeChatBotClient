@@ -5,7 +5,7 @@ import asyncio
 import contextlib
 import json
 from abc import abstractmethod
-from typing import Any, AsyncGenerator, Generator, Optional, Type, cast
+from typing import Any, AsyncGenerator, Optional, Union, cast
 
 import msgpack
 from pydantic import ValidationError
@@ -16,12 +16,13 @@ from wechatbot_client.action_manager import (
     WsActionRequest,
     WsActionResponse,
 )
-from wechatbot_client.config import Config
+from wechatbot_client.config import Config, WebsocketType
 from wechatbot_client.consts import IMPL, ONEBOT_VERSION, USER_AGENT
 from wechatbot_client.driver import (
     URL,
     BackwardWebSocket,
     Driver,
+    FastAPIWebSocket,
     HTTPServerSetup,
     Request,
     Response,
@@ -32,9 +33,12 @@ from wechatbot_client.exception import WebSocketClosed
 from wechatbot_client.onebot12 import Event
 from wechatbot_client.utils import escape_tag, logger_wrapper
 
-from .utils import flattened_to_nested, get_auth_bearer
+from .utils import get_auth_bearer
 
 log = logger_wrapper("OneBot V12")
+
+HTTP_EVENT_LIST: list[Event] = []
+"""get_latest_events的event储存"""
 
 
 class Adapter:
@@ -246,47 +250,6 @@ class Adapter:
                 task.cancel()
 
     @classmethod
-    def get_event_model(
-        cls, data: dict[str, Any]
-    ) -> Generator[Type[Event], None, None]:
-        """根据事件获取对应 `Event Model` 及 `FallBack Event Model` 列表。"""
-        key = f"/{data.get('impl')}/{data.get('platform')}"
-        if key in cls.event_models:
-            yield from cls.event_models[key].get_model(data)
-        yield from cls.event_models[""].get_model(data)
-
-    @classmethod
-    def json_to_event(cls, json_data: Any) -> Optional[Event]:
-        """
-        反序列化event
-        """
-        if not isinstance(json_data, dict):
-            return None
-
-        # transform flattened dict to nested
-        json_data = flattened_to_nested(json_data)
-
-        try:
-            for model in cls.get_event_model(json_data):
-                try:
-                    event = model.parse_obj(json_data)
-                    break
-                except Exception as e:
-                    log("DEBUG", "Event Parse Error", e)
-            else:
-                event = Event.parse_obj(json_data)
-            return event
-
-        except Exception as e:
-            log(
-                "ERROR",
-                "<r><bg #f8bbd0>Failed to parse event. "
-                f"Raw: {str(json_data)}</bg #f8bbd0></r>",
-                e,
-            )
-            return None
-
-    @classmethod
     def json_to_action(cls, json_data: Any) -> Optional[ActionRequest]:
         """
         json转换为action
@@ -326,3 +289,72 @@ class Adapter:
         处理wsaction的方法
         """
         raise NotImplementedError
+
+    async def http_event(self, event: Event) -> None:
+        """
+        http处理event
+        """
+        global HTTP_EVENT_LIST
+        if self.config.event_enabled:
+            # 开启 get_latest_events
+            if (
+                self.config.event_buffer_size != 0
+                and len(HTTP_EVENT_LIST) == self.config.event_buffer_size
+            ):
+                HTTP_EVENT_LIST.pop(0)
+            HTTP_EVENT_LIST.append(event)
+
+    async def webhook_event(self, event: Event) -> None:
+        """
+        处理webhook
+        """
+        log("DEBUG", "发送webhook...")
+        url = URL(self.config.webhook_url)
+        headers = {
+            "User-Agent": USER_AGENT,
+            "Content-Type": "application/json",
+            "X-OneBot-Version": ONEBOT_VERSION,
+            "X-Impl": IMPL,
+        }
+        if self.config.access_token != "":
+            headers["Authorization"] = f"Bearer {self.config.access_token}"
+        setup = Request(
+            method="POST",
+            url=url,
+            headers=headers,
+            json=event.json(by_alias=True, ensure_ascii=False),
+            timeout=self.config.webhook_timeout / 1000,
+        )
+        try:
+            await self.driver.request(setup)
+        except Exception as e:
+            log("ERROR", f"发送webhook出现错误:{e}")
+
+    async def _send_ws(
+        self, ws: Union[FastAPIWebSocket, BackwardWebSocket], event: Event
+    ) -> None:
+        """
+        发送ws消息
+        """
+        await ws.send(event.json(by_alias=True, ensure_ascii=False))
+
+    async def websocket_event(self, event: Event) -> None:
+        """
+        处理websocket发送事件
+        """
+        task = [self._send_ws(one, event) for one in self.driver.connects]
+        try:
+            asyncio.gather(*task)
+        except Exception as e:
+            log("ERROR", f"发送ws消息出错:{e}")
+
+    async def handle_event(self, event: Event) -> None:
+        """
+        处理event
+        """
+        if self.config.enable_http_api:
+            asyncio.create_task(self.http_event(event))
+        if self.config.enable_http_webhook:
+            asyncio.create_task(self.webhook_event(event))
+        if self.config.websocekt_type != WebsocketType.Unable:
+            asyncio.create_task(self.websocket_event(event))
