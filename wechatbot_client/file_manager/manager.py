@@ -61,7 +61,7 @@ class FileManager:
         )
         return file_id
 
-    async def cache_file_id_from_path(self, path: str, name: str) -> Optional[str]:
+    async def cache_file_id_from_path(self, get_path: Path, name: str) -> Optional[str]:
         """
         说明:
             从路径缓存一个文件
@@ -73,7 +73,6 @@ class FileManager:
         返回:
             * `str | None`: 文件id，文件不存在时为None
         """
-        get_path = Path(path)
         if not get_path.exists():
             log("ERROR", "缓存的文件不存在")
             return None

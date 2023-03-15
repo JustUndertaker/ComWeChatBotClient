@@ -97,25 +97,25 @@ class MessageHandler(Generic[E]):
     微信消息处理器
     """
 
-    image_path: str
+    image_path: Path
     """图片文件路径"""
-    voice_path: str
+    voice_path: Path
     """语音文件路径"""
-    video_path: str
-    """视频文件路径"""
+    wechat_path: Path
+    """微信文件路径"""
     file_manager: FileManager
     """文件处理器"""
 
     def __init__(
         self,
-        image_path: str,
-        voice_path: str,
-        video_path: str,
+        image_path: Path,
+        voice_path: Path,
+        wechat_path: Path,
         file_manager: FileManager,
     ) -> None:
         self.image_path = image_path
         self.voice_path = voice_path
-        self.video_path = video_path
+        self.wechat_path = wechat_path
         self.file_manager = file_manager
 
     async def handle_message(self, msg: WechatMessage) -> Optional[E]:
@@ -220,18 +220,18 @@ class MessageHandler(Generic[E]):
         )
 
     @add_handler(WxType.IMAGE_MSG)
-    def handle_image(self, msg: WechatMessage) -> E:
+    async def handle_image(self, msg: WechatMessage) -> E:
         """
         处理图片
         """
         event_id = str(uuid4())
         file_name = Path(msg.filepath).stem
         # 找图片
-        file_path = self.image_path + file_name
+        file_path = f"{self.image_path.absolute()}/{file_name}"
         file = self._find_file(file_path)
         if file is None:
             return None
-        file_id = self.file_manager.cache_file_id_from_path(file, file.name)
+        file_id = await self.file_manager.cache_file_id_from_path(file, file.name)
         message = Message(MessageSegment.image(file_id=file_id))
         # 检测是否为群聊
         if "@chatroom" in msg.sender:
@@ -256,15 +256,14 @@ class MessageHandler(Generic[E]):
         )
 
     @add_handler(WxType.VOICE_MSG)
-    def handle_voice(self, msg: WechatMessage) -> E:
+    async def handle_voice(self, msg: WechatMessage) -> E:
         """
         处理语音
         """
         event_id = str(uuid4())
         file_name = msg.sign
-        file = f"{self.voice_path}{file_name}.amr"
-        file = Path(file)
-        file_id = self.file_manager.cache_file_id_from_path(file, file.name)
+        file = self.voice_path / f"{file_name}.amr"
+        file_id = await self.file_manager.cache_file_id_from_path(file, file.name)
         message = Message(MessageSegment.image(file_id=file_id))
         # 检测是否为群聊
         if "@chatroom" in msg.sender:
@@ -353,14 +352,38 @@ class MessageHandler(Generic[E]):
         )
 
     @add_handler(WxType.VIDEO_MSG)
-    def handle_video(self, msg: WechatMessage) -> E:
+    async def handle_video(self, msg: WechatMessage) -> E:
         """
         处理视频
         """
         event_id = str(uuid4())
-        video_img = Path(self.video_path + msg.thumb_path)
-        video_name = video_img.stem
-        return
+        video_img = self.wechat_path / msg.thumb_path
+        video_path = video_img.parent
+        video_name = f"{video_img.stem}.mp4"
+        video = video_path / video_name
+        file_id = await self.file_manager.cache_file_id_from_path(video, video_name)
+        message = Message(MessageSegment.video(file_id=file_id))
+        # 检测是否为群聊
+        if "@chatroom" in msg.sender:
+            return GroupMessageEvent(
+                id=event_id,
+                time=msg.timestamp,
+                self=BotSelf(user_id=msg.self),
+                message_id=str(msg.msgid),
+                message=message,
+                alt_message=str(message),
+                user_id=msg.wxid,
+                group_id=msg.sender,
+            )
+        return PrivateMessageEvent(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            message_id=str(msg.msgid),
+            message=message,
+            alt_message=str(message),
+            user_id=msg.wxid,
+        )
 
     @add_handler(WxType.EMOJI_MSG)
     async def handle_emoji(self, msg: WechatMessage) -> E:
@@ -527,7 +550,7 @@ class AppMessageHandler(Generic[E]):
         url = app.find("./url").text.replace(" ", "")
         image_path = msg.filepath
         if image_path != "":
-            image_path = msg_handler.image_path + image_path
+            image_path = f"{msg_handler.wechat_path}/{image_path}"
         message = Message(
             MessageSegment.link(tittle=title, des=des, url=url, image=image_path)
         )
@@ -555,7 +578,7 @@ class AppMessageHandler(Generic[E]):
 
     @classmethod
     @add_app_handler(AppType.FILE_NOTICE)
-    def handle_file(
+    async def handle_file(
         cls, msg_handler: MessageHandler, msg: WechatMessage, app: Element
     ) -> E:
         """
@@ -596,8 +619,10 @@ class AppMessageHandler(Generic[E]):
                 )
 
         # 文件消息
-        file_path = msg_handler.image_path + msg.filepath
-        file_id = msg_handler.file_manager.cache_file_id_from_path(file_path, file_name)
+        file_path = msg_handler.wechat_path / msg.filepath
+        file_id = await msg_handler.file_manager.cache_file_id_from_path(
+            file_path, file_name
+        )
         message = Message(MessageSegment.file(file_id=file_id))
         # 检测是否为群聊
         if "@chatroom" in msg.sender:

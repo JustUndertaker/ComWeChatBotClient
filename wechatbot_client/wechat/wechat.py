@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Callable
 
 from wechatbot_client.action_manager import (
@@ -8,7 +9,10 @@ from wechatbot_client.action_manager import (
     WsActionResponse,
     check_action_params,
 )
+from wechatbot_client.com_wechat import MessageHandler
 from wechatbot_client.config import Config
+from wechatbot_client.consts import FILE_CACHE
+from wechatbot_client.file_manager import FileManager
 from wechatbot_client.typing import overrides
 from wechatbot_client.utils import logger_wrapper
 
@@ -22,24 +26,37 @@ class WeChatManager(Adapter):
     微信客户端行为管理
     """
 
-    action_manager: ActionManager
-    """api管理模块"""
     self_id: str
     """自身微信id"""
+    file_manager: FileManager
+    action_manager: ActionManager
+    """api管理模块"""
+    message_handler: MessageHandler
+    """消息处理器"""
 
     def __init__(self, config: Config) -> None:
         super().__init__(config)
-        self.action_manager = ActionManager()
         self.self_id = None
+        self.message_handler = None
+        self.action_manager = ActionManager()
+        self.file_manager = FileManager()
 
     def init(self) -> None:
         """
         初始化wechat管理端
         """
-        self.action_manager.init()
+        self.action_manager.init(self.file_manager)
 
         log("DEBUG", "<y>开始获取wxid...</y>")
-        self.self_id = self.action_manager.get_wxid()
+        info = self.action_manager.get_info()
+        self.self_id = info["wxId"]
+        video_path = Path(info["wxFilePath"]).parent
+        cache_path = Path(f"./{FILE_CACHE}")
+        image_path = cache_path / "image"
+        voice_path = cache_path / "voice"
+        self.message_handler = MessageHandler(
+            image_path, voice_path, video_path, self.file_manager
+        )
         log("DEBUG", "<g>微信id获取成功...</g>")
         log("INFO", "<g>初始化完成，启动uvicorn...</g>")
 
@@ -96,3 +113,8 @@ class WeChatManager(Adapter):
             ActionRequest(action=request.action, params=request.params)
         )
         return WsActionResponse(echo=echo, **response.dict())
+
+    def handle_msg(self, message: str) -> None:
+        """
+        消息处理函数
+        """

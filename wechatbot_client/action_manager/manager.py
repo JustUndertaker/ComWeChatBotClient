@@ -26,12 +26,13 @@ class ApiManager:
 
     def __init__(self) -> None:
         self.com_api = ComWechatApi()
-        self.file_manager = FileManager()
+        self.file_manager = None
 
-    def init(self) -> None:
+    def init(self, file_manager: FileManager) -> None:
         """
         初始化com
         """
+        self.file_manager = file_manager
         # 初始化com组件
         log("DEBUG", "<y>初始化com组件...</y>")
         if not self.com_api.init():
@@ -104,12 +105,11 @@ class ApiManager:
         """
         self.com_api.close()
 
-    def get_wxid(self) -> str:
+    def get_info(self) -> dict:
         """
-        获取wxid
+        获取自身信息
         """
-        info = self.com_api.get_self_info()
-        return info["wxId"]
+        return self.com_api.get_self_info()
 
     async def request(self, request: ActionRequest) -> ActionResponse:
         """
@@ -159,7 +159,7 @@ class ActionManager(ApiManager):
         """
         获取运行状态
         """
-        bot = {"self": BotSelf(user_id=self.get_wxid()).dict(), "online": True}
+        bot = {"self": BotSelf(user_id=self.get_self_info()).dict(), "online": True}
         data = {"good": True, "bots": [bot]}
         return ActionResponse(status="ok", retcode=0, data=data)
 
@@ -376,7 +376,7 @@ class ActionManager(ApiManager):
                 return ActionResponse(
                     status="failed", retcode=10003, data=None, message="缺少path参数"
                 )
-            file_id = await self.file_manager.cache_file_id_from_path(path, name)
+            file_id = await self.file_manager.cache_file_id_from_path(Path(path), name)
             if file_id is None:
                 return ActionResponse(
                     status="failed", retcode=32000, data=None, message="操作文件失败"
