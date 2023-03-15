@@ -3,8 +3,9 @@
 """
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from .log import logger
+from wechatbot_client.utils import logger_wrapper
 
+log = logger_wrapper("scheduler")
 scheduler = AsyncIOScheduler(timezone="Asia/Shanghai")
 
 
@@ -13,12 +14,12 @@ def scheduler_init() -> None:
     global scheduler
     if not scheduler.running:
         scheduler.start()
-        logger.success("<m>scheduler</m> - <g>定时器模块已开启...</g>")
+        log("SUCCESS", "<g>定时器模块已开启...</g>")
 
 
 def scheduler_shutdown() -> None:
     """定时器关闭"""
-    logger.info("<m>scheduler</m> - 正在关闭定时器...")
+    log("INFO", "<y>正在关闭定时器...</y>")
     if scheduler.running:
         scheduler.shutdown(wait=False)
-    logger.success("<m>scheduler</m> - <g>定时器关闭成功...</g>")
+    log("SUCCESS", "<g>定时器模块已关闭...</g>")
