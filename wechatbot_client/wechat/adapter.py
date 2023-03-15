@@ -6,7 +6,7 @@ import contextlib
 import json
 import time
 from abc import abstractmethod
-from typing import Any, AsyncGenerator, Optional, Union, cast
+from typing import Any, Optional, Union, cast
 from uuid import uuid4
 
 import msgpack
@@ -87,13 +87,9 @@ class Adapter:
         """进行一个 HTTP 客户端请求"""
         return await self.driver.request(setup)
 
-    @contextlib.asynccontextmanager
-    async def websocket(
-        self, setup: Request
-    ) -> AsyncGenerator[BackwardWebSocket, None]:
+    async def start_websocket(self, setup: Request) -> BackwardWebSocket:
         """建立一个 WebSocket 客户端连接请求"""
-        async with self.driver.websocket(setup) as ws:
-            yield ws
+        return await self.driver.start_websocket(setup)
 
     def _check_access_token(self, request: Request) -> Optional[Response]:
         """
@@ -236,45 +232,45 @@ class Adapter:
         log("DEBUG", f"<y>正在连接到url: {url}</y>")
         while True:
             try:
-                async with self.websocket(req) as ws:
+                ws = await self.start_websocket(req)
+                log(
+                    "SUCCESS",
+                    f"WebSocket Connection to {escape_tag(str(url))} established",
+                )
+                seq = self.driver.ws_connect(ws)
+                log("SUCCESS", f"<y>新的websocket连接，编号为: {seq}...")
+                # 发送connect事件
+                event = get_connet_event()
+                try:
+                    await ws.send(event.json(ensure_ascii=False))
+                except Exception as e:
+                    log("ERROR", f"发送connect事件失败:{e}")
+                try:
+                    while True:
+                        data = await ws.receive()
+                        raw_data = (
+                            json.loads(data)
+                            if isinstance(data, str)
+                            else msgpack.unpackb(data)
+                        )
+                        if action := self.json_to_ws_action(raw_data):
+                            response = await self.action_ws_request(action)
+                            await ws.send(response.json(ensure_ascii=False))
+                except WebSocketClosed as e:
                     log(
-                        "DEBUG",
-                        f"WebSocket Connection to {escape_tag(str(url))} established",
+                        "ERROR",
+                        "<r><bg #f8bbd0>WebSocket 关闭了...</bg #f8bbd0></r>",
+                        e,
                     )
-                    seq = self.driver.ws_connect(ws)
-                    log("SUCCESS", f"<y>新的websocket连接，编号为: {seq}...")
-                    # 发送connect事件
-                    event = get_connet_event()
-                    try:
-                        await ws.send(event.json(ensure_ascii=False))
-                    except Exception as e:
-                        log("ERROR", f"发送connect事件失败:{e}")
-                    try:
-                        while True:
-                            data = await ws.receive()
-                            raw_data = (
-                                json.loads(data)
-                                if isinstance(data, str)
-                                else msgpack.unpackb(data)
-                            )
-                            if action := self.json_to_ws_action(raw_data):
-                                response = await self.action_ws_request(action)
-                                await ws.send(response.json(ensure_ascii=False))
-                    except WebSocketClosed as e:
-                        log(
-                            "ERROR",
-                            "<r><bg #f8bbd0>WebSocket 关闭了...</bg #f8bbd0></r>",
-                            e,
-                        )
-                    except Exception as e:
-                        log(
-                            "ERROR",
-                            "<r><bg #f8bbd0>处理来自 websocket 的数据时出错"
-                            f"{escape_tag(str(url))} 正在尝试重连...</bg #f8bbd0></r>",
-                            e,
-                        )
-                    finally:
-                        self.driver.ws_disconnect(seq)
+                except Exception as e:
+                    log(
+                        "ERROR",
+                        "<r><bg #f8bbd0>处理来自 websocket 的数据时出错"
+                        f"{escape_tag(str(url))} 正在尝试重连...</bg #f8bbd0></r>",
+                        e,
+                    )
+                finally:
+                    self.driver.ws_disconnect(seq)
 
             except Exception as e:
                 log(

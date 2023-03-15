@@ -76,6 +76,9 @@ async def shutdown() -> None:
         if not pump_event_task.done():
             pump_event_task.cancel()
     await wechat.stop_backward()
+    # 关闭所有ws连接
+    for ws in driver.connects.values():
+        await ws.close()
     wechat.close()
 
 
