@@ -385,7 +385,7 @@ class Adapter:
         """
         处理websocket发送事件
         """
-        task = [self._send_ws(one, event) for one in self.driver.connects]
+        task = [self._send_ws(one, event) for one in self.driver.connects.values()]
         try:
             asyncio.gather(*task)
         except Exception as e:

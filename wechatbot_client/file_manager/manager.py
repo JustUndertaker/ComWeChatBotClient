@@ -3,8 +3,7 @@ from shutil import copyfile
 from typing import Optional, Tuple
 from uuid import uuid4
 
-from httpx import AsyncClient
-from yarl import URL
+from httpx import URL, AsyncClient
 
 from wechatbot_client.consts import FILE_CACHE
 from wechatbot_client.utils import logger_wrapper

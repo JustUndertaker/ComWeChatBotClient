@@ -32,7 +32,7 @@ from .type import AppType, WxType
 
 E = TypeVar("E", bound=Event)
 
-HANDLE_DICT: dict[int, Callable[[WechatMessage], E]] = {}
+HANDLE_DICT: dict[int, Callable[["MessageHandler", WechatMessage], E]] = {}
 """消息处理器字典"""
 APP_HANDLERS: dict[
     int, Callable[["MessageHandler", WechatMessage, Element], Optional[E]]
@@ -44,12 +44,14 @@ GROUP_SYS_HANDLERS: list[Callable[[WechatMessage, Element], Optional[E]]] = []
 """群系统消息处理函数列表"""
 
 
-def add_handler(_tpye: int) -> Callable[[WechatMessage], E]:
+def add_handler(_tpye: int) -> Callable[["MessageHandler", WechatMessage], E]:
     """
     添加消息处理器
     """
 
-    def _handle(func: Callable[[WechatMessage], E]) -> Callable[[WechatMessage], E]:
+    def _handle(
+        func: Callable[["MessageHandler", WechatMessage], E]
+    ) -> Callable[["MessageHandler", WechatMessage], E]:
         global HANDLE_DICT
         HANDLE_DICT[_tpye] = func
         return func
@@ -125,9 +127,9 @@ class MessageHandler(Generic[E]):
         if handler is None:
             return None
         if iscoroutinefunction(handler):
-            result = await handler(msg)
+            result = await handler(self, msg)
         else:
-            result = handler(msg)
+            result = handler(self, msg)
         return result
 
     def _find_file(file_path: str) -> Optional[Path]:

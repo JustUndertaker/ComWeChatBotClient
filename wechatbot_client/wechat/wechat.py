@@ -128,4 +128,5 @@ class WeChatManager(Adapter):
         if event is None:
             log("DEBUG", "生成事件失败")
             return
+        log("SUCCESS", f"生成事件<g>[{event.__repr_name__()}]</g>:{event.dict()}")
         await self.handle_event(event)
