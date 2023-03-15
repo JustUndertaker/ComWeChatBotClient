@@ -157,7 +157,21 @@ class Adapter:
         if data is not None:
             json_data = json.loads(data)
             if action := self.json_to_action(json_data):
-                response = await self.action_request(action)
+                # get_latest_events处理
+                if action.action == "get_latest_events":
+                    if not self.config.event_enabled:
+                        response = ActionResponse(
+                            status="failed",
+                            retcode=10002,
+                            data=None,
+                            message="未开启该action",
+                        )
+                    else:
+                        data = HTTP_EVENT_LIST.copy()
+                        HTTP_EVENT_LIST.clear()
+                        response = ActionResponse(status="ok", retcode=0, data=data)
+                else:
+                    response = await self.action_request(action)
                 headers = {
                     "Content-Type": "application/json",
                     "User-Agent": USER_AGENT,
@@ -167,7 +181,9 @@ class Adapter:
                 if self.config.access_token != "":
                     headers["Authorization"] = f"Bearer {self.config.access_token}"
                 return Response(
-                    200, headers=headers, content=response.json(ensure_ascii=False)
+                    200,
+                    headers=headers,
+                    content=response.json(by_alias=True, ensure_ascii=False),
                 )
         return Response(204)
 
