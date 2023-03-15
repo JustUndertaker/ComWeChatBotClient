@@ -13,3 +13,4 @@ com -> msgreporter -> wechat -> http/ws
 
 from .com_wechat import ComWechatApi as ComWechatApi
 from .message import MessageHandler as MessageHandler
+from .model import Message as Message

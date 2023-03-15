@@ -23,9 +23,7 @@ from wechatbot_client.onebot12.event import (
     GetPrivateFileNotice,
     GetPrivatePokeNotice,
     GetPrivateRedBagNotice,
-    GroupMessageDeleteEvent,
     GroupMessageEvent,
-    PrivateMessageDeleteEvent,
     PrivateMessageEvent,
 )
 
@@ -118,7 +116,7 @@ class MessageHandler(Generic[E]):
         self.wechat_path = wechat_path
         self.file_manager = file_manager
 
-    async def handle_message(self, msg: WechatMessage) -> Optional[E]:
+    async def message_to_event(self, msg: WechatMessage) -> Optional[E]:
         """
         处理消息，返回事件
         """
@@ -495,7 +493,7 @@ class MessageHandler(Generic[E]):
     @add_handler(WxType.GROUP_SYS_MSG)
     def handle_group_sys(self, msg: WechatMessage) -> Optional[E]:
         """
-        撤回消息事件
+        群系统消息事件
         """
         raw_xml = msg.message
         xml_obj = ET.fromstring(raw_xml)
@@ -505,30 +503,6 @@ class MessageHandler(Generic[E]):
             if result is not None:
                 break
         return result
-        event_id = str(uuid4())
-        raw_xml = msg.message
-        xml_obj = ET.fromstring(raw_xml)
-        msg_obj = xml_obj.find("./revokemsg/newmsgid")
-        if msg_obj is None:
-            return None
-        message_id = msg_obj.text
-        # 检测是否为群聊
-        if "@chatroom" in msg.sender:
-            return GroupMessageDeleteEvent(
-                id=event_id,
-                time=msg.timestamp,
-                self=BotSelf(user_id=msg.self),
-                message_id=message_id,
-                group_id=msg.sender,
-                user_id=msg.wxid,
-                operator_id="",
-            )
-        return PrivateMessageDeleteEvent(
-            id=event_id,
-            time=msg.timestamp,
-            self=BotSelf(user_id=msg.self),
-            message_id=message_id,
-        )
 
 
 class AppMessageHandler(Generic[E]):

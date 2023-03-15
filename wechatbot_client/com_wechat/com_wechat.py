@@ -23,7 +23,7 @@ class MessageReporter:
         msg = message[0]
         log("SUCCESS", f"<g>接收到wechat消息</g> - {escape_tag(msg)}")
         if self.func:
-            self.func(msg)
+            asyncio.create_task(self.func(msg))
 
     def register_message_handler(self, func: Callable[[str], None]) -> None:
         """注册一个消息处理器"""

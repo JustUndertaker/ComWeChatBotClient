@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import Callable
 
+from pydantic import ValidationError
+
 from wechatbot_client.action_manager import (
     ActionManager,
     ActionRequest,
@@ -9,10 +11,11 @@ from wechatbot_client.action_manager import (
     WsActionResponse,
     check_action_params,
 )
-from wechatbot_client.com_wechat import MessageHandler
+from wechatbot_client.com_wechat import Message, MessageHandler
 from wechatbot_client.config import Config
 from wechatbot_client.consts import FILE_CACHE
 from wechatbot_client.file_manager import FileManager
+from wechatbot_client.onebot12 import Event
 from wechatbot_client.typing import overrides
 from wechatbot_client.utils import logger_wrapper
 
@@ -114,7 +117,26 @@ class WeChatManager(Adapter):
         )
         return WsActionResponse(echo=echo, **response.dict())
 
-    def handle_msg(self, message: str) -> None:
+    async def handle_msg(self, msg: str) -> None:
         """
         消息处理函数
         """
+        try:
+            message = Message.parse_raw(msg)
+        except ValidationError as e:
+            log("ERROR", f"微信消息实例化失败:{e}")
+            return
+        try:
+            event: Event = await self.message_handler.message_to_event(message)
+        except Exception as e:
+            log("ERROR", f"生成事件失败:{e}")
+        if event is None:
+            log("DEBUG", "生成事件失败")
+            return
+        await self.send_event(event)
+
+    async def send_event(self, event: Event) -> None:
+        """
+        发送event消息
+        """
+        pass
