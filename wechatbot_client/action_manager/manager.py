@@ -194,11 +194,6 @@ class ApiManager:
             raise FileNotFound(file_id)
         return self.com_api.send_file(id, file_path)
 
-    @add_segment_handler(f"{PREFIX}.card")
-    def _send_card(self, id: str, segment: MessageSegment) -> bool:
-        """发送卡片"""
-        pass
-
 
 class ActionManager(ApiManager):
     """
