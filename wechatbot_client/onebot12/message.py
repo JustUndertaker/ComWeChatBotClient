@@ -131,6 +131,11 @@ class MessageSegment(BaseMessageSegment["Message"]):
         )
 
     @staticmethod
+    def face(dec: str) -> "MessageSegment":
+        """表情"""
+        return MessageSegment(f"{PLATFORM}.face", {"dec": dec})
+
+    @staticmethod
     def link(
         tittle: str, des: str, url: str, image: str  # 标题  # 描述  # 链接url  # 大图位置
     ) -> "MessageSegment":
