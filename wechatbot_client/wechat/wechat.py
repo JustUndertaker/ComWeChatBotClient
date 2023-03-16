@@ -124,9 +124,10 @@ class WeChatManager(Adapter):
         try:
             event: Event = await self.message_handler.message_to_event(message)
         except Exception as e:
-            log("ERROR", f"生成事件失败:{e}")
+            log("ERROR", f"生成事件出错:{e}")
+            return
         if event is None:
-            log("DEBUG", "生成事件失败")
+            log("DEBUG", "未生成合适事件")
             return
         log("SUCCESS", f"生成事件<g>[{event.__repr_name__()}]</g>:{event.dict()}")
         await self.handle_event(event)

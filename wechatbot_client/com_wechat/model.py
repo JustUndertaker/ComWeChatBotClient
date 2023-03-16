@@ -11,7 +11,7 @@ class Message(BaseModel):
 
     extrainfo: str
     """额外信息"""
-    filepath: str
+    filepath: Optional[str]
     """文件路径"""
     isSendByPhone: Optional[bool]
     """是否为手机发送，自己手动操作机器人发送时有效"""

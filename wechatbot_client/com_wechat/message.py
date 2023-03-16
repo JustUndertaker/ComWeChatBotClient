@@ -4,7 +4,7 @@
 import re
 from inspect import iscoroutinefunction
 from pathlib import Path
-from typing import Callable, Generic, Optional, TypeVar
+from typing import Callable, Generic, Optional, ParamSpec, TypeVar
 from urllib.parse import unquote
 from uuid import uuid4
 from xml.etree import ElementTree as ET
@@ -31,27 +31,24 @@ from .model import Message as WechatMessage
 from .type import AppType, WxType
 
 E = TypeVar("E", bound=Event)
+P = ParamSpec("P")
 
-HANDLE_DICT: dict[int, Callable[["MessageHandler", WechatMessage], E]] = {}
+HANDLE_DICT: dict[int, Callable[P, E]] = {}
 """消息处理器字典"""
-APP_HANDLERS: dict[
-    int, Callable[["MessageHandler", WechatMessage, Element], Optional[E]]
-] = {}
+APP_HANDLERS: dict[int, Callable[P, Optional[E]]] = {}
 """app消息处理函数列表"""
-SYS_HANDLERS: list[Callable[[WechatMessage], Optional[E]]] = []
+SYS_HANDLERS: list[Callable[P, Optional[E]]] = []
 """系统消息处理函数列表"""
-GROUP_SYS_HANDLERS: list[Callable[[WechatMessage, Element], Optional[E]]] = []
+GROUP_SYS_HANDLERS: list[Callable[P, Optional[E]]] = []
 """群系统消息处理函数列表"""
 
 
-def add_handler(_tpye: int) -> Callable[["MessageHandler", WechatMessage], E]:
+def add_handler(_tpye: int) -> Callable[P, E]:
     """
     添加消息处理器
     """
 
-    def _handle(
-        func: Callable[["MessageHandler", WechatMessage], E]
-    ) -> Callable[["MessageHandler", WechatMessage], E]:
+    def _handle(func: Callable[P, E]) -> Callable[P, E]:
         global HANDLE_DICT
         HANDLE_DICT[_tpye] = func
         return func
@@ -59,14 +56,14 @@ def add_handler(_tpye: int) -> Callable[["MessageHandler", WechatMessage], E]:
     return _handle
 
 
-def add_app_handler(_tpye: int) -> Callable[[WechatMessage], Optional[E]]:
+def add_app_handler(
+    _tpye: int,
+) -> Callable[P, Optional[E]]:
     """
     添加app_handler
     """
 
-    def _handle(
-        func: Callable[[WechatMessage, Element], Optional[E]]
-    ) -> Callable[[WechatMessage, Element], Optional[E]]:
+    def _handle(func: Callable[P, Optional[E]]) -> Callable[P, Optional[E]]:
         global APP_HANDLERS
         APP_HANDLERS[_tpye] = func
         return func
@@ -74,18 +71,14 @@ def add_app_handler(_tpye: int) -> Callable[[WechatMessage], Optional[E]]:
     return _handle
 
 
-def add_sys_handler(
-    func: Callable[[WechatMessage], Optional[E]]
-) -> Callable[[WechatMessage], Optional[E]]:
+def add_sys_handler(func: Callable[P, Optional[E]]) -> Callable[P, Optional[E]]:
     """添加系统处理器"""
     global SYS_HANDLERS
     SYS_HANDLERS.append(func)
     return func
 
 
-def add_group_sys_handler(
-    func: Callable[[WechatMessage, Element], Optional[E]]
-) -> Callable[[WechatMessage], Optional[E]]:
+def add_group_sys_handler(func: Callable[P, Optional[E]]) -> Callable[P, Optional[E]]:
     """添加系统处理器"""
     global GROUP_SYS_HANDLERS
     GROUP_SYS_HANDLERS.append(func)
@@ -475,9 +468,9 @@ class MessageHandler(Generic[E]):
         if handler is None:
             return None
         if iscoroutinefunction(handler):
-            result = await handler(self, msg, app)
+            result = await handler(AppMessageHandler, msg, app)
         else:
-            result = handler(self, msg, app)
+            result = handler(AppMessageHandler, msg, app)
         return result
 
     @add_handler(WxType.SYSTEM_MSG)
@@ -487,7 +480,7 @@ class MessageHandler(Generic[E]):
         """
         result = None
         for handler in SYS_HANDLERS:
-            result = handler(msg)
+            result = handler(SysMessageHandler, msg)
             if result is not None:
                 break
         return result
@@ -497,11 +490,9 @@ class MessageHandler(Generic[E]):
         """
         群系统消息事件
         """
-        raw_xml = msg.message
-        xml_obj = ET.fromstring(raw_xml)
         result = None
         for handler in GROUP_SYS_HANDLERS:
-            result = handler(msg, xml_obj)
+            result = handler(GroupSysMsgHandler, msg)
             if result is not None:
                 break
         return result
