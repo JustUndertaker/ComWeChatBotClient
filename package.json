@@ -1,0 +1,26 @@
+{
+  "name": "comwechatbotclient",
+  "version": "1.0.0",
+  "description": "<h1 align=\"center\">ComWeChat Client</h1>",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JustUndertaker/ComWeChatBotClient.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JustUndertaker/ComWeChatBotClient/issues"
+  },
+  "homepage": "https://github.com/JustUndertaker/ComWeChatBotClient#readme",
+  "devDependencies": {
+    "vuepress": "^2.0.0-beta.61"
+  }
+}

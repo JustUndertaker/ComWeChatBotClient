@@ -132,3 +132,5 @@ log/
 file_cache/
 data.json
 data/
+node_modules/
+.temp
