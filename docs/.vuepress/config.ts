@@ -11,8 +11,12 @@ export default defineUserConfig({
   theme: hopeTheme({
     // url
     hostname: 'http://localhost:8080/ComWeChatBotClient',
-    // logo
+    // 站点图标
     favicon: '/image/logo.png',
+    // logo
+    logo: '/image/logo.png',
+    // 打印
+    print: false,
     // repo
     repo: 'JustUndertaker/ComWeChatBotClient',
     // 热更新，debug用
@@ -21,6 +25,8 @@ export default defineUserConfig({
     editLink: false,
     // 纯净版
     pure: true,
+    // 图标资源
+    iconAssets: 'iconify',
     // 显示页脚
     displayFooter: true,
     // 页脚
@@ -29,41 +35,82 @@ export default defineUserConfig({
     sidebar: [
       {
         text: '开始',
+        icon: 'icons8:idea',
         link: '/guide/',
       },
       {
         text: '消息段',
+        icon: 'mdi:message-processing-outline',
         link: '/message/',
       },
       {
         text: '事件',
+        icon: 'mdi:event-clock',
         collapsible: true,
         link: '/event/meta.md',
-        children: [
-          '/event/meta.md',
-          '/event/message.md',
-          '/event/request.md',
-          '/event/notice.md',
+        children: [{
+          text: '元事件',
+          icon: 'ph:meta-logo',
+          link: '/event/meta.md',
+        },
+        {
+          text: '消息事件',
+          icon: 'mdi:message-processing-outline',
+          link: '/event/message.md',
+        },
+        {
+          text: '请求事件',
+          icon: 'ph:git-pull-request',
+          link: '/event/request.md',
+        },
+        {
+          text: '通知事件',
+          icon: 'fe:notice-active',
+          link: '/event/notice.md',
+        }
         ],
       },
       {
         text: '动作',
+        icon: 'material-symbols:call-to-action-outline',
         collapsible: true,
         link: '/action/meta.md',
         children: [
-          '/action/meta.md',
-          '/action/private.md',
-          '/action/group.md',
-          '/action/file.md',
+          {
+            text: '元动作',
+            icon: 'ph:meta-logo',
+            link: '/action/meta.md',
+          },
+          {
+            text: '个人动作',
+            icon: 'fluent:inprivate-account-16-filled',
+            link: '/action/private.md',
+          },
+          {
+            text: '群动作',
+            icon: 'material-symbols:group',
+            link: '/action/group.md',
+          },
+          {
+            text: '文件动作',
+            icon: 'ic:outline-insert-drive-file',
+            link: '/action/file.md'
+          }
         ]
       }
-    ]
+    ],
+    plugins: {
+      mdEnhance: {
+        tasklist: true,
+        tabs: true,
+      }
+    }
   }),
   plugins: [
     searchProPlugin({
       // 索引全部内容
       indexContent: true,
-    })
+    }),
   ],
 })
 
