@@ -3,7 +3,7 @@ onebot12消息实现，直接搬运adapter-onebot12
 """
 from typing import Iterable, Type
 
-from wechatbot_client.consts import PLATFORM
+from wechatbot_client.consts import PLATFORM, PREFIX
 from wechatbot_client.typing import overrides
 
 from .base_message import Message as BaseMessage
@@ -118,7 +118,7 @@ class MessageSegment(BaseMessageSegment["Message"]):
     ) -> "MessageSegment":
         """名片消息"""
         return MessageSegment(
-            f"{PLATFORM}.card",
+            f"{PREFIX}.card",
             {
                 "v3": v3,
                 "v4": v4,
@@ -182,3 +182,12 @@ class Message(BaseMessage[MessageSegment]):
                 del self[index]
             else:
                 index += 1
+
+    def have_at(self) -> bool:
+        """消息中是否有at字段"""
+        flag = False
+        for segment in self:
+            if segment.type == "mention" or segment.type == "mention_all":
+                flag = True
+                break
+        return flag

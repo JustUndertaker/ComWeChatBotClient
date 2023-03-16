@@ -5,6 +5,7 @@ from typing import Callable, Literal, Optional, ParamSpec, TypeVar, Union
 
 from wechatbot_client.com_wechat import ComWechatApi
 from wechatbot_client.consts import IMPL, ONEBOT_VERSION, PREFIX, VERSION
+from wechatbot_client.exception import FileNotFound, NoThisUserInGroup
 from wechatbot_client.file_manager import FileManager
 from wechatbot_client.onebot12 import Message, MessageSegment
 from wechatbot_client.utils import escape_tag, logger_wrapper
@@ -159,11 +160,44 @@ class ApiManager:
         self.com_api.register_message_handler(func)
 
     @add_segment_handler("text")
-    def _send_text(self, id: str, segment: MessageSegment) -> bool:
+    def _send_text(
+        self, id: str, segment: MessageSegment, at_list: list[str] = None
+    ) -> bool:
         """
         发送文本
         """
-        return self.com_api.send_text(wxid=id, message=segment.data["text"])
+        if at_list is None:
+            return self.com_api.send_text(wxid=id, message=segment.data["text"])
+        else:
+            return self.com_api.send_at_message(
+                group_id=id,
+                at_users=at_list,
+                message=segment.data["text"],
+                auto_nickname=False,
+            )
+
+    @add_segment_handler("iamge")
+    async def _send_image(self, id: str, segment: MessageSegment) -> bool:
+        """发送图片"""
+        file_id = segment.data["file_id"]
+        file_path, _ = await self.file_manager.get_file(file_id)
+        if file_path is None:
+            raise FileNotFound(file_id)
+        return self.com_api.send_image(id, file_path)
+
+    @add_segment_handler("file")
+    async def _send_file(self, id: str, segment: MessageSegment) -> bool:
+        """发送文件"""
+        file_id = segment.data["file_id"]
+        file_path, _ = await self.file_manager.get_file(file_id)
+        if file_path is None:
+            raise FileNotFound(file_id)
+        return self.com_api.send_file(id, file_path)
+
+    @add_segment_handler(f"{PREFIX}.card")
+    def _send_card(self, id: str, segment: MessageSegment) -> bool:
+        """发送卡片"""
+        pass
 
 
 class ActionManager(ApiManager):
@@ -201,7 +235,7 @@ class ActionManager(ApiManager):
         return ActionResponse(status="ok", retcode=0, data=data)
 
     @standard_action
-    def send_message(
+    async def send_message(
         self,
         detail_type: Literal["private", "group", "channel"],
         message: Message,
@@ -223,27 +257,117 @@ class ActionManager(ApiManager):
                     return ActionResponse(
                         status="failed", retcode=10003, data=None, message="参数缺失"
                     )
-                return self._send_private_msg(message, user_id)
+                return await self._send_private_msg(message, user_id)
             case "group":
-                if user_id is None or group_id is None:
+                if group_id is None:
                     return ActionResponse(
                         status="failed", retcode=10003, data=None, message="参数缺失"
                     )
-                return self._send_group_msg(message, user_id, group_id)
+                return await self._send_group_msg(message, group_id)
 
-    def _send_private_msg(self, message: Message, user_id: str) -> ActionResponse:
+    def _pre_handle_msg(
+        self, group_id: str, message: Message
+    ) -> tuple[list[list[str]], Message]:
+        """
+        消息预处理，将at合并到text中
+        """
+        new_msg = Message()
+        all_at_list: list[list[str]] = []
+        current_text = None
+        curren_at_list = None
+        for segment in message:
+            if segment.type == "text":
+                current_text = segment
+            elif segment.type == "mention":
+                user_id = segment.data["user_id"]
+                nickname = self.com_api.get_groupmember_nickname(group_id, user_id)
+                if nickname == "":
+                    raise NoThisUserInGroup(group_id, user_id)
+                seg = MessageSegment.text(f"@{nickname} ")
+                new_msg.append(seg)
+                if current_text is None:
+                    current_text = seg
+                    curren_at_list = []
+                curren_at_list.append(user_id)
+            elif segment.type == "mention_all":
+                seg = MessageSegment.text("@全体成员 ")
+                new_msg.append(seg)
+                if current_text is None:
+                    current_text = seg
+                    curren_at_list = []
+                curren_at_list.append("notify@all")
+            else:
+                new_msg.append(segment)
+                if current_text is not None:
+                    all_at_list.append(curren_at_list)
+                    current_text = None
+                    curren_at_list = None
+        new_msg.ruduce()
+        return all_at_list, new_msg
+
+    async def _send_private_msg(self, message: Message, user_id: str) -> ActionResponse:
         """
         发送私聊消息
         """
-        pass
+        if message.have_at():
+            return ActionResponse(
+                status="failed", retcode=10005, data=None, message="私聊不支持at"
+            )
+        try:
+            for segment in message:
+                handler = SEGMENT_HANDLER.get(segment.type)
+                if handler is None:
+                    return ActionResponse(
+                        status="failed",
+                        retcode=10005,
+                        data=None,
+                        message=f"不支持的消息段:{segment.type}",
+                    )
+                if iscoroutinefunction(handler):
+                    await handler(self, user_id, segment)
+                else:
+                    handler(self, user_id, segment)
+        except Exception as e:
+            log("ERROR", "发送消息出错", e)
+            return ActionResponse(
+                status="failed", retcode=20002, data=None, message="出错捏"
+            )
+        return ActionResponse(status="ok", retcode=0, data=None)
 
-    def _send_group_msg(
-        self, message: Message, user_id: str, group_id: str
-    ) -> ActionResponse:
+    async def _send_group_msg(self, message: Message, group_id: str) -> ActionResponse:
         """
         发送群消息
         """
-        pass
+        try:
+            all_at_list, message = self._pre_handle_msg(group_id, message)
+        except NoThisUserInGroup as e:
+            log("ERROR", repr(e))
+            return ActionResponse(
+                status="failed", retcode=10006, message=repr(e), data=None
+            )
+        try:
+            for segment in message:
+                handler = SEGMENT_HANDLER.get(segment.type)
+                if handler is None:
+                    return ActionResponse(
+                        status="failed",
+                        retcode=10005,
+                        data=None,
+                        message=f"不支持的消息段:{segment.type}",
+                    )
+                if segment.type == "text":
+                    at_list = all_at_list.pop(0)
+                    handler(self, group_id, segment, at_list)
+                elif iscoroutinefunction(handler):
+                    await handler(self, group_id, segment)
+                else:
+                    handler(self, group_id, segment)
+        except Exception as e:
+            log("ERROR", "发送消息出错", e)
+            return ActionResponse(
+                status="failed", retcode=20002, data=None, message="出错捏"
+            )
+        return ActionResponse(status="ok", retcode=0, data=None)
 
     @standard_action
     def get_self_info(self) -> ActionResponse:

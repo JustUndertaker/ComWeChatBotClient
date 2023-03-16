@@ -21,7 +21,7 @@ class MessageReporter:
 
     def OnGetMessageEvent(self, message: Tuple[str, None]):
         msg = message[0]
-        log("SUCCESS", f"<g>接收到wechat消息</g> - {escape_tag(msg)}")
+        log("DEBUG", f"<g>接收到wechat消息</g> - {escape_tag(msg)}")
         if self.func:
             asyncio.create_task(self.func(msg))
 

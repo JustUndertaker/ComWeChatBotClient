@@ -213,7 +213,7 @@ class MessageHandler(Generic[E]):
             self=BotSelf(user_id=msg.self),
             message_id=str(msg.msgid),
             message=new_msg,
-            alt_message=str(message),
+            alt_message=str(new_msg),
             user_id=msg.wxid,
             group_id=msg.sender,
         )
