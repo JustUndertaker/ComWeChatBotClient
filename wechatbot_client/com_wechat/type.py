@@ -1,7 +1,7 @@
 """
 消息tpye分类
 """
-from enum import IntEnum
+from enum import Enum, IntEnum
 
 
 class WxType(IntEnum):
@@ -29,9 +29,9 @@ class WxType(IntEnum):
     """应用消息"""
     CREATE_ROOM = 51
     """创建房间"""
-    SYSTEM_MSG = 10000
+    SYSTEM_NOTICE = 10000
     """个人系统消息"""
-    GROUP_SYS_MSG = 10002
+    SYSTEM_MSG = 10002
     """群系统消息"""
 
 
@@ -52,3 +52,16 @@ class AppType(IntEnum):
     """群公告"""
     TRANSFER = 2000
     """转账"""
+
+
+class SysmsgType(str, Enum):
+    """
+    10002系统消息类型
+    """
+
+    REVOKE = "revokemsg"
+    """撤回消息"""
+    ROOMTOOL = "roomtoolstips"
+    """群提示"""
+    FUNCTIONMSG = "functionmsg"
+    """函数消息"""

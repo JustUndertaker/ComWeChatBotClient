@@ -23,12 +23,14 @@ from wechatbot_client.onebot12.event import (
     GetPrivateFileNotice,
     GetPrivatePokeNotice,
     GetPrivateRedBagNotice,
+    GroupMessageDeleteEvent,
     GroupMessageEvent,
+    PrivateMessageDeleteEvent,
     PrivateMessageEvent,
 )
 
 from .model import Message as WechatMessage
-from .type import AppType, WxType
+from .type import AppType, SysmsgType, WxType
 
 E = TypeVar("E", bound=Event)
 P = ParamSpec("P")
@@ -36,11 +38,11 @@ P = ParamSpec("P")
 HANDLE_DICT: dict[int, Callable[P, E]] = {}
 """消息处理器字典"""
 APP_HANDLERS: dict[int, Callable[P, Optional[E]]] = {}
-"""app消息处理函数列表"""
-SYS_HANDLERS: list[Callable[P, Optional[E]]] = []
-"""系统消息处理函数列表"""
-GROUP_SYS_HANDLERS: list[Callable[P, Optional[E]]] = []
-"""群系统消息处理函数列表"""
+"""app消息处理函数字典"""
+SYS_MSG_HANDLERS: list[Callable[P, Optional[E]]] = []
+"""系统消息处理函数字典"""
+SYS_NOTICE_HANDLERS: list[Callable[P, Optional[E]]] = []
+"""系统通知处理函数列表"""
 
 
 def add_handler(_tpye: int) -> Callable[P, E]:
@@ -56,9 +58,7 @@ def add_handler(_tpye: int) -> Callable[P, E]:
     return _handle
 
 
-def add_app_handler(
-    _tpye: int,
-) -> Callable[P, Optional[E]]:
+def add_app_handler(_tpye: int) -> Callable[P, Optional[E]]:
     """
     添加app_handler
     """
@@ -71,17 +71,21 @@ def add_app_handler(
     return _handle
 
 
-def add_sys_handler(func: Callable[P, Optional[E]]) -> Callable[P, Optional[E]]:
-    """添加系统处理器"""
-    global SYS_HANDLERS
-    SYS_HANDLERS.append(func)
-    return func
+def add_sys_msg_handler(_tpye: str) -> Callable[P, Optional[E]]:
+    """添加系统消息处理器"""
+
+    def _handle(func: Callable[P, Optional[E]]) -> Callable[P, Optional[E]]:
+        global SYS_MSG_HANDLERS
+        SYS_MSG_HANDLERS[_tpye] = func
+        return func
+
+    return _handle
 
 
-def add_group_sys_handler(func: Callable[P, Optional[E]]) -> Callable[P, Optional[E]]:
+def add_sys_notice_handler(func: Callable[P, Optional[E]]) -> Callable[P, Optional[E]]:
     """添加系统处理器"""
-    global GROUP_SYS_HANDLERS
-    GROUP_SYS_HANDLERS.append(func)
+    global SYS_NOTICE_HANDLERS
+    SYS_NOTICE_HANDLERS.append(func)
     return func
 
 
@@ -473,28 +477,31 @@ class MessageHandler(Generic[E]):
             result = handler(AppMessageHandler, msg, app)
         return result
 
-    @add_handler(WxType.SYSTEM_MSG)
-    def handle_sys(self, msg: WechatMessage) -> Optional[E]:
+    @add_handler(WxType.SYSTEM_NOTICE)
+    def handle_sys_notice(self, msg: WechatMessage) -> Optional[E]:
         """
-        处理系统消息
+        处理系统提示
         """
         result = None
-        for handler in SYS_HANDLERS:
-            result = handler(SysMessageHandler, msg)
+        for handler in SYS_NOTICE_HANDLERS:
+            result = handler(SysNoticeHandler, msg)
             if result is not None:
                 break
         return result
 
-    @add_handler(WxType.GROUP_SYS_MSG)
+    @add_handler(WxType.SYSTEM_MSG)
     def handle_group_sys(self, msg: WechatMessage) -> Optional[E]:
         """
-        群系统消息事件
+        处理系统消息
         """
         result = None
-        for handler in GROUP_SYS_HANDLERS:
-            result = handler(GroupSysMsgHandler, msg)
-            if result is not None:
-                break
+        raw_xml = msg.message
+        xml_obj = ET.fromstring(raw_xml)
+        notice_type = xml_obj.attrib["type"]
+        handler = SYS_MSG_HANDLERS.get(notice_type)
+        if handler is None:
+            return None
+        result = handler(SysMsgHandler, msg, xml_obj)
         return result
 
 
@@ -714,13 +721,64 @@ class AppMessageHandler(Generic[E]):
         return None
 
 
-class SysMessageHandler(Generic[E]):
+class SysMsgHandler(Generic[E]):
     """
-    系统消息处理器
+    群系统消息处理器
     """
 
     @classmethod
-    @add_sys_handler
+    @add_sys_msg_handler(SysmsgType.REVOKE)
+    def revoke(cls, msg: WechatMessage, xml_obj: Element) -> Optional[E]:
+        """撤回消息事件"""
+        msg_obj = xml_obj.find("./revokemsg/newmsgid")
+        event_id = str(uuid4())
+        message_id = msg_obj.text
+        # 检测是否为群聊
+        if "@chatroom" in msg.sender:
+            return GroupMessageDeleteEvent(
+                id=event_id,
+                time=msg.timestamp,
+                self=BotSelf(user_id=msg.self),
+                message_id=message_id,
+                group_id=msg.sender,
+                user_id=msg.wxid,
+                operator_id="",
+            )
+        return PrivateMessageDeleteEvent(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            message_id=message_id,
+        )
+
+    @classmethod
+    @add_sys_msg_handler(SysmsgType.ROOMTOOL)
+    def room_tools_tips(cls, msg: WechatMessage, xml_obj: Element) -> Optional[E]:
+        """
+        群提示
+        """
+        todo = xml_obj.find("./todo")
+        if todo is None:
+            return None
+        title = todo.find("./title").text
+        creator = todo.find("./creator").text
+
+    @classmethod
+    @add_sys_msg_handler(SysmsgType.FUNCTIONMSG)
+    def function_msg(cls, msg: WechatMessage, xml_obj: Element) -> Optional[E]:
+        """
+        函数消息
+        """
+        return None
+
+
+class SysNoticeHandler(Generic[E]):
+    """
+    系统提示处理器
+    """
+
+    @classmethod
+    @add_sys_notice_handler
     def read_bag(cls, msg: WechatMessage) -> Optional[E]:
         """"""
         if msg.message != "收到红包，请在手机上查看":
@@ -743,7 +801,7 @@ class SysMessageHandler(Generic[E]):
         )
 
     @classmethod
-    @add_sys_handler
+    @add_sys_notice_handler
     def poke(cls, msg: WechatMessage) -> Optional[E]:
         """
         拍一拍
@@ -766,17 +824,3 @@ class SysMessageHandler(Generic[E]):
             self=BotSelf(user_id=msg.self),
             user_id=msg.wxid,
         )
-
-
-class GroupSysMsgHandler(Generic[E]):
-    """
-    群系统消息处理器
-    """
-
-    @classmethod
-    @add_group_sys_handler
-    def event(cls, msg: WechatMessage) -> Optional[E]:
-        """"""
-        if msg.message != "收到红包，请在手机上查看":
-            return None
-        return
