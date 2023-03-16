@@ -121,8 +121,26 @@ class WeChatManager(Adapter):
         except ValidationError as e:
             log("ERROR", f"微信消息实例化失败:{e}")
             return
+        if message.isSendMsg:
+            await self.handle_self_msg(message)
+        else:
+            await self.handle_evnt_msg(message)
+
+    async def handle_self_msg(self, msg: Message) -> None:
+        """
+        处理自身发送消息
+        """
+        # 先确认是否为自己手动发送
+        if msg.isSendByPhone is not None:
+            return
+        pass
+
+    async def handle_evnt_msg(self, msg: Message) -> None:
+        """
+        处理event消息
+        """
         try:
-            event: Event = await self.message_handler.message_to_event(message)
+            event: Event = await self.message_handler.message_to_event(msg)
         except Exception as e:
             log("ERROR", f"生成事件出错:{e}")
             return

@@ -1,18 +1,36 @@
 import time
 from inspect import iscoroutinefunction
 from pathlib import Path
-from typing import Callable, Literal, Optional, Union
+from typing import Callable, Literal, Optional, ParamSpec, TypeVar, Union
 
 from wechatbot_client.com_wechat import ComWechatApi
 from wechatbot_client.consts import IMPL, ONEBOT_VERSION, PREFIX, VERSION
 from wechatbot_client.file_manager import FileManager
-from wechatbot_client.onebot12 import Message
+from wechatbot_client.onebot12 import Message, MessageSegment
 from wechatbot_client.utils import escape_tag, logger_wrapper
 
 from .check import expand_action, get_supported_actions, standard_action
 from .model import ActionRequest, ActionResponse, BotSelf
 
 log = logger_wrapper("Action Manager")
+P = ParamSpec("P")
+R = TypeVar("R")
+
+SEGMENT_HANDLER: dict[str, Callable[P, R]] = {}
+"""消息段处理函数"""
+
+
+def add_segment_handler(_type: str) -> Callable[P, R]:
+    """
+    添加消息段处理函数
+    """
+
+    def _handler(func: Callable[P, R]) -> Callable[P, R]:
+        global SEGMENT_HANDLER
+        SEGMENT_HANDLER[_type] = func
+        return func
+
+    return _handler
 
 
 class ApiManager:
@@ -140,6 +158,13 @@ class ApiManager:
         """注册一个消息处理器"""
         self.com_api.register_message_handler(func)
 
+    @add_segment_handler("text")
+    def _send_text(self, id: str, segment: MessageSegment) -> bool:
+        """
+        发送文本
+        """
+        return self.com_api.send_text(wxid=id, message=segment.data["text"])
+
 
 class ActionManager(ApiManager):
     """
@@ -187,6 +212,36 @@ class ActionManager(ApiManager):
     ) -> ActionResponse:
         """
         发送消息
+        """
+        match detail_type:
+            case "channel":
+                return ActionResponse(
+                    status="failed", retcode=10004, data=None, message="不支持channel发送"
+                )
+            case "private":
+                if user_id is None:
+                    return ActionResponse(
+                        status="failed", retcode=10003, data=None, message="参数缺失"
+                    )
+                return self._send_private_msg(message, user_id)
+            case "group":
+                if user_id is None or group_id is None:
+                    return ActionResponse(
+                        status="failed", retcode=10003, data=None, message="参数缺失"
+                    )
+                return self._send_group_msg(message, user_id, group_id)
+
+    def _send_private_msg(self, message: Message, user_id: str) -> ActionResponse:
+        """
+        发送私聊消息
+        """
+        pass
+
+    def _send_group_msg(
+        self, message: Message, user_id: str, group_id: str
+    ) -> ActionResponse:
+        """
+        发送群消息
         """
         pass
 

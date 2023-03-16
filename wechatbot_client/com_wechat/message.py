@@ -40,7 +40,7 @@ HANDLE_DICT: dict[int, Callable[P, E]] = {}
 """消息处理器字典"""
 APP_HANDLERS: dict[int, Callable[P, Optional[E]]] = {}
 """app消息处理函数字典"""
-SYS_MSG_HANDLERS: list[Callable[P, Optional[E]]] = []
+SYS_MSG_HANDLERS: dict[str, Callable[P, Optional[E]]] = {}
 """系统消息处理函数字典"""
 SYS_NOTICE_HANDLERS: list[Callable[P, Optional[E]]] = []
 """系统通知处理函数列表"""
@@ -480,9 +480,9 @@ class MessageHandler(Generic[E]):
         if handler is None:
             return None
         if iscoroutinefunction(handler):
-            result = await handler(AppMessageHandler, msg, app)
+            result = await handler(AppMessageHandler, self, msg, app)
         else:
-            result = handler(AppMessageHandler, msg, app)
+            result = handler(AppMessageHandler, self, msg, app)
         return result
 
     @add_handler(WxType.SYSTEM_NOTICE)
@@ -570,7 +570,7 @@ class AppMessageHandler(Generic[E]):
         file_name = app.find("./title").text
         md5 = app.find("./md5").text
         appattach = app.find("./appattach")
-        file_length = int(appattach.find("./totalen").text)
+        file_length = int(appattach.find("./totallen").text)
         # 判断是否为通知还是下载完成
         overwrite_newmsgid = appattach.find("./overwrite_newmsgid")
         if overwrite_newmsgid is None:
@@ -603,7 +603,7 @@ class AppMessageHandler(Generic[E]):
         # 文件消息
         file_path = msg_handler.wechat_path / msg.filepath
         file_id = await msg_handler.file_manager.cache_file_id_from_path(
-            file_path, file_name
+            file_path, file_name, copy=False
         )
         message = Message(MessageSegment.file(file_id=file_id))
         # 检测是否为群聊
