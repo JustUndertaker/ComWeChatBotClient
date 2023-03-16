@@ -402,7 +402,7 @@ class MessageHandler(Generic[E]):
         file_id = await self.file_manager.cache_file_id_from_url(
             emoji, f"{msg.msgid}.gif"
         )
-        message = Message(MessageSegment.image(file_id=file_id))
+        message = Message(MessageSegment.emoji(file_id=file_id))
         # 检测是否为群聊
         if "@chatroom" in msg.sender:
             return GroupMessageEvent(
