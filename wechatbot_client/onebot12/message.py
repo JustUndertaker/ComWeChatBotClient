@@ -107,6 +107,11 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return MessageSegment("reply", {"message_id": message_id, "user_id": user_id})
 
     @staticmethod
+    def emoji(file_id: str) -> "MessageSegment":
+        """gif表情"""
+        return MessageSegment(f"{PREFIX}.emoji", {"file_id": file_id})
+
+    @staticmethod
     def face(dec: str) -> "MessageSegment":
         """表情"""
         return MessageSegment(f"{PREFIX}.face", {"dec": dec})

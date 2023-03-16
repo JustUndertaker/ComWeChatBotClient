@@ -194,6 +194,15 @@ class ApiManager:
             raise FileNotFound(file_id)
         return self.com_api.send_file(id, file_path)
 
+    @add_segment_handler(f"{PREFIX}.emoji")
+    async def _send_emoji(self, id: str, segment: MessageSegment) -> bool:
+        """发送gif表情"""
+        file_id = segment.data["file_id"]
+        file_path, _ = await self.file_manager.get_file(file_id)
+        if file_path is None:
+            raise FileNotFound(file_id)
+        return self.com_api.send_gif(id, file_path)
+
 
 class ActionManager(ApiManager):
     """
@@ -322,6 +331,11 @@ class ActionManager(ApiManager):
                     await handler(self, user_id, segment)
                 else:
                     handler(self, user_id, segment)
+        except FileNotFound as e:
+            log("ERROR", repr(e))
+            return ActionResponse(
+                status="failed", retcode=32000, data=None, message="无效的file_id"
+            )
         except Exception as e:
             log("ERROR", "发送消息出错", e)
             return ActionResponse(
@@ -357,6 +371,11 @@ class ActionManager(ApiManager):
                     await handler(self, group_id, segment)
                 else:
                     handler(self, group_id, segment)
+        except FileNotFound as e:
+            log("ERROR", repr(e))
+            return ActionResponse(
+                status="failed", retcode=32000, data=None, message="无效的file_id"
+            )
         except Exception as e:
             log("ERROR", "发送消息出错", e)
             return ActionResponse(
