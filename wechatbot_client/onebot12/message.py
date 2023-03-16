@@ -3,7 +3,7 @@ onebot12消息实现，直接搬运adapter-onebot12
 """
 from typing import Iterable, Type
 
-from wechatbot_client.consts import PLATFORM, PREFIX
+from wechatbot_client.consts import PREFIX
 from wechatbot_client.typing import overrides
 
 from .base_message import Message as BaseMessage
@@ -107,33 +107,9 @@ class MessageSegment(BaseMessageSegment["Message"]):
         return MessageSegment("reply", {"message_id": message_id, "user_id": user_id})
 
     @staticmethod
-    def card(
-        v3: str,  # v3信息
-        v4: str,  # v4消息
-        head_url: str,  # 头像url
-        nickname: str,  # 昵称
-        province: str,  # 省
-        city: str,  # 城市
-        sex: int,  # 性别
-    ) -> "MessageSegment":
-        """名片消息"""
-        return MessageSegment(
-            f"{PREFIX}.card",
-            {
-                "v3": v3,
-                "v4": v4,
-                "head_url": head_url,
-                "nickname": nickname,
-                "province": province,
-                "city": city,
-                "sex": sex,
-            },
-        )
-
-    @staticmethod
     def face(dec: str) -> "MessageSegment":
         """表情"""
-        return MessageSegment(f"{PLATFORM}.face", {"dec": dec})
+        return MessageSegment(f"{PREFIX}.face", {"dec": dec})
 
     @staticmethod
     def link(
@@ -141,7 +117,7 @@ class MessageSegment(BaseMessageSegment["Message"]):
     ) -> "MessageSegment":
         """链接消息"""
         return MessageSegment(
-            f"{PLATFORM}.link",
+            f"{PREFIX}.link",
             {"tittle": tittle, "des": des, "url": url, "image": image},
         )
 
@@ -155,7 +131,7 @@ class MessageSegment(BaseMessageSegment["Message"]):
         app消息
         """
         return MessageSegment(
-            f"{PLATFORM}.app", {"appid": appid, "title": title, "url": url}
+            f"{PREFIX}.app", {"appid": appid, "title": title, "url": url}
         )
 
 

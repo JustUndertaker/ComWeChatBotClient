@@ -997,3 +997,17 @@ class ActionManager(ApiManager):
             return ActionResponse(
                 status="failed", retcode=35000, data=None, message="操作失败"
             )
+
+    @expand_action
+    def send_card(self, user_id: str, shared_id: str, nickname: str) -> ActionResponse:
+        """
+        发送名片
+        """
+        status = self.com_api.send_contact_card(user_id, shared_id, nickname)
+        if status:
+            self.com_api.get_contacts()
+            return ActionResponse(status="ok", retcode=0, data=None)
+        else:
+            return ActionResponse(
+                status="failed", retcode=35000, data=None, message="操作失败"
+            )

@@ -18,9 +18,11 @@ from wechatbot_client.onebot12.event import (
     Event,
     FriendRequestEvent,
     GetGroupAnnouncementNotice,
+    GetGroupCardNotice,
     GetGroupFileNotice,
     GetGroupPokeNotice,
     GetGroupRedBagNotice,
+    GetPrivateCardNotice,
     GetPrivateFileNotice,
     GetPrivatePokeNotice,
     GetPrivateRedBagNotice,
@@ -322,8 +324,14 @@ class MessageHandler(Generic[E]):
         raw_xml = msg.message
         xml_obj = ET.fromstring(raw_xml)
         attrib = xml_obj.attrib
-        message = Message(
-            MessageSegment.card(
+        # 检测是否为群聊
+        if "@chatroom" in msg.sender:
+            return GetGroupCardNotice(
+                id=event_id,
+                time=msg.timestamp,
+                self=BotSelf(user_id=msg.self),
+                user_id=msg.wxid,
+                group_id=msg.sender,
                 v3=attrib["username"],
                 v4=attrib["antispamticket"],
                 head_url=attrib["bigheadimgurl"],
@@ -331,27 +339,17 @@ class MessageHandler(Generic[E]):
                 city=attrib["city"],
                 sex=attrib["sex"],
             )
-        )
-        # 检测是否为群聊
-        if "@chatroom" in msg.sender:
-            return GroupMessageEvent(
-                id=event_id,
-                time=msg.timestamp,
-                self=BotSelf(user_id=msg.self),
-                message_id=str(msg.msgid),
-                message=message,
-                alt_message=str(message),
-                user_id=msg.wxid,
-                group_id=msg.sender,
-            )
-        return PrivateMessageEvent(
+        return GetPrivateCardNotice(
             id=event_id,
             time=msg.timestamp,
             self=BotSelf(user_id=msg.self),
-            message_id=str(msg.msgid),
-            message=message,
-            alt_message=str(message),
             user_id=msg.wxid,
+            v3=attrib["username"],
+            v4=attrib["antispamticket"],
+            head_url=attrib["bigheadimgurl"],
+            province=attrib["province"],
+            city=attrib["city"],
+            sex=attrib["sex"],
         )
 
     @add_handler(WxType.VIDEO_MSG)

@@ -263,6 +263,54 @@ class GetGroupAnnouncementNotice(NoticeEvent):
     """公告内容"""
 
 
+class GetPrivateCardNotice(NoticeEvent):
+    """
+    私聊获取名片
+    """
+
+    detail_type = f"{PLATFORM}.get_private_card"
+    user_id: str
+    """发送方id"""
+    v3: str
+    """名片v3信息"""
+    v4: str
+    """名片v4信息"""
+    nickname: str
+    """名片nickname"""
+    head_url: str
+    """头像url"""
+    province: str
+    """省"""
+    city: str
+    """市"""
+    sex: str
+    """性别"""
+
+
+class GetGroupCardNotice(NoticeEvent):
+    """群聊获取名片"""
+
+    detail_type = f"{PLATFORM}.get_group_card"
+    group_id: str
+    """群聊id"""
+    user_id: str
+    """发送方id"""
+    v3: str
+    """名片v3信息"""
+    v4: str
+    """名片v4信息"""
+    nickname: str
+    """名片nickname"""
+    head_url: str
+    """头像url"""
+    province: str
+    """省"""
+    city: str
+    """市"""
+    sex: str
+    """性别"""
+
+
 class RequestEvent(Event):
     """请求事件"""
 
