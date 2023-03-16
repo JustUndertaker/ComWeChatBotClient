@@ -1,6 +1,7 @@
 """
 这里将comwechat收到的message解析为event
 """
+import asyncio
 import re
 from inspect import iscoroutinefunction
 from pathlib import Path
@@ -129,20 +130,21 @@ class MessageHandler(Generic[E]):
             result = handler(self, msg)
         return result
 
-    def _find_file(self, file_path: str) -> Optional[Path]:
+    async def _find_file(self, file_path: str) -> Path:
         """
         找个图片
         """
         jpg = Path(f"{file_path}.jpg")
-        if jpg.exists():
-            return jpg
         png = Path(f"{file_path}.png")
-        if png.exists():
-            return png
         gif = Path(f"{file_path}.gif")
-        if gif.exists():
-            return gif
-        return None
+        while True:
+            if jpg.exists():
+                return jpg
+            if png.exists():
+                return png
+            if gif.exists():
+                return gif
+            await asyncio.sleep(0.5)
 
     @add_handler(WxType.TEXT_MSG)
     def handle_text(self, msg: WechatMessage) -> E:
@@ -225,10 +227,10 @@ class MessageHandler(Generic[E]):
         file_name = Path(msg.filepath).stem
         # 找图片
         file_path = f"{self.image_path.absolute()}/{file_name}"
-        file = self._find_file(file_path)
-        if file is None:
-            return None
-        file_id = await self.file_manager.cache_file_id_from_path(file, file.name)
+        file = await self._find_file(file_path)
+        file_id = await self.file_manager.cache_file_id_from_path(
+            file, file.name, copy=False
+        )
         message = Message(MessageSegment.image(file_id=file_id))
         # 检测是否为群聊
         if "@chatroom" in msg.sender:
@@ -260,7 +262,11 @@ class MessageHandler(Generic[E]):
         event_id = str(uuid4())
         file_name = msg.sign
         file = self.voice_path / f"{file_name}.amr"
-        file_id = await self.file_manager.cache_file_id_from_path(file, file.name)
+        while not file.exists():
+            asyncio.sleep(0.5)
+        file_id = await self.file_manager.cache_file_id_from_path(
+            file, file.name, copy=False
+        )
         message = Message(MessageSegment.image(file_id=file_id))
         # 检测是否为群聊
         if "@chatroom" in msg.sender:
@@ -358,7 +364,9 @@ class MessageHandler(Generic[E]):
         video_path = video_img.parent
         video_name = f"{video_img.stem}.mp4"
         video = video_path / video_name
-        file_id = await self.file_manager.cache_file_id_from_path(video, video_name)
+        file_id = await self.file_manager.cache_file_id_from_path(
+            video, video_name, copy=False
+        )
         message = Message(MessageSegment.video(file_id=file_id))
         # 检测是否为群聊
         if "@chatroom" in msg.sender:

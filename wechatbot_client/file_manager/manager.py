@@ -60,7 +60,9 @@ class FileManager:
         )
         return file_id
 
-    async def cache_file_id_from_path(self, get_path: Path, name: str) -> Optional[str]:
+    async def cache_file_id_from_path(
+        self, get_path: Path, name: str, copy: bool = True
+    ) -> Optional[str]:
         """
         说明:
             从路径缓存一个文件
@@ -68,6 +70,7 @@ class FileManager:
         参数:
             * `path`: 文件路径
             * `name`: 文件名
+            * `copy`: 是否复制到temp下
 
         返回:
             * `str | None`: 文件id，文件不存在时为None
@@ -76,8 +79,11 @@ class FileManager:
             log("ERROR", "缓存的文件不存在")
             return None
         file_id = str(uuid4())
-        file_path = self.file_path / f"{file_id}{name}"
-        copyfile(get_path, file_path)
+        if copy:
+            file_path = self.file_path / f"{file_id}{name}"
+            copyfile(get_path, file_path)
+        else:
+            file_path = get_path
         await FileCache.create_file_cache(
             file_id=file_id,
             file_path=str(file_path.absolute()),
