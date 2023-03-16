@@ -5,7 +5,7 @@ heroText: ComWeChat Client
 tagline: PC hook微信的协议端
 actions:
  - text: 快速开始 →
-   link: /guide.md
+   link: /guide/
    type: primary
 features:
 - title: Onebot12
@@ -14,5 +14,5 @@ features:
   details: 上游依赖ComWeChatRobot
 - title: Ducument
   details: 开始你的部署之路
-footer: MIT Licensed | Copyright © JustUndertaker
+footer: MIT LICENSE | Copyright © <a href='https://github.com/JustUndertaker'>JustUndertaker</a>
 ---
