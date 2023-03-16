@@ -6,6 +6,11 @@ export default defineUserConfig({
   lang: 'zh-CN',
   base: '/ComWeChatBotClient/',
   title: 'ComWeChat Client',
+  markdown: {
+    code: {
+      lineNumbers: false,
+    }
+  },
   head: [['link', { rel: 'icon', href: '/image/logo.png' }]],
   description: '基于ComWeCahtRobot的微信协议端，支持onebot12',
   theme: hopeTheme({
