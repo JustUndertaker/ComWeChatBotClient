@@ -17,5 +17,5 @@ features:
 - title: Onebot12
   details: 本项目支持onebot12协议
   link: https://12.onebot.dev/
-footer: MIT LICENSE | Copyright © <a href='https://github.com/JustUndertaker'>JustUndertaker</a>
+footer: AGPL-3.0 LICENSE | Copyright © <a href='https://github.com/JustUndertaker'>JustUndertaker</a>
 ---
