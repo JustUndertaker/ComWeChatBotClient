@@ -1,6 +1,7 @@
-import { defineUserConfig } from 'vuepress'
-import { hopeTheme } from "vuepress-theme-hope"
-import { searchProPlugin } from "vuepress-plugin-search-pro"
+import { defineUserConfig } from 'vuepress';
+import { hopeTheme } from "vuepress-theme-hope";
+import { searchProPlugin } from "vuepress-plugin-search-pro";
+import { shikiPlugin } from "@vuepress/plugin-shiki";
 
 export default defineUserConfig({
   lang: 'zh-CN',
@@ -105,17 +106,25 @@ export default defineUserConfig({
       }
     ],
     plugins: {
+      // md插件
       mdEnhance: {
         tasklist: true,
         tabs: true,
-      }
+      },
+      // 默认代码高亮
+      prismjs: false,
     }
   }),
   plugins: [
+    // 搜索插件
     searchProPlugin({
       // 索引全部内容
       indexContent: true,
     }),
+    // shiki代码高亮
+    shikiPlugin({
+      theme: "one-dark-pro",
+    })
   ],
 })
 

@@ -4,10 +4,11 @@
 表示聊天消息的一个部分，在一些平台上，聊天消息支持图文混排，其中就会有多个消息段，分别表示每个图片和每段文字。
 :::
 
-## `text` 纯文本<Badge text="标准" />
+## `text` 纯文本<Badge text="标准" type="success" />
 表示一段纯文本。
  - [x] 可以接收
  - [x] 可以发送
+
 ::: tabs
 @tab 参数
 | 字段名    | 数据类型 | 说明       |
@@ -23,8 +24,15 @@
     }
 }
 ```
+
+@tab nb2使用
+``` python
+from nonebot.adapters.onebot.v12 import MessageSegment
+
+message = MessageSegment.text("这是一个纯文本")
+```
 :::
-## `mention` 提及（即 @）<Badge text="标准" />
+## `mention` 提及（即 @）<Badge text="标准" type="success" />
 
 表示at某人。
 
@@ -56,9 +64,16 @@
 }
 ```
 
+@tab nb2使用
+```python
+from nonebot.adapters.onebot.v12 import MessageSegment
+
+message = MessageSegment.mention(user_id="123456")
+```
+
 :::
 
-## `mention_all` 提及所有人<Badge text="标准" />
+## `mention_all` 提及所有人<Badge text="标准" type="success" />
 
 表示at所有人。
 
@@ -86,11 +101,16 @@
 }
 ```
 
+@tab nb2使用
+```python
+from nonebot.adapters.onebot.v12 import MessageSegment
 
+message = MessageSegment.mention_all()
+```
 
 :::
 
-## `image` 图片<Badge text="标准" />
+## `image` 图片<Badge text="标准" type="success" />
 
 表示一张图片。
 
@@ -116,11 +136,16 @@
 }
 ```
 
+@tab nb2使用
+```python
+from nonebot.adapters.onebot.v12 import MessageSegment
 
+message = MessageSegment.image(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
+```
 
 :::
 
-## `voice` 语音<Badge text="标准" />
+## `voice` 语音<Badge text="标准" type="success" />
 
 表示一段语音消息。
 
@@ -133,7 +158,7 @@
 
 |  字段名   | 数据类型 |    说明     |
 | :-------: | :------: | :---------: |
-| `file_id` |  string  | 图片文件 ID |
+| `file_id` |  string  | 语音文件 ID |
 
 @tab 示例
 
@@ -150,7 +175,7 @@
 
 :::
 
-## `audio` 音频<Badge text="标准" />
+## `audio` 音频<Badge text="标准" type="success" />
 
 音频文件。
 
@@ -160,7 +185,7 @@
 
 :::
 
-## `video` 视频<Badge text="标准" />
+## `video` 视频<Badge text="标准" type="success" />
 
 视频消息
 
@@ -173,7 +198,7 @@
 
 |  字段名   | 数据类型 |    说明     |
 | :-------: | :------: | :---------: |
-| `file_id` |  string  | 图片文件 ID |
+| `file_id` |  string  | 视频文件 ID |
 
 @tab 示例
 
@@ -190,7 +215,7 @@
 
 :::
 
-## `file` 文件<Badge text="标准" />
+## `file` 文件<Badge text="标准" type="success" />
 
 文件消息
 
@@ -203,7 +228,7 @@
 
 |  字段名   | 数据类型 |    说明     |
 | :-------: | :------: | :---------: |
-| `file_id` |  string  | 图片文件 ID |
+| `file_id` |  string  |     文件 ID |
 
 @tab 示例
 
@@ -216,11 +241,16 @@
 }
 ```
 
+@tab nb2使用
+```python
+from nonebot.adapters.onebot.v12 import MessageSegment
 
+message = MessageSegment.file(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
+```
 
 :::
 
-## `location` 位置<Badge text="标准" />
+## `location` 位置<Badge text="标准" type="success" />
 
 位置消息。
 
@@ -256,7 +286,7 @@
 
 
 
-## `reply` 回复<Badge text="标准" />
+## `reply` 回复<Badge text="标准" type="success" />
 
 回复消息。
 
@@ -298,7 +328,7 @@
 表示表情消息
 
 ::: warning 与图片区别
-在微信里，图片消息指直接发送图片；而表情为动态gif表情等
+在微信里，图片消息指直接发送图片；而表情为动态gif表情包等
 :::
  - [x] 可以接收
  - [x] 可以发送
@@ -319,6 +349,13 @@
         "file_id": "e30f9684-3d54-4f65-b2da-db291a477f16"
     }
 }
+```
+
+@tab nb2使用
+```python
+from nonebot.adapters.onebot.v12 import MessageSegment
+
+message = MessageSegment("wx.emoji",{"file_id":"e30f9684-3d54-4f65-b2da-db291a477f16"})
 ```
 
 :::
