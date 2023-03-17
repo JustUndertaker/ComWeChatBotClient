@@ -9,6 +9,9 @@
 
 `ComWeChatRobot`的客户端封装，支持`onebot12`通信协议。
 
+## 许可证
+`ComWeChatRobot Client` 采用 [AGPLv3](https://github.com/JustUndertaker/ComWeChatBotClient/blob/main/LICENSE) 协议开源，不鼓励、不支持一切商业使用。
+
 ## 上游依赖
 
 - [ComWeChatRobot](https://github.com/ljc545w/ComWeChatRobot)：PC微信机器人，实现获取通讯录，发送文本、图片、文件等消息，封装COM接口供Python、C#调用
