@@ -33,7 +33,7 @@ from wechatbot_client.driver import (
 )
 from wechatbot_client.exception import WebSocketClosed
 from wechatbot_client.onebot12 import ConnectEvent, Event
-from wechatbot_client.utils import escape_tag, logger_wrapper
+from wechatbot_client.utils import DataclassEncoder, escape_tag, logger_wrapper
 
 from .utils import get_auth_bearer
 
@@ -141,7 +141,9 @@ class Adapter:
                 )
                 if action := self.json_to_ws_action(raw_data):
                     response = await self.action_ws_request(action)
-                    await websocket.send(response.json(ensure_ascii=False))
+                    await websocket.send(
+                        response.json(ensure_ascii=False, encoder=DataclassEncoder)
+                    )
         except WebSocketClosed:
             log(
                 "WARNING",
@@ -198,7 +200,9 @@ class Adapter:
                 return Response(
                     200,
                     headers=headers,
-                    content=response.json(by_alias=True, ensure_ascii=False),
+                    content=response.json(
+                        by_alias=True, ensure_ascii=False, encoder=DataclassEncoder
+                    ),
                 )
         return Response(204)
 
@@ -241,7 +245,9 @@ class Adapter:
                     # 发送connect事件
                     event = get_connet_event()
                     try:
-                        await websocket.send(event.json(ensure_ascii=False))
+                        await websocket.send(
+                            event.json(ensure_ascii=False, encoder=DataclassEncoder)
+                        )
                     except Exception as e:
                         log("ERROR", f"发送connect事件失败:{e}")
                     try:
@@ -254,7 +260,11 @@ class Adapter:
                             )
                             if action := self.json_to_ws_action(raw_data):
                                 response = await self.action_ws_request(action)
-                                await websocket.send(response.json(ensure_ascii=False))
+                                await websocket.send(
+                                    response.json(
+                                        ensure_ascii=False, encoder=DataclassEncoder
+                                    )
+                                )
                     except WebSocketClosed as e:
                         log(
                             "ERROR",
@@ -359,7 +369,9 @@ class Adapter:
             method="POST",
             url=url,
             headers=headers,
-            json=event.json(by_alias=True, ensure_ascii=False),
+            json=event.json(
+                by_alias=True, ensure_ascii=False, encoder=DataclassEncoder
+            ),
             timeout=self.config.webhook_timeout / 1000,
         )
         try:
@@ -373,7 +385,9 @@ class Adapter:
         """
         发送ws消息
         """
-        await ws.send(event.json(by_alias=True, ensure_ascii=False))
+        await ws.send(
+            event.json(by_alias=True, ensure_ascii=False, encoder=DataclassEncoder)
+        )
 
     async def websocket_event(self, event: Event) -> None:
         """
