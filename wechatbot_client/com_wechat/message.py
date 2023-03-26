@@ -770,6 +770,8 @@ class SysMsgHandler(Generic[E]):
             return None
         title = todo.find("./title").text
         creator = todo.find("./creator").text
+        # TODO: 未完成
+        return None
 
     @classmethod
     @add_sys_msg_handler(SysmsgType.FUNCTIONMSG)

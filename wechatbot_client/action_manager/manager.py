@@ -425,7 +425,7 @@ class ActionManager(ApiManager):
             "user_id": user_id,
             "user_name": info["wxNickName"],
             "user_displayname": "",
-            "user_remark": info["wxRemark"],
+            "user_remark": info["wxRemark"] if info["wxRemark"] != "null" else "",
             f"{PREFIX}.avatar": info["wxBigAvatar"],  # 头像
             f"{PREFIX}.wx_number": info["wxNumber"],  # 微信号
             f"{PREFIX}.nation": info["wxNation"],  # 国家
@@ -463,7 +463,9 @@ class ActionManager(ApiManager):
         info = self.com_api.get_user_info(group_id)
         data = {
             "group_id": info["wxId"],
-            "group_name": info["wxNickName"],  # 加入拓展字段
+            "group_name": info["wxNickName"]
+            if info["wxNickName"] != "null"
+            else "",  # 加入拓展字段
             f"{PREFIX}.avatar": info["wxSmallAvatar"],  # 头像
             f"{PREFIX}.v3": info["wxV3"],  # v3信息
         }
@@ -498,7 +500,9 @@ class ActionManager(ApiManager):
                     "user_id": one["wxId"],
                     "user_name": one["wxNickName"],
                     "user_displayname": "",
-                    "user_remark": one["wxRemark"],
+                    "user_remark": one["wxRemark"]
+                    if one["wxNickName"] != "null"
+                    else "",
                     f"{PREFIX}.avatar": one["wxBigAvatar"],  # 头像
                     f"{PREFIX}.wx_number": one["wxNumber"],  # 微信号
                     f"{PREFIX}.nation": one["wxNation"],  # 国家
