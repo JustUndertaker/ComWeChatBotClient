@@ -162,12 +162,6 @@ class Adapter:
 
     async def handle_http(self, request: Request) -> Response:
         """处理http任务"""
-        self_id = request.headers.get("x-self-id")
-
-        # check self_id
-        if not self_id:
-            log("WARNING", "Missing X-Self-ID Header")
-            return Response(400, content="Missing X-Self-ID Header")
 
         # check access_token
         response = self._check_access_token(request)
