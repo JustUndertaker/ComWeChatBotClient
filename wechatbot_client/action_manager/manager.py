@@ -222,7 +222,11 @@ class ActionManager(ApiManager):
         """
         获取运行状态
         """
-        bot = {"self": BotSelf(user_id=self.get_self_info()).dict(), "online": True}
+        user_info = self.get_self_info()
+        bot = {
+            "self": BotSelf(user_id=user_info.data["user_id"]).dict(),
+            "online": True,
+        }
         data = {"good": True, "bots": [bot]}
         return ActionResponse(status="ok", retcode=0, data=data)
 
