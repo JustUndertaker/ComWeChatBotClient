@@ -181,7 +181,7 @@ class ApiManager:
                 auto_nickname=False,
             )
 
-    @add_segment_handler("iamge")
+    @add_segment_handler("image")
     async def _send_image(self, id: str, segment: MessageSegment) -> bool:
         """发送图片"""
         file_id = segment.data["file_id"]
