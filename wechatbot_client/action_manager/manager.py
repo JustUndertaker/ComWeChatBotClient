@@ -291,6 +291,8 @@ class ActionManager(ApiManager):
         for segment in message:
             if segment.type == "text":
                 current_text = segment
+                curren_at_list = []
+                new_msg.append(segment)
             elif segment.type == "mention":
                 user_id = segment.data["user_id"]
                 nickname = self.com_api.get_groupmember_nickname(group_id, user_id)
@@ -315,6 +317,8 @@ class ActionManager(ApiManager):
                     all_at_list.append(curren_at_list)
                     current_text = None
                     curren_at_list = None
+        if current_text is not None:
+            all_at_list.append(curren_at_list)
         new_msg.ruduce()
         return all_at_list, new_msg
 
@@ -374,7 +378,10 @@ class ActionManager(ApiManager):
                         message=f"不支持的消息段:{segment.type}",
                     )
                 if segment.type == "text":
-                    at_list = all_at_list.pop(0)
+                    if len(all_at_list) == 0:
+                        at_list = None
+                    else:
+                        at_list = all_at_list.pop(0)
                     handler(self, group_id, segment, at_list)
                 elif iscoroutinefunction(handler):
                     await handler(self, group_id, segment)
