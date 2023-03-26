@@ -83,7 +83,7 @@ class WeChatManager(Adapter):
         """
         # 验证action
         try:
-            request = check_action_params(request)
+            action_name, action_model = check_action_params(request)
         except TypeError:
             return ActionResponse(
                 status="failed",
@@ -99,7 +99,7 @@ class WeChatManager(Adapter):
                 message="Param参数错误",
             )
         # 调用api
-        return await self.action_manager.request(request)
+        return await self.action_manager.request(action_name, action_model)
 
     @overrides(Adapter)
     async def action_ws_request(self, request: WsActionRequest) -> WsActionResponse:

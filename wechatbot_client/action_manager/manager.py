@@ -3,6 +3,8 @@ from inspect import iscoroutinefunction
 from pathlib import Path
 from typing import Callable, Literal, Optional, ParamSpec, TypeVar, Union
 
+from pydantic import BaseModel
+
 from wechatbot_client.com_wechat import ComWechatApi
 from wechatbot_client.consts import IMPL, ONEBOT_VERSION, PREFIX, VERSION
 from wechatbot_client.exception import FileNotFound, NoThisUserInGroup
@@ -11,7 +13,7 @@ from wechatbot_client.onebot12 import Message, MessageSegment
 from wechatbot_client.utils import escape_tag, logger_wrapper
 
 from .check import expand_action, get_supported_actions, standard_action
-from .model import ActionRequest, ActionResponse, BotSelf
+from .model import ActionResponse, BotSelf
 
 log = logger_wrapper("Action Manager")
 P = ParamSpec("P")
@@ -130,23 +132,26 @@ class ApiManager:
         """
         return self.com_api.get_self_info()
 
-    async def request(self, request: ActionRequest) -> ActionResponse:
+    async def request(
+        self, action_name: str, action_model: BaseModel
+    ) -> ActionResponse:
         """
         说明:
             发送action请求，获取返回值
 
         参数:
-            * `request`: action请求体
+            * `action_name`: action请求函数名
+            * `action_model`: action参数模型
 
         返回:
             * `response`: action返回值
         """
-        func = getattr(self, request.action)
+        func = getattr(self, action_name)
         try:
             if iscoroutinefunction(func):
-                result = await func(**request.params)
+                result = await func(**action_model.dict())
             else:
-                result = func(**request.params)
+                result = func(**action_model.dict())
         except Exception as e:
             log("ERROR", f"<r>调用api错误: {e}</r>")
             return ActionResponse(

@@ -2,14 +2,18 @@
 工具模块
 """
 import asyncio
+import dataclasses
 import inspect
+import json
 import re
+from base64 import b64encode
 from functools import partial, wraps
 from typing import Any, Callable, Coroutine, ForwardRef, Optional, ParamSpec, TypeVar
 
 from pydantic.typing import evaluate_forwardref
 
 from wechatbot_client.log import logger
+from wechatbot_client.typing import overrides
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -94,3 +98,15 @@ def logger_wrapper(logger_name: str):
         )
 
     return log
+
+
+class DataclassEncoder(json.JSONEncoder):
+    """在JSON序列化 `Message` (List[Dataclass]) 时使用的 `JSONEncoder`"""
+
+    @overrides(json.JSONEncoder)
+    def default(self, o):
+        if isinstance(o, bytes):
+            return b64encode(o).decode()
+        if dataclasses.is_dataclass(o):
+            return {f.name: getattr(o, f.name) for f in dataclasses.fields(o)}
+        return super().default(o)
