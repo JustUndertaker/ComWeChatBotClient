@@ -196,6 +196,8 @@ class MessageHandler(Generic[E]):
         new_msg = Message()
         for index, one_msg in enumerate(msg_list):
             if re.search(regex, one_msg) is None:
+                if one_msg == "":
+                    continue
                 new_msg.append(MessageSegment.text(one_msg))
             else:
                 try:
