@@ -13,6 +13,16 @@ class BaseException(Exception):
         return self.__repr__()
 
 
+class WaitFileTimeout(BaseException):
+    """等待文件超时"""
+
+    def __init__(self, file_id: str) -> None:
+        self.file_id = file_id
+
+    def __repr__(self) -> str:
+        return f"等待文件[{self.file_id}]超时"
+
+
 class MessageException(BaseException):
     """消息异常"""
 

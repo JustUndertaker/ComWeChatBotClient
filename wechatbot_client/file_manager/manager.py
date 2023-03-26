@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 from shutil import copyfile
 from typing import Optional, Tuple
@@ -5,7 +6,7 @@ from uuid import uuid4
 
 from httpx import URL, AsyncClient
 
-from wechatbot_client.consts import FILE_CACHE
+from wechatbot_client.consts import DOWNLOAD_TIMEOUT, FILE_CACHE
 from wechatbot_client.utils import logger_wrapper
 
 from .model import FileCache
@@ -136,3 +137,68 @@ class FileManager:
         for file in self.file_path.iterdir():
             file.unlink()
         log("SUCCESS", "重置文件缓存...")
+
+    async def wait_image_task(self, image_path: str, future: asyncio.Future) -> None:
+        """
+        等待图片任务
+        """
+        jpg = Path(f"{image_path}.jpg")
+        png = Path(f"{image_path}.png")
+        gif = Path(f"{image_path}.gif")
+        while True:
+            if future.cancelled():
+                return
+            if jpg.exists():
+                future.set_result(jpg)
+                return
+            if png.exists():
+                future.set_result(png)
+                return
+            if gif.exists():
+                future.set_result(gif)
+                return
+            await asyncio.sleep(0.5)
+
+    async def wait_for_image(self, image_path: str) -> Optional[Path]:
+        """
+        说明:
+            等待图片下载成功
+        """
+        loop = asyncio.get_event_loop()
+        future = loop.create_future()
+        loop.create_task(self.wait_image_task(image_path, future))
+        try:
+            await asyncio.wait_for(future, DOWNLOAD_TIMEOUT)
+        except asyncio.TimeoutError:
+            log("ERROR", "图片下载超时...")
+            future.cancel()
+            return None
+        return future.result()
+
+    async def wait_file_task(self, file: Path, future: asyncio.Future) -> None:
+        """
+        等待文件任务
+        """
+        while True:
+            if future.cancelled():
+                return
+            if file.exists():
+                future.set_result(file)
+                return
+            await asyncio.sleep(0.5)
+
+    async def wait_for_file(self, file: Path) -> Optional[Path]:
+        """
+        说明:
+            等待文件下载成功
+        """
+        loop = asyncio.get_event_loop()
+        future = loop.create_future()
+        loop.create_task(self.wait_file_task(file, future))
+        try:
+            await asyncio.wait_for(future, DOWNLOAD_TIMEOUT)
+        except asyncio.TimeoutError:
+            log("ERROR", "文件下载超时...")
+            future.cancel()
+            return None
+        return future.result()

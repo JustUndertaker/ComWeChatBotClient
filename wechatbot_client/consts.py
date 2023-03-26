@@ -22,3 +22,5 @@ LOG_PATH = "log"
 """日志存放目录"""
 DATABASE_PATH = "data"
 """数据库存放目录"""
+DOWNLOAD_TIMEOUT = 10
+"""下载超时时间"""
