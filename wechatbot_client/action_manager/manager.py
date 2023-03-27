@@ -1,4 +1,5 @@
 import time
+from base64 import b64decode
 from inspect import iscoroutinefunction
 from pathlib import Path
 from typing import Callable, Literal, Optional, ParamSpec, TypeVar, Union
@@ -572,7 +573,7 @@ class ActionManager(ApiManager):
         url: Optional[str] = None,
         headers: Optional[dict[str, str]] = None,
         path: Optional[str] = None,
-        data: Optional[bytes] = None,
+        data: Optional[Union[str, bytes]] = None,
         sha256: Optional[str] = None,
     ) -> ActionResponse:
         """
@@ -604,6 +605,8 @@ class ActionManager(ApiManager):
             return ActionResponse(
                 status="failed", retcode=10003, data=None, message="缺少data参数"
             )
+        if isinstance(data, str):
+            data = b64decode(data)
         file_id = await self.file_manager.cache_file_id_from_data(data, name)
         return ActionResponse(status="ok", retcode=0, data={"file_id": file_id})
 
