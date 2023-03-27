@@ -558,6 +558,7 @@ class AppMessageHandler(Generic[E]):
         """
         处理文件消息
         """
+        event_id = str(uuid4())
         file_name = app.find("./title").text
         md5 = app.find("./md5").text
         appattach = app.find("./appattach")
@@ -597,7 +598,6 @@ class AppMessageHandler(Generic[E]):
         if file is None:
             return None
 
-        event_id = str(uuid4())
         file_id = await msg_handler.file_manager.cache_file_id_from_path(
             file, file_name, copy=False
         )
