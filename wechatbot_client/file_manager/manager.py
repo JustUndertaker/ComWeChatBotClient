@@ -126,19 +126,27 @@ class FileManager:
         """
         path = Path(f"./{FILE_CACHE}")
         count = 0
-        for file in path.glob("**/*"):
+        for file in path.glob("**/*.*"):
             if file.stat().st_ctime > days * 24 * 60 * 60:
                 file.unlink()
                 count += 1
         return count
 
-    async def clean_cache(self, days: int = 3) -> None:
+    async def clean_cache(self, days: int = 3) -> int:
         """
-        清理缓存
+        说明:
+            清理缓存
+
+        参数:
+            * `days`: 清理多少天前的缓存
+
+        返回:
+            * `int`: 清理的文件数量
         """
         await FileCache.clean_file(days)
         count = await self.clean_tempfile(days)
         log("SUCCESS", f"清理缓存成功，共清理: {count} 个文件...")
+        return count
 
     async def reset_cache(self) -> None:
         """

@@ -1045,3 +1045,15 @@ class ActionManager(ApiManager):
             return ActionResponse(
                 status="failed", retcode=35000, data=None, message="操作失败"
             )
+
+    @expand_action
+    async def clean_file_cache(self, days: int = 3) -> ActionResponse:
+        """
+        说明:
+            清理文件缓存
+
+        参数:
+            * `days`: 保留天数. 默认为3天.
+        """
+        nums = await self.file_manager.clean_cache(days)
+        return ActionResponse(status="ok", retcode=0, data=nums)
