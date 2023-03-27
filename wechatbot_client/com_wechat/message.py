@@ -559,7 +559,6 @@ class AppMessageHandler(Generic[E]):
         """
         处理文件消息
         """
-        event_id = str(uuid4())
         file_name = app.find("./title").text
         md5 = app.find("./md5").text
         appattach = app.find("./appattach")
@@ -594,9 +593,14 @@ class AppMessageHandler(Generic[E]):
                 )
 
         # 文件消息
-        file_path = msg_handler.wechat_path / msg.filepath
+        file = msg_handler.wechat_path / msg.filepath
+        file = await msg_handler.file_manager.wait_for_file(file)
+        if file is None:
+            return None
+
+        event_id = str(uuid4())
         file_id = await msg_handler.file_manager.cache_file_id_from_path(
-            file_path, file_name, copy=False
+            file, file_name, copy=False
         )
         message = Message(MessageSegment.file(file_id=file_id))
         # 检测是否为群聊
