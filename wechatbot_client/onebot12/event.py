@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Extra
 
-from wechatbot_client.consts import PLATFORM, PREFIX
+from wechatbot_client.consts import PREFIX
 
 from .message import Message
 
@@ -10,7 +10,7 @@ from .message import Message
 class BotSelf(BaseModel):
     """机器人自身"""
 
-    platform: str = PLATFORM
+    PREFIX: str = PREFIX
     """消息平台"""
     user_id: str
     """机器人用户 ID"""
@@ -170,7 +170,7 @@ class GetPrivateFileNotice(NoticeEvent):
     私聊接收文件通知，在接收到文件时会发送通知（此时文件还未下载）
     """
 
-    detail_type = f"{PLATFORM}.get_private_file"
+    detail_type = f"{PREFIX}.get_private_file"
 
     file_name: str
     """文件名"""
@@ -189,7 +189,7 @@ class GetGroupFileNotice(NoticeEvent):
     群聊接收文件通知，在接收到文件时会发送通知（此时文件还未下载）
     """
 
-    detail_type = f"{PLATFORM}.get_group_file"
+    detail_type = f"{PREFIX}.get_group_file"
 
     file_name: str
     """文件名"""
@@ -210,7 +210,7 @@ class GetPrivateRedBagNotice(NoticeEvent):
     私聊获取红包提示
     """
 
-    detail_type = f"{PLATFORM}.get_private_redbag"
+    detail_type = f"{PREFIX}.get_private_redbag"
     user_id: str
     """发送方id"""
 
@@ -220,7 +220,7 @@ class GetGroupRedBagNotice(NoticeEvent):
     群聊获取红包提示
     """
 
-    detail_type = f"{PLATFORM}.get_group_redbag"
+    detail_type = f"{PREFIX}.get_group_redbag"
     group_id: str
     """群id"""
     user_id: str
@@ -232,7 +232,7 @@ class GetPrivatePokeNotice(NoticeEvent):
     私聊拍一拍
     """
 
-    detail_type = f"{PLATFORM}.get_private_poke"
+    detail_type = f"{PREFIX}.get_private_poke"
     user_id: str
     """发送方id"""
 
@@ -242,7 +242,7 @@ class GetGroupPokeNotice(NoticeEvent):
     群聊拍一拍
     """
 
-    detail_type = f"{PLATFORM}.get_group_poke"
+    detail_type = f"{PREFIX}.get_group_poke"
     group_id: str
     """群id"""
     user_id: str
@@ -254,7 +254,7 @@ class GetGroupAnnouncementNotice(NoticeEvent):
     群公告
     """
 
-    detail_type = f"{PLATFORM}.get_group_announcement"
+    detail_type = f"{PREFIX}.get_group_announcement"
     group_id: str
     """群id"""
     user_id: str
@@ -268,7 +268,7 @@ class GetPrivateCardNotice(NoticeEvent):
     私聊获取名片
     """
 
-    detail_type = f"{PLATFORM}.get_private_card"
+    detail_type = f"{PREFIX}.get_private_card"
     user_id: str
     """发送方id"""
     v3: str
@@ -290,7 +290,7 @@ class GetPrivateCardNotice(NoticeEvent):
 class GetGroupCardNotice(NoticeEvent):
     """群聊获取名片"""
 
-    detail_type = f"{PLATFORM}.get_group_card"
+    detail_type = f"{PREFIX}.get_group_card"
     group_id: str
     """群聊id"""
     user_id: str
