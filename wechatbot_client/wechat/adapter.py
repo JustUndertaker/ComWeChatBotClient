@@ -142,7 +142,7 @@ class Adapter:
                 if action := self.json_to_ws_action(raw_data):
                     response = await self.action_ws_request(action)
                     await websocket.send(
-                        response.json(ensure_ascii=False, encoder=DataclassEncoder)
+                        response.json(ensure_ascii=False, cls=DataclassEncoder)
                     )
         except WebSocketClosed:
             log(
@@ -201,7 +201,7 @@ class Adapter:
                     200,
                     headers=headers,
                     content=response.json(
-                        by_alias=True, ensure_ascii=False, encoder=DataclassEncoder
+                        by_alias=True, ensure_ascii=False, cls=DataclassEncoder
                     ),
                 )
         return Response(204)
@@ -246,7 +246,7 @@ class Adapter:
                     event = get_connet_event()
                     try:
                         await websocket.send(
-                            event.json(ensure_ascii=False, encoder=DataclassEncoder)
+                            event.json(ensure_ascii=False, cls=DataclassEncoder)
                         )
                     except Exception as e:
                         log("ERROR", f"发送connect事件失败:{e}")
@@ -262,7 +262,7 @@ class Adapter:
                                 response = await self.action_ws_request(action)
                                 await websocket.send(
                                     response.json(
-                                        ensure_ascii=False, encoder=DataclassEncoder
+                                        ensure_ascii=False, cls=DataclassEncoder
                                     )
                                 )
                     except WebSocketClosed as e:
@@ -369,9 +369,7 @@ class Adapter:
             method="POST",
             url=url,
             headers=headers,
-            json=event.json(
-                by_alias=True, ensure_ascii=False, encoder=DataclassEncoder
-            ),
+            json=event.json(by_alias=True, ensure_ascii=False, cls=DataclassEncoder),
             timeout=self.config.webhook_timeout / 1000,
         )
         try:
@@ -386,7 +384,7 @@ class Adapter:
         发送ws消息
         """
         await ws.send(
-            event.json(by_alias=True, ensure_ascii=False, encoder=DataclassEncoder)
+            event.json(by_alias=True, ensure_ascii=False, cls=DataclassEncoder)
         )
 
     async def websocket_event(self, event: Event) -> None:
