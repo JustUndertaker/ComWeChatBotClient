@@ -21,6 +21,8 @@ class FileCache(Model):
     """文件名"""
     file_path = fields.CharField(max_length=255)
     """文件路径"""
+    file_temp = fields.BooleanField()
+    """是否为临时文件"""
 
     class Meta:
         table = "file_cache"
@@ -28,7 +30,7 @@ class FileCache(Model):
 
     @classmethod
     async def create_file_cache(
-        cls, file_id: str, file_path: str, file_name: str
+        cls, file_id: str, file_path: str, file_name: str, file_temp: bool = True
     ) -> bool:
         """
         说明:
@@ -38,6 +40,7 @@ class FileCache(Model):
             * `file_id`: 文件名
             * `file_path`: 文件路径
             * `file_name`: 文件名
+            * `file_temp`: 是否为临时文件
 
         返回:
             * `bool`: 缓存是否成功
@@ -48,6 +51,7 @@ class FileCache(Model):
             file_path=file_path,
             file_name=file_name,
             create_time=time,
+            file_temp=file_temp,
         )
         return True
 
@@ -70,7 +74,7 @@ class FileCache(Model):
         return None
 
     @classmethod
-    async def clean_file(cls, days: int = 3) -> None:
+    async def clean_file(cls, days: int = 3) -> list[str]:
         """
         说明:
             清理超过`days`天的数据库缓存
@@ -79,7 +83,13 @@ class FileCache(Model):
             * `days`: 天数
         """
         time = datetime.now() - timedelta(days=days)
-        await cls.filter(create_time__lte=time).delete()
+        files = await cls.filter(create_time__lte=time)
+        file_paths = []
+        for file in files:
+            if file.file_temp:
+                file_paths.append(file.file_path)
+            await file.delete()
+        return file_paths
 
     @classmethod
     async def reset(cls) -> None:

@@ -89,6 +89,7 @@ class FileManager:
             file_id=file_id,
             file_path=str(file_path.absolute()),
             file_name=name,
+            file_temp=copy,
         )
         return file_id
 
@@ -120,14 +121,14 @@ class FileManager:
         return await FileCache.get_file(file_id)
 
     @run_sync
-    def clean_tempfile(self, days: int = 3) -> int:
+    def clean_tempfile(self, file_paths: list[str]) -> int:
         """
         清理临时文件
         """
-        path = Path(f"./{FILE_CACHE}")
         count = 0
-        for file in path.glob("**/*.*"):
-            if file.stat().st_ctime > days * 24 * 60 * 60:
+        for file_path in file_paths:
+            file = Path(file_path)
+            if file.exists():
                 file.unlink()
                 count += 1
         return count
@@ -143,8 +144,8 @@ class FileManager:
         返回:
             * `int`: 清理的文件数量
         """
-        await FileCache.clean_file(days)
-        count = await self.clean_tempfile(days)
+        file_paths = await FileCache.clean_file(days)
+        count = await self.clean_tempfile(file_paths)
         log("SUCCESS", f"清理缓存成功，共清理: {count} 个文件...")
         return count
 
