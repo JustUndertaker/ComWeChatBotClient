@@ -306,7 +306,9 @@ class Adapter:
         try:
             action = ActionRequest.parse_obj(json_data)
         except ValidationError:
+            log("ERROR", f"<r>action请求错误: </r>{json_data}")
             return None
+        log("SUCCESS", f"<y>收到action请求: </y>{action}")
         return action
 
     @classmethod

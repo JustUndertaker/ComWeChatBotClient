@@ -1,7 +1,6 @@
 """
 这里将comwechat收到的message解析为event
 """
-import asyncio
 import re
 from inspect import iscoroutinefunction
 from pathlib import Path
