@@ -6,9 +6,10 @@ from typing import Callable, Literal, Optional, ParamSpec, TypeVar, Union
 from pydantic import BaseModel
 
 from wechatbot_client.com_wechat import ComWechatApi
+from wechatbot_client.config import Config
 from wechatbot_client.consts import IMPL, ONEBOT_VERSION, PREFIX, VERSION
 from wechatbot_client.exception import FileNotFound, NoThisUserInGroup
-from wechatbot_client.file_manager import FileManager
+from wechatbot_client.file_manager import FileCache, FileManager
 from wechatbot_client.onebot12 import Message, MessageSegment
 from wechatbot_client.utils import escape_tag, logger_wrapper
 
@@ -44,16 +45,20 @@ class ApiManager:
     com_api: ComWechatApi
     """com交互api"""
     file_manager: FileManager
+    """文件管理器"""
+    file_base_url: str
+    """文件base url"""
 
     def __init__(self) -> None:
         self.com_api = ComWechatApi()
         self.file_manager = None
 
-    def init(self, file_manager: FileManager) -> None:
+    def init(self, file_manager: FileManager, config: Config) -> None:
         """
         初始化com
         """
         self.file_manager = file_manager
+        self.file_base_url = f"http://{config.host}:{config.port}/get_file/"
         # 初始化com组件
         log("DEBUG", "<y>初始化com组件...</y>")
         if not self.com_api.init():
@@ -615,7 +620,15 @@ class ActionManager(ApiManager):
                 status="failed", retcode=32000, data=None, message="未找到该文件"
             )
         if type == "url":
-            pass
+            file_id, file_name = await FileCache.get_file(file_id)
+            if file_id is None:
+                return ActionResponse(
+                    status="failed", retcode=32000, data=None, message="未找到该文件"
+                )
+            url = self.file_base_url + file_id
+            return ActionResponse(
+                status="ok", retcode=0, data={"name": file_name, "url": url}
+            )
         if type == "path":
             return ActionResponse(
                 status="ok", retcode=0, data={"name": file_name, "path": file_path}

@@ -5,5 +5,6 @@
 """
 
 from .manager import FileManager as FileManager
+from .model import FileCache as FileCache
 from .model import database_close as database_close
 from .model import database_init as database_init

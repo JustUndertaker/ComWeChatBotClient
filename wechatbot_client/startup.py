@@ -9,6 +9,7 @@ from uuid import uuid4
 from comtypes.client import PumpEvents
 
 from wechatbot_client import get_driver, get_wechat
+from wechatbot_client.action_manager import router
 from wechatbot_client.config import Config, WebsocketType
 from wechatbot_client.consts import FILE_CACHE
 from wechatbot_client.driver import URL, HTTPServerSetup, WebSocketServerSetup
@@ -58,6 +59,8 @@ async def start_up() -> None:
     elif config.websocekt_type == WebsocketType.Backward:
         # 反向ws，连接应用端
         await wechat.start_backward()
+    # 添加get_file路由
+    driver.server_app.include_router(router)
 
 
 @driver.on_shutdown
