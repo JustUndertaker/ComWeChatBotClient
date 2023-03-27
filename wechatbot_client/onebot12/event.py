@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Extra
 
-from wechatbot_client.consts import PREFIX
+from wechatbot_client.consts import PLATFORM, PREFIX
 
 from .message import Message
 
@@ -10,7 +10,7 @@ from .message import Message
 class BotSelf(BaseModel):
     """机器人自身"""
 
-    PREFIX: str = PREFIX
+    platform: str = PLATFORM
     """消息平台"""
     user_id: str
     """机器人用户 ID"""
