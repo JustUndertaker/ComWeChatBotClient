@@ -70,25 +70,16 @@ class FileCache(Model):
         return None
 
     @classmethod
-    async def clean_file(cls, days: int = 3) -> list[str]:
+    async def clean_file(cls, days: int = 3) -> None:
         """
         说明:
-            清理超过`days`天的缓存
+            清理超过`days`天的数据库缓存
 
         参数:
             * `days`: 天数
-
-        返回:
-            * `list[str]`: 被清理的文件路径列表
         """
         time = datetime.now() - timedelta(days=days)
-        model = await cls.filter(create_time__lte=time)
-        data = []
-        for one in model:
-            if one.cache_flag:
-                data.append(one.file_path)
-            await one.delete()
-        return data
+        await cls.filter(create_time__lte=time).delete()
 
     @classmethod
     async def reset(cls) -> None:
