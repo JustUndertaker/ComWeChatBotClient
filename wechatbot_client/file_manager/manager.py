@@ -7,7 +7,7 @@ from uuid import uuid4
 from httpx import URL, AsyncClient
 
 from wechatbot_client.consts import DOWNLOAD_TIMEOUT, FILE_CACHE
-from wechatbot_client.utils import logger_wrapper
+from wechatbot_client.utils import logger_wrapper, run_sync
 
 from .model import FileCache
 
@@ -119,15 +119,26 @@ class FileManager:
         """
         return await FileCache.get_file(file_id)
 
+    @run_sync
+    def clean_tempfile(self, days: int = 3) -> int:
+        """
+        清理临时文件
+        """
+        path = Path(f"./{FILE_CACHE}")
+        count = 0
+        for file in path.glob("**/*"):
+            if file.stat().st_ctime > days * 24 * 60 * 60:
+                file.unlink()
+                count += 1
+        return count
+
     async def clean_cache(self, days: int = 3) -> None:
         """
         清理缓存
         """
-        file_list = await FileCache.clean_file(days)
-        length = len(file_list)
-        for file in file_list:
-            Path(file).unlink(True)
-        log("SUCCESS", f"清理缓存成功，共清理: {length} 个文件...")
+        await FileCache.clean_file(days)
+        count = await self.clean_tempfile(days)
+        log("SUCCESS", f"清理缓存成功，共清理: {count} 个文件...")
 
     async def reset_cache(self) -> None:
         """
