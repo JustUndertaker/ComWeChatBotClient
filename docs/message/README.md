@@ -403,3 +403,33 @@ message = MessageSegment("wx.link",{
 
 :::
 ## `wx.app` 小程序<Badge text="拓展" type="danger" />
+小程序消息
+ - [x] 可以接收
+ - [ ] 可以发送
+
+::: tabs
+
+@tab 参数
+
+|    字段名    | 数据类型 |        说明         |
+| :----------: | :------: | :-----------------: |
+| `appid` |  string  |    小程序id    |
+|  `title`   |  string  | 消息标题 |
+|  `url`   |  string  | 链接地址 |
+
+@tab 示例
+
+```json
+{
+    "type": "wx.app",
+    "data": {
+        "appid": "abcd",
+        "title": "肯德基疯狂星期四",
+        "url": "http://www.baidu.com"
+    }
+}
+```
+
+
+
+:::
