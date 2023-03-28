@@ -512,7 +512,7 @@ class AppMessageHandler(Generic[E]):
 
     @classmethod
     @add_app_handler(AppType.LINK_MSG)
-    def handle_link(
+    async def handle_link(
         cls, msg_handler: MessageHandler, msg: WechatMessage, app: Element
     ) -> E:
         """
@@ -523,10 +523,17 @@ class AppMessageHandler(Generic[E]):
         des = app.find("./des").text
         url = app.find("./url").text.replace(" ", "")
         image_path = msg.filepath
+        file_id = None
         if image_path != "":
             image_path = f"{msg_handler.wechat_path}/{image_path}"
+            image_path = Path(image_path)
+            file_id = await msg_handler.file_manager.cache_file_id_from_path(
+                image_path, name=image_path.stem, copy=False
+            )
+        if file_id is None:
+            file_id = ""
         message = Message(
-            MessageSegment.link(tittle=title, des=des, url=url, image=image_path)
+            MessageSegment.link(title=title, des=des, url=url, file_id=file_id)
         )
         # 检测是否为群聊
         if "@chatroom" in msg.sender:

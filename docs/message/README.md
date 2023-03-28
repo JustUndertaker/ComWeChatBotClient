@@ -1,7 +1,7 @@
 # 消息段
 本项目目前实现了部分标准消息段及拓展消息段
 :::tip onebot12
-表示聊天消息的一个部分，在一些平台上，聊天消息支持图文混排，其中就会有多个消息段，分别表示每个图片和每段文字。
+`消息段:` 表示聊天消息的一个部分，在一些平台上，聊天消息支持图文混排，其中就会有多个消息段，分别表示每个图片和每段文字。
 :::
 
 ## `text` 纯文本<Badge text="标准" type="success" />
@@ -364,4 +364,42 @@ message = MessageSegment("wx.emoji",{"file_id":"e30f9684-3d54-4f65-b2da-db291a47
 文章链接消息
  - [x] 可以接收
  - [x] 可以发送
+::: tabs
+
+@tab 参数
+
+|  字段名   | 数据类型 |    说明     |
+| :-------: | :------: | :---------: |
+| `title` |  string  | 文章标题 |
+| `des` |  string  | 消息卡片摘要 |
+| `url` |  string  | 文章链接 |
+| `file_id` |  可选,string  | 消息图片id |
+
+@tab 示例
+
+```json
+{
+    "type": "wx.link",
+    "data": {
+        "title": "发一篇文章",
+        "des": "你干嘛，哎哟",
+        "url": "http://www.baidu.com",
+        "file_id": "e30f9684-3d54-4f65-b2da-db291a477f16"
+    }
+}
+```
+
+@tab nb2使用
+```python
+from nonebot.adapters.onebot.v12 import MessageSegment
+
+message = MessageSegment("wx.link",{
+        "title": "发一篇文章",
+        "des": "你干嘛，哎哟",
+        "url": "http://www.baidu.com",
+        "file_id": "e30f9684-3d54-4f65-b2da-db291a477f16"
+        })
+```
+
+:::
 ## `wx.app` 小程序<Badge text="拓展" type="danger" />

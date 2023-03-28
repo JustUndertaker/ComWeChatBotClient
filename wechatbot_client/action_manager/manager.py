@@ -214,6 +214,20 @@ class ApiManager:
             raise FileNotFound(file_id)
         return self.com_api.send_gif(id, file_path)
 
+    @add_segment_handler(f"{PREFIX}.link")
+    async def _send_link(self, id: str, segment: MessageSegment) -> bool:
+        """
+        发送链接消息
+        """
+        file_id = segment.data.get("file_id")
+        file_path = None
+        if file_id is not None:
+            file_path, _ = await self.file_manager.get_file(file_id)
+        title = segment.data["title"]
+        des = segment.data["des"]
+        url = segment.data["url"]
+        return self.com_api.send_message_card(id, title, des, url, file_path)
+
 
 class ActionManager(ApiManager):
     """

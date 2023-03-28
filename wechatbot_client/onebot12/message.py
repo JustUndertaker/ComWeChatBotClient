@@ -118,12 +118,12 @@ class MessageSegment(BaseMessageSegment["Message"]):
 
     @staticmethod
     def link(
-        tittle: str, des: str, url: str, image: str  # 标题  # 描述  # 链接url  # 大图位置
+        title: str, des: str, url: str, file_id: str  # 标题  # 描述  # 链接url  # 大图位置
     ) -> "MessageSegment":
         """链接消息"""
         return MessageSegment(
             f"{PREFIX}.link",
-            {"tittle": tittle, "des": des, "url": url, "image": image},
+            {"title": title, "des": des, "url": url, "file_id": file_id},
         )
 
     @staticmethod
