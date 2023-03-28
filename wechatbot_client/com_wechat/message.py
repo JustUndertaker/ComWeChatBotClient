@@ -761,6 +761,7 @@ class SysMsgHandler(Generic[E]):
             time=msg.timestamp,
             self=BotSelf(user_id=msg.self),
             message_id=message_id,
+            user_id=msg.wxid,
         )
 
     @classmethod
@@ -785,6 +786,35 @@ class SysMsgHandler(Generic[E]):
         """
         return None
 
+    @classmethod
+    @add_sys_msg_handler(SysmsgType.PAT)
+    def pat(cls, msg: WechatMessage, xml_obj: Element) -> Optional[E]:
+        """
+        拍一拍
+        """
+        pat = xml_obj.find("./pat")
+        from_user = pat.find("./fromusername").text
+        to_user = pat.find("./pattedusername").text
+        chatroom = pat.find("./chatusername").text
+        event_id = str(uuid4())
+        # 检测是否为群聊
+        if "@chatroom" in msg.sender:
+            return GetGroupPokeNotice(
+                id=event_id,
+                time=msg.timestamp,
+                self=BotSelf(user_id=msg.self),
+                user_id=to_user,
+                from_user_id=from_user,
+                group_id=chatroom,
+            )
+        return GetPrivatePokeNotice(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            user_id=to_user,
+            from_user_id=from_user,
+        )
+
 
 class SysNoticeHandler(Generic[E]):
     """
@@ -808,31 +838,6 @@ class SysNoticeHandler(Generic[E]):
                 group_id=msg.sender,
             )
         return GetPrivateRedBagNotice(
-            id=event_id,
-            time=msg.timestamp,
-            self=BotSelf(user_id=msg.self),
-            user_id=msg.wxid,
-        )
-
-    @classmethod
-    @add_sys_notice_handler
-    def poke(cls, msg: WechatMessage) -> Optional[E]:
-        """
-        拍一拍
-        """
-        if " 拍了拍我" not in msg.message:
-            return None
-        event_id = str(uuid4())
-        # 检测是否为群聊
-        if "@chatroom" in msg.sender:
-            return GetGroupPokeNotice(
-                id=event_id,
-                time=msg.timestamp,
-                self=BotSelf(user_id=msg.self),
-                user_id=msg.wxid,
-                group_id=msg.sender,
-            )
-        return GetPrivatePokeNotice(
             id=event_id,
             time=msg.timestamp,
             self=BotSelf(user_id=msg.self),

@@ -65,3 +65,5 @@ class SysmsgType(str, Enum):
     """群提示"""
     FUNCTIONMSG = "functionmsg"
     """函数消息"""
+    PAT = "pat"
+    """拍一拍消息"""

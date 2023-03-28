@@ -268,8 +268,7 @@ class Adapter:
                     except WebSocketClosed as e:
                         log(
                             "ERROR",
-                            "<r><bg #f8bbd0>WebSocket 关闭了...</bg #f8bbd0></r>",
-                            e,
+                            f"<r><bg #f8bbd0>WebSocket 关闭了...</bg #f8bbd0></r>: {e}",
                         )
                     except Exception as e:
                         log(

@@ -101,6 +101,7 @@ class PrivateMessageDeleteEvent(NoticeEvent):
 
     detail_type: Literal["private_message_delete"] = "private_message_delete"
     message_id: str
+    user_id: str
 
 
 class GroupMemberIncreaseEvent(NoticeEvent):
@@ -234,6 +235,8 @@ class GetPrivatePokeNotice(NoticeEvent):
 
     detail_type = f"{PREFIX}.get_private_poke"
     user_id: str
+    """接收方id"""
+    from_user_id: str
     """发送方id"""
 
 
@@ -246,7 +249,9 @@ class GetGroupPokeNotice(NoticeEvent):
     group_id: str
     """群id"""
     user_id: str
-    """发送方"""
+    """接收方id"""
+    from_user_id: str
+    """发送方id"""
 
 
 class GetGroupAnnouncementNotice(NoticeEvent):
