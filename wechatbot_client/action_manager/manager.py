@@ -835,34 +835,6 @@ class ActionManager(ApiManager):
             )
 
     @expand_action
-    def add_friend_by_id(self, user_id: str) -> ActionResponse:
-        """
-        说明:
-            发送好友请求（使用wxid）
-        """
-        status = self.com_api.add_friend_by_wxid(user_id)
-        if status:
-            return ActionResponse(status="ok", retcode=0, data=None)
-        else:
-            return ActionResponse(
-                status="failed", retcode=35000, data=None, message="操作失败"
-            )
-
-    @expand_action
-    def add_friend_by_v3(self, v3: str) -> ActionResponse:
-        """
-        说明:
-            发送好友请求（使用v3数据）
-        """
-        status = self.com_api.add_friend_by_v3(v3)
-        if status:
-            return ActionResponse(status="ok", retcode=0, data=None)
-        else:
-            return ActionResponse(
-                status="failed", retcode=35000, data=None, message="操作失败"
-            )
-
-    @expand_action
     def get_wechat_version(self) -> ActionResponse:
         """
         获取微信版本
