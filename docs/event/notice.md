@@ -5,10 +5,9 @@
 
 ## `friend_increase` 好友增加<Badge text="标准" type="success" />
 本事件在好友增加时触发
-|    字段名    | 数据类型 |        说明         |
-| :----------: | :------: | :-----------------: |
-| `detail_type` | string | 为`friend_increase` |
-| `user_id` | string | 增加好友的 wxid |
+:::danger Wechat
+wechat 在添加好友时使用发送消息："我通过了你的朋友验证请求，现在我们可以开始聊天了"等，故这边不好实现
+:::
 
 ## `friend_decrease` 好友减少<Badge text="标准" type="success" />
 本事件在好友减少时触发
@@ -25,3 +24,106 @@
 | `user_id` | string | 消息发送者 ID |
 
 ## `group_member_increase` 群成员增加<Badge text="标准" type="success" />
+本事件应在群成员（包括机器人自身）申请加群通过、被邀请进群或其它方式进群时触发
+:::danger Wechat
+暂未实现
+:::
+
+## `group_member_decrease` 群成员减少<Badge text="标准" type="success" />
+本事件应在群成员（包括机器人自身）主动退出、被踢出或其它方式退出时触发
+:::danger Wechat
+暂未实现
+:::
+
+## `group_message_delete` 群消息删除<Badge text="标准" type="success" />
+本事件应在群消息被撤回或被管理员删除时触发
+|    字段名    | 数据类型 |        说明         |
+| :----------: | :------: | :-----------------: |
+| `detail_type` | string | 为 `group_message_delete` |
+| `sub_type` | string | 为 `delete` |
+| `group_id` | string | 群 ID |
+| `message_id` | string | 消息 ID |
+| `user_id` | string | 消息发送者 ID |
+| `operator_id` | string | 为空 |
+
+## `wx.get_private_file` 私聊接收文件通知<Badge text="拓展" type="danger" />
+在接收到文件时会发送通知（此时文件还未下载）
+|    字段名    | 数据类型 |        说明         |
+| :----------: | :------: | :-----------------: |
+| `detail_type` | string | 为 `wx.get_private_file` |
+| `file_name` | string | 文件名 |
+| `file_length` | int | 文件长度 |
+| `md5` | string | 文件md5值 |
+| `user_id` | string | 发送方 ID |
+
+## `wx.get_group_file` 群聊接收文件通知<Badge text="拓展" type="danger" />
+在接收到文件时会发送通知（此时文件还未下载）
+|    字段名    | 数据类型 |        说明         |
+| :----------: | :------: | :-----------------: |
+| `detail_type` | string | 为 `wx.get_private_file` |
+| `file_name` | string | 文件名 |
+| `file_length` | int | 文件长度 |
+| `md5` | string | 文件md5值 |
+| `group_id` | string | 群 ID |
+| `user_id` | string | 发送方 ID |
+
+## `wx.get_private_redbag` 私聊收到红包通知<Badge text="拓展" type="danger" />
+私聊收到红包时的通知
+|    字段名    | 数据类型 |        说明         |
+| :----------: | :------: | :-----------------: |
+| `detail_type` | string | 为 `wx.get_private_redbag` |
+| `user_id` | string | 发送方 ID |
+
+## `wx.get_group_redbag` 群聊收到红包通知<Badge text="拓展" type="danger" />
+群聊收到红包时的通知
+|    字段名    | 数据类型 |        说明         |
+| :----------: | :------: | :-----------------: |
+| `detail_type` | string | 为 `wx.get_group_redbag` |
+| `group_id` | string | 群 ID |
+| `user_id` | string | 发送方 ID |
+
+## `wx.get_private_poke` 私聊拍一拍通知<Badge text="拓展" type="danger" />
+私聊拍一拍时通知
+|    字段名    | 数据类型 |        说明         |
+| :----------: | :------: | :-----------------: |
+| `detail_type` | string | 为 `wx.get_private_poke` |
+| `user_id` | string | 接收方 ID |
+| `from_user_id` | string | 发送方 ID |
+
+## `wx.get_group_poke` 群聊拍一拍通知<Badge text="拓展" type="danger" />
+群聊拍一拍时通知
+|    字段名    | 数据类型 |        说明         |
+| :----------: | :------: | :-----------------: |
+| `detail_type` | string | 为 `wx.get_group_poke` |
+| `group_id` | string | 群 ID |
+| `user_id` | string | 接收方 ID |
+| `from_user_id` | string | 发送方 ID |
+
+## `wx.get_private_card` 私聊获取名片通知<Badge text="拓展" type="danger" />
+私聊收到名片时通知
+|    字段名    | 数据类型 |        说明         |
+| :----------: | :------: | :-----------------: |
+| `detail_type` | string | 为 `wx.get_private_card` |
+| `user_id` | string | 发送方 ID |
+| `v3` | string | 名片v3信息 |
+| `v4` | string | 名片v4信息 |
+| `nickname` | string | 名片昵称 |
+| `head_url` | string | 头像url |
+| `province` | string | 省 |
+| `city` | string | 市 |
+| `sex` | string | 性别 |
+
+## `wx.get_group_card` 群聊获取名片通知<Badge text="拓展" type="danger" />
+群聊收到名片时通知
+|    字段名    | 数据类型 |        说明         |
+| :----------: | :------: | :-----------------: |
+| `detail_type` | string | 为 `wx.get_group_card` |
+| `group_id` | string | 群 ID |
+| `user_id` | string | 发送方 ID |
+| `v3` | string | 名片v3信息 |
+| `v4` | string | 名片v4信息 |
+| `nickname` | string | 名片昵称 |
+| `head_url` | string | 头像url |
+| `province` | string | 省 |
+| `city` | string | 市 |
+| `sex` | string | 性别 |

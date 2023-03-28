@@ -581,7 +581,6 @@ class AppMessageHandler(Generic[E]):
                     id=event_id,
                     time=msg.timestamp,
                     self=BotSelf(user_id=msg.self),
-                    message_id=msg.msgid,
                     user_id=msg.wxid,
                     group_id=msg.sender,
                     file_name=file_name,
@@ -593,7 +592,6 @@ class AppMessageHandler(Generic[E]):
                     id=event_id,
                     time=msg.timestamp,
                     self=BotSelf(user_id=msg.self),
-                    message_id=msg.msgid,
                     user_id=msg.wxid,
                     file_name=file_name,
                     file_length=file_length,
@@ -838,22 +836,6 @@ class SysNoticeHandler(Generic[E]):
                 group_id=msg.sender,
             )
         return GetPrivateRedBagNotice(
-            id=event_id,
-            time=msg.timestamp,
-            self=BotSelf(user_id=msg.self),
-            user_id=msg.wxid,
-        )
-
-    @classmethod
-    @add_sys_notice_handler
-    def friend_increase(cls, msg: WechatMessage) -> Optional[E]:
-        """
-        添加好友
-        """
-        if "通过了你的朋友验证请求" not in msg.message:
-            return None
-        event_id = str(uuid4())
-        return FriendIncreaseEvent(
             id=event_id,
             time=msg.timestamp,
             self=BotSelf(user_id=msg.self),

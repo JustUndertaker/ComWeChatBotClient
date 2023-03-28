@@ -156,6 +156,7 @@ class GroupMessageDeleteEvent(NoticeEvent):
     """群消息删除事件"""
 
     detail_type: Literal["group_message_delete"] = "group_message_delete"
+    sub_type: Literal["delete"] = "delete"
     group_id: str
     """群id"""
     message_id: str
@@ -179,8 +180,6 @@ class GetPrivateFileNotice(NoticeEvent):
     """文件长度"""
     md5: str
     """文件md5"""
-    message_id: str
-    """消息id"""
     user_id: str
     """发送方id"""
 
@@ -198,8 +197,6 @@ class GetGroupFileNotice(NoticeEvent):
     """文件长度"""
     md5: str
     """文件md5"""
-    message_id: str
-    """消息id"""
     user_id: str
     """发送方id"""
     group_id: str
