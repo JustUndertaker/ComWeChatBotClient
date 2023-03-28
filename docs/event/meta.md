@@ -3,7 +3,7 @@
 Onebot 实现内部自发产生的一类事件，例如心跳等，与 OneBot 本身的运行状态有关，与实现对应的机器人平台无关。
 :::
 本项目实现了以下的元事件。
-## `connect` 连接
+## `connect` 连接<Badge text="标准" type="success" />
 对于正向 WebSocket 和反向 WebSocket 通信方式，在连接建立后会推送给应用端
 的第一个事件；HTTP 和 HTTP Webhook 通信方式不会产生连接事件。
 
@@ -34,7 +34,7 @@ Onebot 实现内部自发产生的一类事件，例如心跳等，与 OneBot �
 
 :::
 
-## `heartbeat` 心跳
+## `heartbeat` 心跳<Badge text="标准" type="success" />
 当 enabled 配置为 true 时，每隔 interval 产生一个心跳事件。
 :::tip 配置
 间隔 `interval` 对应 `.env` 配置中的 `heartbeat_interval`，单位是ms
@@ -64,7 +64,7 @@ Onebot 实现内部自发产生的一类事件，例如心跳等，与 OneBot �
 
 :::
 
-## `status_update` 状态更新
+## `status_update` 状态更新<Badge text="标准" type="success" />
 :::danger 未实现
 目前没有实现该事件
 :::
