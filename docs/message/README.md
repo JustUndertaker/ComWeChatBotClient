@@ -4,7 +4,7 @@
 `消息段:` 表示聊天消息的一个部分，在一些平台上，聊天消息支持图文混排，其中就会有多个消息段，分别表示每个图片和每段文字。
 :::
 
-## `text` 纯文本<Badge text="标准" type="success" />
+## 纯文本<Badge text="标准" type="success" />
 表示一段纯文本。
  - [x] 可以接收
  - [x] 可以发送
@@ -32,7 +32,7 @@ from nonebot.adapters.onebot.v12 import MessageSegment
 message = MessageSegment.text("这是一个纯文本")
 ```
 :::
-## `mention` 提及（即 @）<Badge text="标准" type="success" />
+## 提及（即 @）<Badge text="标准" type="success" />
 
 表示at某人。
 
@@ -73,7 +73,7 @@ message = MessageSegment.mention(user_id="123456")
 
 :::
 
-## `mention_all` 提及所有人<Badge text="标准" type="success" />
+## 提及所有人<Badge text="标准" type="success" />
 
 表示at所有人。
 
@@ -110,7 +110,7 @@ message = MessageSegment.mention_all()
 
 :::
 
-## `image` 图片<Badge text="标准" type="success" />
+## 图片<Badge text="标准" type="success" />
 
 表示一张图片。
 
@@ -145,7 +145,7 @@ message = MessageSegment.image(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 
 :::
 
-## `voice` 语音<Badge text="标准" type="success" />
+## 语音<Badge text="标准" type="success" />
 
 表示一段语音消息。
 
@@ -175,7 +175,7 @@ message = MessageSegment.image(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 
 :::
 
-## `audio` 音频<Badge text="标准" type="success" />
+## 音频<Badge text="标准" type="success" />
 
 音频文件。
 
@@ -185,7 +185,7 @@ message = MessageSegment.image(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 
 :::
 
-## `video` 视频<Badge text="标准" type="success" />
+## 视频<Badge text="标准" type="success" />
 
 视频消息
 
@@ -215,7 +215,7 @@ message = MessageSegment.image(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 
 :::
 
-## `file` 文件<Badge text="标准" type="success" />
+## 文件<Badge text="标准" type="success" />
 
 文件消息
 
@@ -250,7 +250,7 @@ message = MessageSegment.file(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 
 :::
 
-## `location` 位置<Badge text="标准" type="success" />
+## 位置<Badge text="标准" type="success" />
 
 位置消息。
 
@@ -286,7 +286,7 @@ message = MessageSegment.file(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 
 
 
-## `reply` 回复<Badge text="标准" type="success" />
+## 回复<Badge text="标准" type="success" />
 
 回复消息。
 
@@ -324,7 +324,7 @@ message = MessageSegment.file(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 
 :::
 
-## `wx.emoji` 表情<Badge text="拓展" type="danger" />
+## 表情<Badge text="拓展" type="danger" />
 表示表情消息
 
 ::: warning 与图片区别
@@ -360,7 +360,7 @@ message = MessageSegment("wx.emoji",{"file_id":"e30f9684-3d54-4f65-b2da-db291a47
 
 :::
 
-## `wx.link` 链接<Badge text="拓展" type="danger" />
+## 链接<Badge text="拓展" type="danger" />
 文章链接消息
  - [x] 可以接收
  - [x] 可以发送
@@ -402,7 +402,7 @@ message = MessageSegment("wx.link",{
 ```
 
 :::
-## `wx.app` 小程序<Badge text="拓展" type="danger" />
+## 小程序<Badge text="拓展" type="danger" />
 小程序消息
  - [x] 可以接收
  - [ ] 可以发送
