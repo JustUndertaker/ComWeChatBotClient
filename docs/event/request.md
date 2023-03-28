@@ -1,5 +1,7 @@
 # 请求事件
-请求事件指 wechat 向bot发起的请求，事件type为 `request`。
+:::tip Onebot12
+本页所定义的事件均基于 [OneBot Connect - 事件](https://12.onebot.dev/connect/data-protocol/event/)，其中 type 字段值应为 `request`。
+:::
 
 ## `wx.friend_request` 添加好友请求<Badge text="拓展" type="danger" />
 他人请求添加好友时上报

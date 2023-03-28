@@ -15,6 +15,7 @@ from wechatbot_client.onebot12 import Message, MessageSegment
 from wechatbot_client.onebot12.event import (
     BotSelf,
     Event,
+    FriendIncreaseEvent,
     FriendRequestEvent,
     GetGroupAnnouncementNotice,
     GetGroupCardNotice,
@@ -832,6 +833,22 @@ class SysNoticeHandler(Generic[E]):
                 group_id=msg.sender,
             )
         return GetPrivatePokeNotice(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            user_id=msg.wxid,
+        )
+
+    @classmethod
+    @add_sys_notice_handler
+    def friend_increase(cls, msg: WechatMessage) -> Optional[E]:
+        """
+        添加好友
+        """
+        if "通过了你的朋友验证请求" not in msg.message:
+            return None
+        event_id = str(uuid4())
+        return FriendIncreaseEvent(
             id=event_id,
             time=msg.timestamp,
             self=BotSelf(user_id=msg.self),

@@ -231,7 +231,7 @@ class Adapter:
         }
         if self.config.access_token != "":
             headers["Authorization"] = f"Bearer {self.config.access_token}"
-        setup = Request("GET", url, headers=headers, timeout=30.0)
+        setup = Request("GET", url, headers=headers, timeout=5.0)
         log("DEBUG", f"<y>正在连接到url: {url}</y>")
         while True:
             try:
