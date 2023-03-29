@@ -1,2 +1,3 @@
 .env    linguist-detectable=false
+.bat	linguist-detectable=false
 *.py text eol=lf
