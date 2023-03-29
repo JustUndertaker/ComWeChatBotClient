@@ -123,6 +123,7 @@ export default defineUserConfig({
       },
       // 默认代码高亮
       prismjs: false,
+      git: false,
     }
   }),
   plugins: [
