@@ -11,7 +11,7 @@ jobs:
 
     - name: Copy git
       run: |
-        cp -r .git docs/.vuepress/dist/
+        cp -r ./.git ./docs/.vuepress/dist/.git/
 
     - name: vuepress-deploy
       uses: jenkey2011/vuepress-deploy@master
