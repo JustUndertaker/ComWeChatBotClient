@@ -5,6 +5,8 @@
 :::
 
 ## 纯文本<Badge text="标准" type="success" />
+type: `text`
+
 表示一段纯文本。
  - [x] 可以接收
  - [x] 可以发送
@@ -33,6 +35,7 @@ message = MessageSegment.text("这是一个纯文本")
 ```
 :::
 ## 提及（即 @）<Badge text="标准" type="success" />
+type: `mention`
 
 表示at某人。
 
@@ -74,6 +77,7 @@ message = MessageSegment.mention(user_id="123456")
 :::
 
 ## 提及所有人<Badge text="标准" type="success" />
+type: `mention_all`
 
 表示at所有人。
 
@@ -111,6 +115,7 @@ message = MessageSegment.mention_all()
 :::
 
 ## 图片<Badge text="标准" type="success" />
+type:`image`
 
 表示一张图片。
 
@@ -146,6 +151,7 @@ message = MessageSegment.image(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 :::
 
 ## 语音<Badge text="标准" type="success" />
+type: `voice`
 
 表示一段语音消息。
 
@@ -176,6 +182,7 @@ message = MessageSegment.image(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 :::
 
 ## 音频<Badge text="标准" type="success" />
+type: `audio`
 
 音频文件。
 
@@ -186,6 +193,7 @@ message = MessageSegment.image(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 :::
 
 ## 视频<Badge text="标准" type="success" />
+type: `video`
 
 视频消息
 
@@ -216,6 +224,7 @@ message = MessageSegment.image(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 :::
 
 ## 文件<Badge text="标准" type="success" />
+type: `file`
 
 文件消息
 
@@ -251,6 +260,7 @@ message = MessageSegment.file(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 :::
 
 ## 位置<Badge text="标准" type="success" />
+type: `location`
 
 位置消息。
 
@@ -287,6 +297,7 @@ message = MessageSegment.file(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 
 
 ## 回复<Badge text="标准" type="success" />
+type: `reply`
 
 回复消息。
 
@@ -325,6 +336,8 @@ message = MessageSegment.file(file_id="e30f9684-3d54-4f65-b2da-db291a477f16")
 :::
 
 ## 表情<Badge text="拓展" type="danger" />
+type: `wx.emoji`
+
 表示表情消息
 
 ::: warning 与图片区别
@@ -361,6 +374,8 @@ message = MessageSegment("wx.emoji",{"file_id":"e30f9684-3d54-4f65-b2da-db291a47
 :::
 
 ## 链接<Badge text="拓展" type="danger" />
+type: `wx.link`
+
 文章链接消息
  - [x] 可以接收
  - [x] 可以发送
@@ -403,6 +418,8 @@ message = MessageSegment("wx.link",{
 
 :::
 ## 小程序<Badge text="拓展" type="danger" />
+type: `wx.app`
+
 小程序消息
  - [x] 可以接收
  - [ ] 可以发送
