@@ -88,6 +88,11 @@ export default defineUserConfig({
             link: '/action/meta.md',
           },
           {
+            text: '消息动作',
+            icon: 'mdi:message-processing-outline',
+            link: '/action/message.md'
+          },
+          {
             text: '个人动作',
             icon: 'fluent:inprivate-account-16-filled',
             link: '/action/private.md',

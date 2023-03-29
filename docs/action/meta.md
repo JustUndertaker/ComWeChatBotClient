@@ -4,6 +4,8 @@
 :::
 
 ## 获取最新事件列表<Badge text="标准" type="success" />
+action: `get_latest_events`
+
 仅 HTTP 通信方式支持，用于轮询获取事件。
 :::tabs
 
@@ -93,6 +95,7 @@ async def test():
 :::
 
 ## 获取支持的动作列表<Badge text="标准" type="success" />
+action: `get_supported_actions`
 :::tabs
 
 @tab 请求参数
@@ -171,6 +174,7 @@ async def test():
 :::
 
 ## 获取运行状态<Badge text="标准" type="success" />
+action: `get_status`
 :::tabs
 
 @tab 请求参数
@@ -230,6 +234,7 @@ async def test():
 :::
 
 ## 获取版本信息<Badge text="标准" type="success" />
+action: `get_version`
 :::tabs
 
 @tab 请求参数
