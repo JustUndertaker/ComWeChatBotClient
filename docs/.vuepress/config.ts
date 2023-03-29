@@ -16,7 +16,7 @@ export default defineUserConfig({
   description: '基于ComWeCahtRobot的微信协议端，支持onebot12',
   theme: hopeTheme({
     // url
-    hostname: 'http://localhost:8080/ComWeChatBotClient',
+    hostname: 'https://justundertaker.github.io/ComWeChatBotClient/',
     // 站点图标
     favicon: '/image/logo.png',
     // logo
