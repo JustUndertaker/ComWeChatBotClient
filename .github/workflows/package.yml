@@ -35,7 +35,7 @@ jobs:
         with:
           nuitka-version: main
           script-name: main.py
-          include-module: wecahtbot_client.startup
+          include-module: wecahtbot_client.startup tortoise.backends.sqlite
           output-dir: dist
 
       - name: 移动文件
