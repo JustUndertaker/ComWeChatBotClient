@@ -484,7 +484,6 @@ class ActionManager(ApiManager):
             if info["wxNickName"] != "null"
             else "",  # 加入拓展字段
             f"{PREFIX}.avatar": info["wxSmallAvatar"],  # 头像
-            f"{PREFIX}.v3": info["wxV3"],  # v3信息
         }
         return ActionResponse(status="ok", retcode=0, data=data)
 
@@ -496,7 +495,7 @@ class ActionManager(ApiManager):
         res = self.com_api.get_group_list()
         data = [
             {
-                "group_id": one["wxId"],
+                "group_id": one["wxid"],
                 "group_name": one["wxNickName"],
             }
             for one in res
@@ -517,17 +516,11 @@ class ActionManager(ApiManager):
                     "user_id": one["wxId"],
                     "user_name": one["wxNickName"],
                     "user_displayname": "",
-                    "user_remark": one["wxRemark"]
-                    if one["wxNickName"] != "null"
-                    else "",
                     f"{PREFIX}.avatar": one["wxBigAvatar"],  # 头像
                     f"{PREFIX}.wx_number": one["wxNumber"],  # 微信号
                     f"{PREFIX}.nation": one["wxNation"],  # 国家
                     f"{PREFIX}.province": one["wxProvince"],  # 省份
                     f"{PREFIX}.city": one["wxCity"],  # 城市
-                    f"{PREFIX}.remark": one["wxRemark"],  # 备注
-                    f"{PREFIX}.signatrue": one["wxSignature"],  # 个签
-                    f"{PREFIX}.v3": one["wxV3"],  # v3信息
                 }
                 flag = True
                 break
@@ -549,15 +542,11 @@ class ActionManager(ApiManager):
                 "user_id": one["wxId"],
                 "user_name": one["wxNickName"],
                 "user_displayname": "",
-                "user_remark": one["wxRemark"],
                 f"{PREFIX}.avatar": one["wxBigAvatar"],  # 头像
                 f"{PREFIX}.wx_number": one["wxNumber"],  # 微信号
                 f"{PREFIX}.nation": one["wxNation"],  # 国家
                 f"{PREFIX}.province": one["wxProvince"],  # 省份
                 f"{PREFIX}.city": one["wxCity"],  # 城市
-                f"{PREFIX}.remark": one["wxRemark"],  # 备注
-                f"{PREFIX}.signatrue": one["wxSignature"],  # 个签
-                f"{PREFIX}.v3": one["wxV3"],  # v3信息
             }
             for one in members
         ]

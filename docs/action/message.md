@@ -4,7 +4,7 @@
 ## 发送消息<Badge text="标准" type="success" />
 action: `send_message`
 
-:::tip Wechat
+:::warning Wechat
 由于 wechat 的特性，该接口有以下限制:
  - `message_type` 只能为 `private` 或 `group`
  - `message` 中的每个消息段都将作为一条消息发送出去(除了`mention`)
