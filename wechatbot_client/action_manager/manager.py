@@ -659,15 +659,15 @@ class ActionManager(ApiManager):
         return ActionResponse(status="ok", retcode=0, data=data)
 
     @expand_action
-    def follow_public_number(self, public_id: str) -> ActionResponse:
+    def follow_public_number(self, user_id: str) -> ActionResponse:
         """
         说明:
             关注公众号
 
         参数:
-            * `public_id`: 公众号id
+            * `user_id`: 公众号id
         """
-        status = self.com_api.follow_public_number(public_id)
+        status = self.com_api.follow_public_number(user_id)
         if status:
             return ActionResponse(status="ok", retcode=0, data=None)
         else:
@@ -676,7 +676,7 @@ class ActionManager(ApiManager):
             )
 
     @expand_action
-    def search_friend_by_remark(self, remark: str) -> ActionResponse:
+    def search_contact_by_remark(self, remark: str) -> ActionResponse:
         """
         通过备注搜索联系人
         """
@@ -695,14 +695,11 @@ class ActionManager(ApiManager):
             f"{PREFIX}.nation": info["wxNation"],  # 国家
             f"{PREFIX}.province": info["wxProvince"],  # 省份
             f"{PREFIX}.city": info["wxCity"],  # 城市
-            f"{PREFIX}.remark": info["wxRemark"],  # 备注
-            f"{PREFIX}.signatrue": info["wxSignature"],  # 个签
-            f"{PREFIX}.v3": info["wxV3"],  # v3信息
         }
         return ActionResponse(status="ok", retcode=0, data=data)
 
     @expand_action
-    def search_friend_by_wxnumber(self, wx_number: str) -> ActionResponse:
+    def search_contact_by_wxnumber(self, wx_number: str) -> ActionResponse:
         """
         通过微信号搜索联系人
         """
@@ -721,14 +718,11 @@ class ActionManager(ApiManager):
             f"{PREFIX}.nation": info["wxNation"],  # 国家
             f"{PREFIX}.province": info["wxProvince"],  # 省份
             f"{PREFIX}.city": info["wxCity"],  # 城市
-            f"{PREFIX}.remark": info["wxRemark"],  # 备注
-            f"{PREFIX}.signatrue": info["wxSignature"],  # 个签
-            f"{PREFIX}.v3": info["wxV3"],  # v3信息
         }
         return ActionResponse(status="ok", retcode=0, data=data)
 
     @expand_action
-    def search_friend_by_nickname(self, nickname: str) -> ActionResponse:
+    def search_contact_by_nickname(self, nickname: str) -> ActionResponse:
         """
         通过昵称搜索联系人
         """
@@ -747,9 +741,6 @@ class ActionManager(ApiManager):
             f"{PREFIX}.nation": info["wxNation"],  # 国家
             f"{PREFIX}.province": info["wxProvince"],  # 省份
             f"{PREFIX}.city": info["wxCity"],  # 城市
-            f"{PREFIX}.remark": info["wxRemark"],  # 备注
-            f"{PREFIX}.signatrue": info["wxSignature"],  # 个签
-            f"{PREFIX}.v3": info["wxV3"],  # v3信息
         }
         return ActionResponse(status="ok", retcode=0, data=data)
 
@@ -774,7 +765,7 @@ class ActionManager(ApiManager):
         return ActionResponse(status="ok", retcode=0, data=data)
 
     @expand_action
-    def get_db_handles(self) -> ActionResponse:
+    def get_db_info(self) -> ActionResponse:
         """
         获取数据库句柄和表信息
         """
@@ -803,7 +794,7 @@ class ActionManager(ApiManager):
             )
 
     @expand_action
-    def verify_friend_apply(self, v3: str, v4: str) -> ActionResponse:
+    def accept_friend(self, v3: str, v4: str) -> ActionResponse:
         """
         说明:
             通过好友请求
@@ -829,7 +820,7 @@ class ActionManager(ApiManager):
         return ActionResponse(status="ok", retcode=0, data=data)
 
     @expand_action
-    def change_wechat_version(self, version: str) -> ActionResponse:
+    def set_wechat_version(self, version: str) -> ActionResponse:
         """
         说明:
             自定义微信版本号，一定程度上防止自动更新
@@ -860,7 +851,7 @@ class ActionManager(ApiManager):
             )
 
     @expand_action
-    def edit_remark(self, user_id: str, remark: str) -> ActionResponse:
+    def set_remark(self, user_id: str, remark: str) -> ActionResponse:
         """
         说明:
             修改好友或群聊备注
@@ -898,7 +889,7 @@ class ActionManager(ApiManager):
     def set_group_nickname(self, group_id: str, nickname: str) -> ActionResponse:
         """
         说明:
-            设置群内个人昵称
+            设置群昵称
         """
         status = self.com_api.set_group_nickname(group_id, nickname)
         if status:
@@ -915,17 +906,11 @@ class ActionManager(ApiManager):
         说明:
             获取群成员昵称
         """
-        status = self.com_api.get_groupmember_nickname(group_id, user_id)
-        if status:
-            self.com_api.get_contacts()
-            return ActionResponse(status="ok", retcode=0, data=None)
-        else:
-            return ActionResponse(
-                status="failed", retcode=35000, data=None, message="操作失败"
-            )
+        nickname = self.com_api.get_groupmember_nickname(group_id, user_id)
+        return ActionResponse(status="ok", retcode=0, data=nickname)
 
     @expand_action
-    def kick_groupmember(
+    def delete_groupmember(
         self, group_id: str, user_list: Union[str, list[str]]
     ) -> ActionResponse:
         """
@@ -946,7 +931,7 @@ class ActionManager(ApiManager):
             )
 
     @expand_action
-    def invite_groupmember(
+    def add_groupmember(
         self, group_id: str, user_list: Union[str, list[str]]
     ) -> ActionResponse:
         """
@@ -967,9 +952,7 @@ class ActionManager(ApiManager):
             )
 
     @expand_action
-    def get_history_public_msg(
-        self, public_id: str, offset: str = ""
-    ) -> ActionResponse:
+    def get_public_history(self, public_id: str, offset: str = "") -> ActionResponse:
         """
         说明:
             获取公众号历史消息，一次获取十条推送记录
@@ -1001,7 +984,9 @@ class ActionManager(ApiManager):
             )
 
     @expand_action
-    def send_xml(self, user_id: str, xml: str, image_path: str = "") -> ActionResponse:
+    def send_raw_xml(
+        self, user_id: str, xml: str, image_path: str = ""
+    ) -> ActionResponse:
         """
         说明:
             发送原始xml消息
@@ -1021,11 +1006,11 @@ class ActionManager(ApiManager):
             )
 
     @expand_action
-    def send_card(self, user_id: str, shared_id: str, nickname: str) -> ActionResponse:
+    def send_card(self, user_id: str, card_id: str, nickname: str) -> ActionResponse:
         """
         发送名片
         """
-        status = self.com_api.send_contact_card(user_id, shared_id, nickname)
+        status = self.com_api.send_contact_card(user_id, card_id, nickname)
         if status:
             self.com_api.get_contacts()
             return ActionResponse(status="ok", retcode=0, data=None)
@@ -1035,7 +1020,7 @@ class ActionManager(ApiManager):
             )
 
     @expand_action
-    async def clean_file_cache(self, days: int = 3) -> ActionResponse:
+    async def clean_cache(self, days: int = 3) -> ActionResponse:
         """
         说明:
             清理文件缓存

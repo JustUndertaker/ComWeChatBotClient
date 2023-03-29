@@ -98,7 +98,7 @@ export default defineUserConfig({
             link: '/action/private.md',
           },
           {
-            text: '群动作',
+            text: '群组动作',
             icon: 'material-symbols:group',
             link: '/action/group.md',
           },
@@ -106,6 +106,11 @@ export default defineUserConfig({
             text: '文件动作',
             icon: 'ic:outline-insert-drive-file',
             link: '/action/file.md'
+          },
+          {
+            text: '拓展动作',
+            icon: 'fluent:extension-16-filled',
+            link: '/action/expand.md',
           }
         ]
       }
