@@ -9,15 +9,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
 
-    - name: CopyFile
-      run: |
-        mkdir -p ./github/workspace/docs/.vuepress/dist/.git &&
-        cp -r .git/ ./github/workspace/docs/.vuepress/dist/.git/
-
     - name: vuepress-deploy
       uses: jenkey2011/vuepress-deploy@master
       env:
         ACCESS_TOKEN: ${{ secrets.BUILD_DOC }}
         TARGET_BRANCH: docs
-        BUILD_SCRIPT: npm ci && npm run docs:build
+        BUILD_SCRIPT: git config --global --add safe.directory "*" && npm ci && npm run docs:build
         BUILD_DIR: docs/.vuepress/dist/
