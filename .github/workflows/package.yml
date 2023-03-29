@@ -28,20 +28,16 @@ jobs:
       - name: 安装依赖
         run: |
             python -m pip install --upgrade pip  &&
-            pip install -r requirements.txt
+            pip install -r requirements.txt &&
+            pip install pyinstaller
 
       - name: 构建exe
-        uses: Nuitka/Nuitka-Action@main
-        with:
-          nuitka-version: main
-          script-name: main.py
-          follow-imports: recurse-all
-          onefile: true
-          output-dir: dist
+        run: |
+            pyinstaller -F --name=ComWeChat-Client-${{ steps.regex-match.outputs.group1 }} --hidden-import dotenv main.py
 
       - name: 移动文件
         run: |
-          mv ./dist/main.exe ./ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.exe
+          mv ./dist/ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.exe ./ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.exe
 
       - name: 打包文件
         uses: vimtor/action-zip@v1
