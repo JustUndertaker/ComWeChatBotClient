@@ -42,14 +42,14 @@ jobs:
         run: |
           mv ./dist/main.exe ./ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.exe &&
           mv ./depends/CWeChatRobot.exe ./CWeChatRobot.exe &&
-          mv ./depends/DWeChatRobot.exe ./DWeChatRobot.exe &&
+          mv ./depends/DWeChatRobot.dll ./DWeChatRobot.dll &&
           mv ./depends/install.bat ./install.bat &&
           mv ./depends/uninstall.bat ./uninstall.bat
 
       - name: 打包文件
         uses: vimtor/action-zip@v1
         with:
-          files: ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.exe .env CWeChatRobot.exe DWeChatRobot.exe install.bat uninstall.bat
+          files: ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.exe .env CWeChatRobot.exe DWeChatRobot.dll install.bat uninstall.bat
           dest: ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.zip
 
       - name: 发布版本
