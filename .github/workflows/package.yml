@@ -31,7 +31,7 @@ jobs:
             pip install -r requirements.txt
 
       - name: 构建exe
-        uses: Nuitka/Nuitka-Action@main
+        uses: JustUndertaker/Nuitka-Action@main
         with:
           nuitka-version: main
           script-name: main.py
