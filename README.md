@@ -1,7 +1,7 @@
 <h1 align="center">ComWeChat Client</h1>
 
 <p align="center">
-    <a href="https://github.com/JustUndertaker/ComWeChatBotClient/releases"><img src="https://img.shields.io/badge/release-0.0.0-blue.svg?" alt="release"></a>
+    <a href="https://github.com/JustUndertaker/ComWeChatBotClient/releases"><img src="https://img.shields.io/github/v/release/JustUndertaker/ComWeChatBotClient?color=blueviolet&include_prereleases" alt="release"></a>
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-brightgreen.svg?" alt="License"></a>
 </p>
 
@@ -22,7 +22,7 @@
 
 ## 文档
 
-文档连接：[传送门](xxx)
+文档连接：[传送门](https://justundertaker.github.io/ComWeChatBotClient/)
 
 ## Onebot12支持
 
@@ -32,6 +32,10 @@
 - [x] 反向 Websocket
 
 ## 更新日志
+
+### 2023/3/29
+
+- 初步可用，写个文档应该不会被发现吧。
 
 ### 2023/3/16
 
