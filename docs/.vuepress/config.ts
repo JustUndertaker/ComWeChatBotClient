@@ -26,7 +26,7 @@ export default defineUserConfig({
     // repo
     repo: 'JustUndertaker/ComWeChatBotClient',
     // 热更新，debug用
-    hotReload: true,
+    hotReload: false,
     // 编辑功能
     editLink: false,
     // 纯净版
