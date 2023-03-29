@@ -2,7 +2,8 @@ name: Package exe with nuitka
 
 on:
   push:
-    branches: [ dev ]
+    tags:
+      - 'v*'
 
 jobs:
   build_windows:
@@ -35,25 +36,24 @@ jobs:
           nuitka-version: main
           script-name: main.py
           follow-imports: recurse-all
+          onefile: true
           output-dir: dist
 
       - name: 移动文件
         run: |
-          cd dist &&
-          ls &&
-          mv ./dist/ntchat-client-${{ steps.regex-match.outputs.group1 }}.exe ./ntchat-client-${{ steps.regex-match.outputs.group1 }}.exe &&
+          mv ./dist/main.exe ./ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.exe
 
       - name: 打包文件
         uses: vimtor/action-zip@v1
         with:
-          files: ntchat-client-${{ steps.regex-match.outputs.group1 }}.exe .env
-          dest: ntchat-client-${{ steps.regex-match.outputs.group1 }}.zip
+          files: ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.exe .env
+          dest: ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.zip
 
       - name: 发布版本
         uses: actions/create-release@v1
         id: create_release
         env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.BUILD_DOC }}
         with:
           tag_name: ${{ steps.regex-match.outputs.group1 }}
           release_name: Release ${{ steps.regex-match.outputs.group1 }}
@@ -63,7 +63,7 @@ jobs:
       - name: 上传文件
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.BUILD_DOC }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./ntchat-client-${{ steps.regex-match.outputs.group1 }}.zip
