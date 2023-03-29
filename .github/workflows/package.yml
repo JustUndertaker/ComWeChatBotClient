@@ -28,21 +28,28 @@ jobs:
       - name: 安装依赖
         run: |
             python -m pip install --upgrade pip  &&
-            pip install -r requirements.txt &&
-            pip install pyinstaller
+            pip install -r requirements.txt
 
       - name: 构建exe
-        run: |
-            pyinstaller -F --name=ComWeChat-Client-${{ steps.regex-match.outputs.group1 }} --hidden-import dotenv main.py
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          nuitka-version: main
+          script-name: main.py
+          include-plugin-directory: wecahtbot_client
+          output-dir: dist
 
       - name: 移动文件
         run: |
-          mv ./dist/ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.exe ./ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.exe
+          mv ./dist/main.exe ./ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.exe &&
+          mv ./depends/CWeChatRobot.exe ./CWeChatRobot.exe &&
+          mv ./depends/DWeChatRobot.exe ./DWeChatRobot.exe &&
+          mv ./depends/install.bat ./install.bat &&
+          mv ./depends/uninstall.bat ./uninstall.bat
 
       - name: 打包文件
         uses: vimtor/action-zip@v1
         with:
-          files: ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.exe .env
+          files: ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.exe .env CWeChatRobot.exe DWeChatRobot.exe install.bat uninstall.bat
           dest: ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.zip
 
       - name: 发布版本
@@ -52,9 +59,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.BUILD_DOC }}
         with:
           tag_name: ${{ steps.regex-match.outputs.group1 }}
-          release_name: Release ${{ steps.regex-match.outputs.group1 }}
-          draft: false
-          prerelease: false
+          release_name: ${{ steps.regex-match.outputs.group1 }}
+          body: ${{ steps.regex-match.outputs.group1 }} release of ComWeChat-Client
 
       - name: 上传文件
         uses: actions/upload-release-asset@v1
