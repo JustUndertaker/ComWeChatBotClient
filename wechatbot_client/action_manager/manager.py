@@ -451,9 +451,6 @@ class ActionManager(ApiManager):
             f"{PREFIX}.nation": info["wxNation"],  # 国家
             f"{PREFIX}.province": info["wxProvince"],  # 省份
             f"{PREFIX}.city": info["wxCity"],  # 城市
-            f"{PREFIX}.remark": info["wxRemark"],  # 备注
-            f"{PREFIX}.signatrue": info["wxSignature"],  # 个签
-            f"{PREFIX}.v3": info["wxV3"],  # v3信息
         }
         return ActionResponse(status="ok", retcode=0, data=data)
 
