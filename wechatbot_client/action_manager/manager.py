@@ -1,3 +1,4 @@
+import os
 import time
 from base64 import b64decode
 from inspect import iscoroutinefunction
@@ -63,7 +64,7 @@ class ApiManager:
         # 初始化com组件
         log("DEBUG", "<y>初始化com组件...</y>")
         if not self.com_api.init():
-            log("ERROR", "<r>未注册com组件，启动失败...</r>")
+            log("ERROR", "<r>未安装com组件，启动失败，请使用目录下`install.bat`安装组件...</r>")
             exit(0)
         log("DEBUG", "<g>com组件初始化成功...</g>")
         # 启动微信进程
