@@ -1,4 +1,4 @@
-name: Package exe with nuitka
+name: Package client with nuitka
 
 on:
   push:
