@@ -1,8 +1,8 @@
-import os
 import time
 from base64 import b64decode
 from inspect import iscoroutinefunction
 from pathlib import Path
+from sys import exit
 from typing import Callable, Literal, Optional, ParamSpec, TypeVar, Union
 
 from pydantic import BaseModel
