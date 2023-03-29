@@ -66,8 +66,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.BUILD_DOC }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./ntchat-client-${{ steps.regex-match.outputs.group1 }}.zip
-          asset_name: ntchat-client-${{ steps.regex-match.outputs.group1 }}.zip
+          asset_path: ./ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.zip
+          asset_name: ComWeChat-Client-${{ steps.regex-match.outputs.group1 }}.zip
           asset_content_type: application/zip
 
 
