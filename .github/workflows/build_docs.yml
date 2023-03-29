@@ -9,6 +9,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
 
+    - name: Copy git
+      run: |
+        cp -r .git docs/.vuepress/dist/
+
     - name: vuepress-deploy
       uses: jenkey2011/vuepress-deploy@master
       env:
