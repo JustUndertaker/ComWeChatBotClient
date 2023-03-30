@@ -36,15 +36,6 @@ OneBot 是一个聊天机器人应用接口标准，旨在统一不同聊天平�
  - [x] 正向 WebSocket
  - [x] 反向 WebSocket
 
-:::tip HTTP要求
-HTTP 通信有以下要求:
- - 监听请求路径为: http://<host>:<port>/
- - 只支持 `POST` 请求
- - 如果添加 `access_token`，请在headers里配置 `Authorization`，其值为 `Bearer <access_token>`。
- - 请求格式为 `application/json` 或 `application/msgpack`，请求内容为 `Onebot12` 协议的 `POST` 请求。
- - 当`event_enabled`设置为`true`时，可以使用`get_latest_events`获取最近的事件，然后清空事件储存。
-:::
-
 ## 配置
 本项目下的 `.env` 文件为项目配置文件，下面讲解配置文件项目。
 
