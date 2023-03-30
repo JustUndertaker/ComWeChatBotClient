@@ -36,57 +36,74 @@ OneBot 是一个聊天机器人应用接口标准，旨在统一不同聊天平�
  - [x] 正向 WebSocket
  - [x] 反向 WebSocket
 
-:::tip Onebot12
-通信方式可以参考 [Onebot12](https://12.onebot.dev/connect/) 文档，这里主要对`HTTP`进行介绍。
-:::
-### 使用 HTTP
+:::tip HTTP要求
+HTTP 通信有以下要求:
  - 监听请求路径为: http://<host>:<port>/
  - 只支持 `POST` 请求
  - 如果添加 `access_token`，请在headers里配置 `Authorization`，其值为 `Bearer <access_token>`。
  - 请求格式为 `application/json` 或 `application/msgpack`，请求内容为 `Onebot12` 协议的 `POST` 请求。
  - 当`event_enabled`设置为`true`时，可以使用`get_latest_events`获取最近的事件，然后清空事件储存。
+:::
 
 ## 配置
 本项目下的 `.env` 文件为项目配置文件，下面讲解配置文件项目。
+
 ### `host` 服务host
 在使用 `http` 和 `正向 websocket` 方式时会监听此host
+
 ### `port` 服务端口
 在使用 `http` 和 `正向 websocket` 方式时会监听此端口，注意不要和其他端口冲突！
+
 ### `access_token` 访问令牌
 配置了访问令牌后，与本服务通信的另一端也要配置同样的token，否则会连接失败。
+
 ### `heartbeat_enabled` 心跳事件
 开启心跳后，将周期向连接端发送心跳事件。
+
 ### `heartbeat_interval` 心跳间隔
 开启心跳后有用，单位毫秒，必须大于0
+
 ### `enable_http_api` 开启http
 是否开启http访问功能。
+
 ### `event_enabled` 启用get_latest_events
 开启http时有效，是否启用 `get_latest_events` 原动作
+
 ### `event_buffer_size` 缓冲区大小
 `get_latest_events` 存储的事件缓冲区大小，超过该大小将会丢弃最旧的事件，0 表示不限大小
+
 ### `enable_http_webhook` 启用http webhook
 是否启用http webhook。
+
 ### `webhook_url` 上报地址
 启用webhook生效，webhook 上报地址。
+
 ### `webhook_timeout` 上报请求超时时间
 启用webhook生效，单位：毫秒，0 表示不超时
+
 ### `websocekt_type` websocket连接方式
 只能是以下值：
  - `Unable` : 不开启websocket连接
  - `Forward` : 正向websocket连接
  - `Backward` : 反向websocket连接
+
 ### `websocket_url` 连接地址
 反向websocket连接时生效，反向 WebSocket 连接地址
+
 ### `reconnect_interval` 重连间隔
 反向websocket连接时生效，反向 WebSocket 重连间隔，单位：毫秒，必须大于 0
+
 ### `log_level` 日志等级
 一般为以下值：
  - `INFO` : 正常使用
  - `DEBUG` : debug下使用
+
 ### `log_days` 保存天数
 日志保存天数。
+
 ### `cache_days` 缓存天数
 临时文件缓存天数，为0则不清理缓存
+
 ## 使用 Nonebot2
 本项目支持与 [Nonebot2](https://v2.nonebot.dev/) 进行通信，使用时请注意：
  1. 建议使用反向websocket通信；
