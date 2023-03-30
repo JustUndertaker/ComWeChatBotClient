@@ -19,7 +19,7 @@ action: `send_message`
 | `message_type` | string | 消息类型，`private` 或 `group` |
 | `user_id` | string | 用户 ID，当 `detail_type` 为 `private` 时必须传入 |
 | `group_id` | string | 群 ID，当 `detail_type` 为 `group` 时必须传入 |
-| `message` | string | 消息内容，详见 [消息段](/message/README.md) |
+| `message` | message | 消息内容，为消息段列表，详见 [消息段](/message/README.md) |
 
 @tab 响应数据
 在 `Onebot12` 标准中，原则上应该返回一个 `message_id`，但是由于hook的限制，目前只能返回一个 `bool`，用来判断消息是否发送成功。
