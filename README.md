@@ -2,7 +2,7 @@
 
 <p align="center">
     <a href="https://github.com/JustUndertaker/ComWeChatBotClient/releases"><img src="https://img.shields.io/github/v/release/JustUndertaker/ComWeChatBotClient?color=blueviolet&include_prereleases" alt="release"></a>
-    <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-brightgreen.svg?" alt="License"></a>
+    <a href="https://github.com/JustUndertaker/ComWeChatBotClient/blob/main/LICENSE"><img src="https://img.shields.io/github/license/JustUndertaker/ComWeChatBotClient" alt="License"></a>
 </p>
 
 ## 简介
