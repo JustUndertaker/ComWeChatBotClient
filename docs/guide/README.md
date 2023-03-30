@@ -10,6 +10,10 @@
 ::: tip ComWeChatRobot
 PC微信机器人，实现获取通讯录，发送文本、图片、文件等消息，封装COM接口供Python、C#调用
 :::
+## 微信版本
+本项目使用的微信版本为：3.7.0.30，请安装此版本微信，否则无法使用，下载地址：[传送门](https://github.com/tom-snow/wechat-windows-versions/releases/download/v3.7.0.30/WeChatSetup-3.7.0.30.exe)
+
+安装后想办法禁用升级。
 ## 安装环境
 本项目为PC Hook，并且使用Com接口调用，故只支持Windows系统。为了使用Com接口，在启动本项目时，应首先注册Com服务：
 ::: tip 以管理员权限执行以下命令
@@ -20,6 +24,7 @@ CWeChatRobot.exe /regserver
 CWeChatRobot.exe /unregserver
 ```
 :::
+或者使用文件下的 `install.bat`、`uninstall.bat`来安装与卸载。
 ## Onebot12
 本项目使用 [Onebot12](https://12.onebot.dev/) 作为协议进行传输数据
 ::: tip Onebot12
