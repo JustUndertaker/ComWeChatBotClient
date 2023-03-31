@@ -36,7 +36,7 @@ export default defineUserConfig({
     // 显示页脚
     displayFooter: true,
     // 页脚
-    footer: "MIT LICENSE | Copyright © <a href='https://github.com/JustUndertaker'>JustUndertaker</a>",
+    footer: "AGPL-3.0 LICENSE | Copyright © <a href='https://github.com/JustUndertaker'>JustUndertaker</a>",
     // 侧边栏
     sidebar: [
       {
