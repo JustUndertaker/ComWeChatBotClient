@@ -335,11 +335,13 @@ class ActionManager(ApiManager):
             else:
                 new_msg.append(segment)
                 if current_text is not None:
-                    all_at_list.append(curren_at_list)
+                    if curren_at_list:
+                        all_at_list.append(curren_at_list)
                     current_text = None
                     curren_at_list = None
         if current_text is not None:
-            all_at_list.append(curren_at_list)
+            if curren_at_list:
+                all_at_list.append(curren_at_list)
         new_msg.ruduce()
         return all_at_list, new_msg
 
