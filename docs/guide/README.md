@@ -43,72 +43,84 @@ OneBot 是一个聊天机器人应用接口标准，旨在统一不同聊天平�
 服务Host
  - **类型:** `IPvAnyAddress`
  - **默认值:** `127.0.0.1
+
 在使用 `http` 和 `正向 websocket` 方式时会监听此host
 
 ### `port`
 服务端口
  - **类型:** `int`(1~65535)
  - **默认值:** `8000`
+
 在使用 `http` 和 `正向 websocket` 方式时会监听此端口，注意不要和其他端口冲突！
 
 ### `access_token`
 访问令牌
  - **类型:** `str`
  - **默认值:** `""`
+
 配置了访问令牌后，与本服务通信的另一端也要配置同样的token，否则会连接失败。
 
 ### `heartbeat_enabled`
 心跳事件
  - **类型:** `bool`
  - **默认值:** `false`
+
 开启心跳后，将周期向连接端发送心跳事件。
 
 ### `heartbeat_interval`
 心跳间隔
  - **类型:** `int`(1~65535)
  - **默认值:** `5000`
+
 开启心跳后有用，单位毫秒，必须大于0
 
 ### `enable_http_api`
 开启http访问
  - **类型:** `bool`
  - **默认值:** `true`
+
 是否开启http访问功能。
 
 ### `event_enabled`
 启用get_latest_events
  - **类型:** `bool`
  - **默认值:** `false`
+
 开启http时有效，是否启用 `get_latest_events` 原动作
 
 ### `event_buffer_size`
 缓冲区大小
  - **类型:** `int`
  - **默认值:** `0`
+
 `get_latest_events` 存储的事件缓冲区大小，超过该大小将会丢弃最旧的事件，0 表示不限大小
 
 ### `enable_http_webhook`
 启用http webhook
  - **类型:** `bool`
  - **默认值:** `false`
+
 是否启用http webhook。
 
 ### `webhook_url`
 上报地址
  - **类型:** `URL`
  - **默认值:** `""`
+
 启用webhook生效，webhook 上报地址，需要以`ws://`或`wss://`开头。
 
 ### `webhook_timeout`
 上报请求超时时间
  - **类型:** `int`
  - **默认值:** `5000`
+
 启用webhook生效，单位：毫秒，0 表示不超时
 
 ### `websocekt_type`
 websocket连接方式
  - **类型:** `str`
  - **默认值:** `Unable`
+
 只能是以下值：
  - `Unable` : 不开启websocket连接
  - `Forward` : 正向websocket连接
@@ -118,18 +130,21 @@ websocket连接方式
 连接地址
  - **类型:** `URL`
  - **默认值:** `ws://127.0.0.1:8080/onebot/v12/ws/`
+
 反向websocket连接时生效，反向 WebSocket 连接地址
 
 ### `reconnect_interval`
 重连间隔
  - **类型:** `int`
  - **默认值:** `5000`
+
 反向websocket连接时生效，反向 WebSocket 重连间隔，单位：毫秒，必须大于 0
 
 ### `log_level`
 日志等级
  - **类型:** `str`
  - **默认值:** `INFO`
+
 一般为以下值：
  - `INFO` : 正常使用
  - `DEBUG` : debug下使用
@@ -138,12 +153,14 @@ websocket连接方式
 保存天数
  - **类型:** `int`
  - **默认值:** `10`
+
 日志保存天数。
 
 ### `cache_days`
 缓存天数
  - **类型:** `int`
  - **默认值:** `0`
+
 临时文件缓存天数，为0则不清理缓存
 
 ## 使用 Nonebot2
