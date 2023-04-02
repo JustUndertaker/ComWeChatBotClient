@@ -598,7 +598,9 @@ class ActionManager(ApiManager):
                 return ActionResponse(
                     status="failed", retcode=10003, data=None, message="缺少path参数"
                 )
-            file_id = await self.file_manager.cache_file_id_from_path(Path(path), name)
+            file_id = await self.file_manager.cache_file_id_from_path(
+                Path(path), name=name, copy=False
+            )
             if file_id is None:
                 return ActionResponse(
                     status="failed", retcode=32000, data=None, message="操作文件失败"
