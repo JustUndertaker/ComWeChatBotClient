@@ -140,6 +140,13 @@ websocket连接方式
 
 反向websocket连接时生效，反向 WebSocket 重连间隔，单位：毫秒，必须大于 0
 
+### `websocket_buffer_size`
+缓冲区大小
+ - **类型** `int`
+ - **默认值** `4`
+
+反向websocket连接时生效，反向 WebSocket 缓冲区大小，单位：mb，必须大于 0
+
 ### `log_level`
 日志等级
  - **类型:** `str`
