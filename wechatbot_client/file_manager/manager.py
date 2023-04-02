@@ -38,10 +38,11 @@ class FileManager:
             * `Path`: 更改后的文件路径
         """
         count = 0
+        original_file_path = file_path
         while file_path.exists():
             count += 1
-            file_name = f"{file_path.stem}({count}){file_path.suffix}"
-            file_path = file_path.parent / file_name
+            file_name = f"{original_file_path.stem}({count}){original_file_path.suffix}"
+            file_path = original_file_path.parent / file_name
         return file_path
 
     async def cache_file_id_from_url(
