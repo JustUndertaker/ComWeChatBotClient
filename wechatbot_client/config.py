@@ -192,6 +192,8 @@ class Config(BaseConfig):
     """websocket连接方式"""
     websocket_url: WSUrl = "ws://127.0.0.1/onebot/v12/ws/"
     """反向 WebSocket 连接地址"""
+    websocket_buffer_size: int = 4
+    """反向 WebSocket 的缓冲区大小，单位(Mb)"""
     reconnect_interval: int = 5000
     """反向 WebSocket 重连间隔"""
     log_level: Union[int, str] = "INFO"

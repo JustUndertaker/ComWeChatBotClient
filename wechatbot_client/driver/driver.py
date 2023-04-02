@@ -261,6 +261,7 @@ class Driver:
             str(setup.url),
             extra_headers={**setup.headers, **setup.cookies.as_header(setup)},
             open_timeout=setup.timeout,
+            max_size=(2**20) * self.config.websocket_buffer_size,
         )
         async with connection as ws:
             yield BackwardWebSocket(request=setup, websocket=ws)
