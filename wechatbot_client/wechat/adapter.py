@@ -273,9 +273,8 @@ class Adapter:
                     except Exception as e:
                         log(
                             "ERROR",
-                            "<r><bg #f8bbd0>处理来自 websocket 的数据时出错"
+                            f"<r><bg #f8bbd0>处理来自 websocket 的数据时出错: {e}"
                             f"{escape_tag(str(url))} 正在尝试重连...</bg #f8bbd0></r>",
-                            e,
                         )
                     finally:
                         self.driver.ws_disconnect(seq)
