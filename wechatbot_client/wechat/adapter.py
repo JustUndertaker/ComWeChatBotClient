@@ -152,9 +152,8 @@ class Adapter:
         except Exception as e:
             log(
                 "ERROR",
-                "<r><bg #f8bbd0>处理来自 websocket 的数据时出错 "
+                f"<r><bg #f8bbd0>处理来自 websocket 的数据时出错 :{e} "
                 f"- 编号: {seq}.</bg #f8bbd0></r>",
-                e,
             )
 
         finally:
