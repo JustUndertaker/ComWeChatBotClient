@@ -26,6 +26,24 @@ class FileManager:
         self.file_path = Path(f"./{FILE_CACHE}/temp")
         self.file_path.mkdir(parents=True, exist_ok=True)
 
+    def get_file_name(self, file_path: Path) -> Path:
+        """
+        说明:
+            对于保存在Temp的文件，为了防止重名，需要更改文件名
+
+        参数:
+            * `file_path`: 文件路径
+
+        返回:
+            * `Path`: 更改后的文件路径
+        """
+        count = 0
+        while file_path.exists():
+            count += 1
+            file_name = f"{file_path.stem}({count}){file_path.suffix}"
+            file_path = file_path.parent / file_name
+        return file_path
+
     async def cache_file_id_from_url(
         self, url: str, name: str, headers: dict = None
     ) -> Optional[str]:
@@ -49,7 +67,8 @@ class FileManager:
                 res = await client.get(file_url)
                 data = res.content
                 file_id = str(uuid4())
-                file_path = self.file_path / f"{file_id}{name}"
+                file_path = self.file_path / name
+                file_path = self.get_file_name(file_path)
                 with open(file_path, mode="wb") as f:
                     f.write(data)
             except Exception as e:
@@ -81,7 +100,8 @@ class FileManager:
             return None
         file_id = str(uuid4())
         if copy:
-            file_path = self.file_path / f"{file_id}{name}"
+            file_path = self.file_path / name
+            file_path = self.get_file_name(file_path)
             copyfile(get_path, file_path)
         else:
             file_path = get_path
@@ -106,7 +126,8 @@ class FileManager:
             * `str | None`
         """
         file_id = str(uuid4())
-        file_path = self.file_path / f"{file_id}{name}"
+        file_path = self.file_path / name
+        file_path = self.get_file_name(file_path)
         with open(file_path, mode="wb") as f:
             f.write(data)
         await FileCache.create_file_cache(
