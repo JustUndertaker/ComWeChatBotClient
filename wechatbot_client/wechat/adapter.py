@@ -305,7 +305,10 @@ class Adapter:
         except ValidationError:
             log("ERROR", f"<r>action请求错误: </r>{json_data}")
             return None
-        log("SUCCESS", f"<y>收到action请求: </y>{action}")
+        logstring = str(action.dict())
+        if len(logstring) > 100:
+            logstring = logstring[:100] + "..."
+        log("SUCCESS", f"<y>收到action请求: </y>{logstring}")
         return action
 
     @classmethod
