@@ -35,10 +35,21 @@ async def start_up() -> None:
     scheduler_init()
     # 开启心跳事件
     if config.heartbeat_enabled:
+        logger.debug(f"开启心跳事件，间隔 {config.heartbeat_interval} ms")
         scheduler.add_job(
             func=partial(heartbeat_event, config.heartbeat_interval),
             trigger="interval",
             seconds=int(config.heartbeat_interval / 1000),
+        )
+    # 开启自动清理缓存
+    if config.cache_days > 0:
+        logger.debug(f"开启自动清理缓存，间隔 {config.cache_days} 天")
+        scheduler.add_job(
+            func=partial(clean_filecache, config.cache_days),
+            trigger="cron",
+            hour=0,
+            minute=0,
+            second=0,
         )
     # 开启数据库
     await database_init()
@@ -103,3 +114,12 @@ async def heartbeat_event(interval: int) -> None:
         status=Status(good=True, online=True),
     )
     await wechat.handle_event(event)
+
+
+async def clean_filecache(days: int) -> None:
+    """
+    自动清理缓存
+    """
+    logger.info("<g>开始清理文件缓存任务...</g>")
+    nums = await wechat.file_manager.clean_cache(days)
+    logger.success(f"<g>清理缓存完成，共清理 {nums} 个文件...</g>")
