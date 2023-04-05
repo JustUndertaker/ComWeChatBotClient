@@ -35,7 +35,7 @@ jobs:
         with:
           nuitka-version: main
           script-name: main.py
-          include-module: wechatbot_client.startup, tortoise.backends.sqlite, apscheduler.triggers.interval
+          include-module: wechatbot_client.startup, tortoise.backends.sqlite, apscheduler.triggers.interval, apscheduler.triggers.cron
           output-dir: dist
 
       - name: 移动文件
