@@ -259,6 +259,7 @@ class Driver:
         """创建一个websocket连接请求"""
         connection = Connect(
             str(setup.url),
+            subprotocols=["ComWeChat"],
             extra_headers={**setup.headers, **setup.cookies.as_header(setup)},
             open_timeout=setup.timeout,
             max_size=(2**20) * self.config.websocket_buffer_size,
