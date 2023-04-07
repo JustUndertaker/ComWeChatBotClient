@@ -226,7 +226,6 @@ class Adapter:
         """
         headers = {
             "User-Agent": USER_AGENT,
-            "Sec-WebSocket-Protocol": f"{ONEBOT_VERSION}.{IMPL}",
         }
         if self.config.access_token != "":
             headers["Authorization"] = f"Bearer {self.config.access_token}"

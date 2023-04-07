@@ -15,6 +15,7 @@ from starlette.websockets import WebSocket
 from websockets.legacy.client import Connect
 
 from wechatbot_client.config import Config as BaseConfig
+from wechatbot_client.consts import IMPL, ONEBOT_VERSION
 
 from .base import BackwardWebSocket, FastAPIWebSocket
 from .model import FileTypes, HTTPServerSetup, HTTPVersion
@@ -259,7 +260,7 @@ class Driver:
         """创建一个websocket连接请求"""
         connection = Connect(
             str(setup.url),
-            subprotocols=["ComWeChat"],
+            subprotocols=[f"{ONEBOT_VERSION}.{IMPL}"],
             extra_headers={**setup.headers, **setup.cookies.as_header(setup)},
             open_timeout=setup.timeout,
             max_size=(2**20) * self.config.websocket_buffer_size,
