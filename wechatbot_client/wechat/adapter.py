@@ -209,16 +209,17 @@ class Adapter:
         """
         开启反向ws连接应用端
         """
-        try:
-            ws_url = URL(self.config.websocket_url)
-            self.tasks.append(asyncio.create_task(self._backward_ws(ws_url)))
-        except Exception as e:
-            log(
-                "ERROR",
-                f"<r><bg #f8bbd0>Bad url {escape_tag(self.config.websocket_url)} "
-                "in websocket_url config</bg #f8bbd0></r>",
-                e,
-            )
+        for url in self.config.websocket_url:
+            try:
+                ws_url = URL(url)
+                self.tasks.append(asyncio.create_task(self._backward_ws(ws_url)))
+            except Exception as e:
+                log(
+                    "ERROR",
+                    f"<r><bg #f8bbd0>Bad url {escape_tag(url)} "
+                    "in websocket_url config</bg #f8bbd0></r>",
+                    e,
+                )
 
     async def _backward_ws(self, url: URL) -> None:
         """
@@ -357,7 +358,7 @@ class Adapter:
         处理webhook
         """
         log("DEBUG", "发送webhook...")
-        url = URL(self.config.webhook_url)
+
         headers = {
             "User-Agent": USER_AGENT,
             "Content-Type": "application/json",
@@ -366,17 +367,21 @@ class Adapter:
         }
         if self.config.access_token != "":
             headers["Authorization"] = f"Bearer {self.config.access_token}"
-        setup = Request(
-            method="POST",
-            url=url,
-            headers=headers,
-            json=event.json(by_alias=True, ensure_ascii=False, cls=DataclassEncoder),
-            timeout=self.config.webhook_timeout / 1000,
-        )
-        try:
-            await self.driver.request(setup)
-        except Exception as e:
-            log("ERROR", f"发送webhook出现错误:{e}")
+        for url in self.config.webhook_url:
+            try:
+                post_url = URL(url)
+                setup = Request(
+                    method="POST",
+                    url=post_url,
+                    headers=headers,
+                    json=event.json(
+                        by_alias=True, ensure_ascii=False, cls=DataclassEncoder
+                    ),
+                    timeout=self.config.webhook_timeout / 1000,
+                )
+                await self.driver.request(setup)
+            except Exception as e:
+                log("ERROR", f"发送webhook出现错误:{e}")
 
     async def _send_ws(
         self, ws: Union[FastAPIWebSocket, BackwardWebSocket], event: Event

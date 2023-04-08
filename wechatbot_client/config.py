@@ -184,13 +184,13 @@ class Config(BaseConfig):
     """事件缓冲区大小，超过该大小将会丢弃最旧的事件，0 表示不限大小"""
     enable_http_webhook: bool = False
     """是否启用http webhook"""
-    webhook_url: str = ""
+    webhook_url: set[AnyUrl] = Field(default_factory=set)
     """webhook 上报地址"""
     webhook_timeout: int = 5000
     """上报请求超时时间，单位：毫秒，0 表示不超时"""
     websocekt_type: WebsocketType = WebsocketType.Backward
     """websocket连接方式"""
-    websocket_url: WSUrl = "ws://127.0.0.1/onebot/v12/ws/"
+    websocket_url: set[WSUrl] = Field(default_factory=set)
     """反向 WebSocket 连接地址"""
     websocket_buffer_size: int = 4
     """反向 WebSocket 的缓冲区大小，单位(Mb)"""

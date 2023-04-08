@@ -104,10 +104,10 @@ OneBot 是一个聊天机器人应用接口标准，旨在统一不同聊天平�
 
 ### `webhook_url`
 上报地址
- - **类型:** `URL`
- - **默认值:** `""`
+ - **类型:** `Set(URL)`
+ - **默认值:** `["http://127.0.0.1:8080/onebot/v12/http/"]`
 
-启用webhook生效，webhook 上报地址，需要以`ws://`或`wss://`开头。
+启用webhook生效，webhook 上报地址，需要以`http://`开头，多个地址用`,`分隔。
 
 ### `webhook_timeout`
 上报请求超时时间
@@ -128,10 +128,10 @@ websocket连接方式
 
 ### `websocket_url`
 连接地址
- - **类型:** `URL`
- - **默认值:** `ws://127.0.0.1:8080/onebot/v12/ws/`
+ - **类型:** `Set(URL)`
+ - **默认值:** `["ws://127.0.0.1:8080/onebot/v12/ws/"]`
 
-反向websocket连接时生效，反向 WebSocket 连接地址
+反向websocket连接时生效，反向 WebSocket 连接地址，需要以`ws://`或`wss://`开头，多个地址用`,`分隔。
 
 ### `reconnect_interval`
 重连间隔
