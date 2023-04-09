@@ -4,6 +4,7 @@
 import asyncio
 import time
 from functools import partial
+from signal import SIGINT, raise_signal
 from uuid import uuid4
 
 from comtypes.client import PumpEvents
@@ -98,8 +99,7 @@ async def pump_event() -> None:
             await asyncio.sleep(0)
             PumpEvents(0.01)
         except KeyboardInterrupt:
-            logger.info("<g>事件接收已关闭，再使用 'ctrl + c' 结束进程...</g>")
-            return
+            raise_signal(SIGINT)
 
 
 async def heartbeat_event(interval: int) -> None:
