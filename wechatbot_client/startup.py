@@ -100,6 +100,7 @@ async def pump_event() -> None:
             PumpEvents(0.01)
         except KeyboardInterrupt:
             raise_signal(SIGINT)
+            return
 
 
 async def heartbeat_event(interval: int) -> None:
