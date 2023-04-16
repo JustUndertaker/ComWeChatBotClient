@@ -507,6 +507,12 @@ async def test():
 ## 备份数据库<Badge text="拓展" type="danger" />
 action: `wx.backup_db`
 
+:::warning 注意
+`file_path`需要填写绝对路径+保存的文件名
+
+由于Com通信只能在主线程，所以此操作会卡事件循环，导致Client无法响应其他请求，所以此Action不要经常使用
+:::
+
 :::tabs
 
 @tab 请求参数
