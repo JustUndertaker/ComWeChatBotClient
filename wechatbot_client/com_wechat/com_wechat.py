@@ -603,11 +603,14 @@ class ComWechatApi(ComProgress):
             * `bool`: 操作是否成功
 
         """
-
-        save_path = Path(file_path)
-        save_path.mkdir(parents=True, exist_ok=True)
-        status = self.robot.CBackupSQLiteDB(self.wechat_pid, handle, file_path)
-        return status == 0
+        try:
+            save_path = Path(file_path)
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+            save_path = str(save_path.absolute())
+        except Exception:
+            return False
+        status = self.robot.CBackupSQLiteDB(self.wechat_pid, handle, save_path)
+        return status == 1
 
     def verify_friend_apply(self, v3: str, v4: str) -> bool:
         """
