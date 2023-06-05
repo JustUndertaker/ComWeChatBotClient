@@ -349,33 +349,33 @@ class ActionManager(ApiManager):
         """
         发送私聊消息
         """
-        if message.have_at():
-            return ActionResponse(
-                status="failed", retcode=10005, data=None, message="私聊不支持at"
-            )
-        try:
-            for segment in message:
+        exceptions: list[str] = []
+        for segment in message:
+            try:
+                if segment.type == "mention" or segment.type == "mention_all":
+                    exceptions.append(f"私聊不支持的消息段:{segment.type}")
+                    continue
                 handler = SEGMENT_HANDLER.get(segment.type)
                 if handler is None:
-                    return ActionResponse(
-                        status="failed",
-                        retcode=10005,
-                        data=None,
-                        message=f"不支持的消息段:{segment.type}",
-                    )
+                    exceptions.append(f"不支持的消息段:{segment.type}")
+                    continue
                 if iscoroutinefunction(handler):
                     await handler(self, user_id, segment)
                 else:
                     handler(self, user_id, segment)
-        except FileNotFound as e:
-            log("ERROR", repr(e))
+            except FileNotFound as e:
+                log("ERROR", repr(e))
+                exceptions.append("无效的file_id")
+                continue
+            except Exception as e:
+                log("ERROR", "发送消息出错", e)
+                exceptions.append(f"发送消息出错:{str(e)}")
+                continue
+        if exceptions:
+            msg = "发送消息时出现以下错误:\n"
+            msg += "\n".join(exceptions)
             return ActionResponse(
-                status="failed", retcode=32000, data=None, message="无效的file_id"
-            )
-        except Exception as e:
-            log("ERROR", "发送消息出错", e)
-            return ActionResponse(
-                status="failed", retcode=20002, data=None, message="出错捏"
+                status="failed", retcode=10002, data=None, message=msg
             )
         return ActionResponse(status="ok", retcode=0, data=None)
 
@@ -383,6 +383,7 @@ class ActionManager(ApiManager):
         """
         发送群消息
         """
+        exceptions: list[str] = []
         try:
             all_at_list, message = self._pre_handle_msg(group_id, message)
         except NoThisUserInGroup as e:
@@ -390,16 +391,12 @@ class ActionManager(ApiManager):
             return ActionResponse(
                 status="failed", retcode=10006, message=repr(e), data=None
             )
-        try:
-            for segment in message:
+        for segment in message:
+            try:
                 handler = SEGMENT_HANDLER.get(segment.type)
                 if handler is None:
-                    return ActionResponse(
-                        status="failed",
-                        retcode=10005,
-                        data=None,
-                        message=f"不支持的消息段:{segment.type}",
-                    )
+                    exceptions.append(f"不支持的消息段:{segment.type}")
+                    continue
                 if segment.type == "text":
                     if len(all_at_list) == 0:
                         at_list = None
@@ -410,15 +407,19 @@ class ActionManager(ApiManager):
                     await handler(self, group_id, segment)
                 else:
                     handler(self, group_id, segment)
-        except FileNotFound as e:
-            log("ERROR", repr(e))
+            except FileNotFound as e:
+                log("ERROR", repr(e))
+                exceptions.append("无效的file_id")
+                continue
+            except Exception as e:
+                log("ERROR", "发送消息出错", e)
+                exceptions.append(f"发送消息出错:{str(e)}")
+                continue
+        if exceptions:
+            msg = "发送消息时出现以下错误:\n"
+            msg += "\n".join(exceptions)
             return ActionResponse(
-                status="failed", retcode=32000, data=None, message="无效的file_id"
-            )
-        except Exception as e:
-            log("ERROR", "发送消息出错", e)
-            return ActionResponse(
-                status="failed", retcode=20002, data=None, message="出错捏"
+                status="failed", retcode=10002, data=None, message=msg
             )
         return ActionResponse(status="ok", retcode=0, data=None)
 

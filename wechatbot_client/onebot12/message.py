@@ -163,12 +163,3 @@ class Message(BaseMessage[MessageSegment]):
                 del self[index]
             else:
                 index += 1
-
-    def have_at(self) -> bool:
-        """消息中是否有at字段"""
-        flag = False
-        for segment in self:
-            if segment.type == "mention" or segment.type == "mention_all":
-                flag = True
-                break
-        return flag
