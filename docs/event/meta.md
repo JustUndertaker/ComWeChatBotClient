@@ -66,7 +66,7 @@ Onebot 实现内部自发产生的一类事件，例如心跳等，与 OneBot �
 
 ## 状态更新<Badge text="标准" type="success" />
 连接方式为正向ws或反向ws时，在发送`connect`事件后会发送`status`事件，表示连接状态。
-:::tip 配置
+::: tabs
 
 @tab 字段
 
