@@ -17,7 +17,6 @@ from wechatbot_client.driver import URL, HTTPServerSetup, WebSocketServerSetup
 from wechatbot_client.file_manager import database_close, database_init
 from wechatbot_client.log import logger
 from wechatbot_client.onebot12 import HeartbeatMetaEvent
-from wechatbot_client.onebot12.event import Status
 from wechatbot_client.scheduler import scheduler, scheduler_init, scheduler_shutdown
 
 driver = get_driver()
@@ -112,7 +111,6 @@ async def heartbeat_event(interval: int) -> None:
         id=event_id,
         time=time.time(),
         interval=interval,
-        status=Status(good=True, online=True),
     )
     await wechat.handle_event(event)
 

@@ -370,9 +370,13 @@ class BotStatus(BaseModel):
     online: bool
 
 
+class Status(BaseModel):
+    good: bool
+    bots: list[BotStatus]
+
+
 class StatusUpdateEvent(MetaEvent):
     """状态更新事件"""
 
     detail_type: Literal["status_update"] = "status_update"
-    good: bool
-    bots: list[BotStatus]
+    status: Status
