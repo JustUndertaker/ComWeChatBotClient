@@ -1,0 +1,1 @@
+import{_ as t,W as a,X as c,Y as e,Z as n}from"./framework-a17ef302.js";const r={},s=e("h1",{id:"动作",tabindex:"-1"},[e("a",{class:"header-anchor",href:"#动作","aria-hidden":"true"},"#"),n(" 动作")],-1),o=[s];function _(d,i){return a(),c("div",null,o)}const l=t(r,[["render",_],["__file","index.html.vue"]]);export{l as default};
