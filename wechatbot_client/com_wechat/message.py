@@ -512,6 +512,53 @@ class AppMessageHandler(Generic[E]):
     """
 
     @classmethod
+    @add_app_handler(AppType.APP_LINK)
+    async def handle_app_link(
+        cls, msg_handler: MessageHandler, msg: WechatMessage, app: Element
+    ) -> E:
+        """
+        处理其他应用分享的链接
+        """
+        event_id = str(uuid4())
+        title = app.find("./title").text
+        des = app.find("./des").text
+        url = app.find("./url").text.replace(" ", "")
+        image_path = msg.thumb_path
+        file_id = None
+        if image_path != "":
+            image_path = f"{msg_handler.wechat_path}/{image_path}"
+            image_path = Path(image_path)
+            file_id = await msg_handler.file_manager.cache_file_id_from_path(
+                image_path, name=image_path.stem, copy=False
+            )
+        if file_id is None:
+            file_id = ""
+        message = Message(
+            MessageSegment.link(title=title, des=des, url=url, file_id=file_id)
+        )
+        # 检测是否为群聊
+        if "@chatroom" in msg.sender:
+            return GroupMessageEvent(
+                id=event_id,
+                time=msg.timestamp,
+                self=BotSelf(user_id=msg.self),
+                message_id=str(msg.msgid),
+                message=message,
+                alt_message=str(message),
+                user_id=msg.wxid,
+                group_id=msg.sender,
+            )
+        return PrivateMessageEvent(
+            id=event_id,
+            time=msg.timestamp,
+            self=BotSelf(user_id=msg.self),
+            message_id=str(msg.msgid),
+            message=message,
+            alt_message=str(message),
+            user_id=msg.wxid,
+        )
+
+    @classmethod
     @add_app_handler(AppType.LINK_MSG)
     async def handle_link(
         cls, msg_handler: MessageHandler, msg: WechatMessage, app: Element

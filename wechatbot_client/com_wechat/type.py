@@ -40,6 +40,8 @@ class AppType(IntEnum):
     App消息类型
     """
 
+    APP_LINK = 4
+    """其他应用分享的链接"""
     LINK_MSG = 5
     """链接消息"""
     FILE_NOTICE = 6
