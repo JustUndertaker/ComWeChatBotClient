@@ -1,6 +1,7 @@
 name: Build Docs
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'v*'
