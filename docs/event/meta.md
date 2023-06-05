@@ -65,6 +65,39 @@ Onebot 实现内部自发产生的一类事件，例如心跳等，与 OneBot �
 :::
 
 ## 状态更新<Badge text="标准" type="success" />
-:::danger 未实现
-目前没有实现该事件
+连接方式为正向ws或反向ws时，在发送`connect`事件后会发送`status`事件，表示连接状态。
+:::tip 配置
+
+@tab 字段
+
+|    字段名    | 数据类型 |        说明         |
+| :----------: | :------: | :-----------------: |
+| `detail_type` | string | `status_update` |
+| `status_update` | resp[get_status] | 与`get_status`动作响应数据一致 |
+
+@tab 示例
+
+```json
+{
+    "id": "b6e65187-5ac0-489c-b431-53078e9d2bbb",
+    "time": 1632847927.599013,
+    "type": "meta",
+    "detail_type": "status_update",
+    "sub_type": "",
+    "status": {
+        "good": true,
+        "bots": [
+            {
+                "self": {
+                    "platform": "qq",
+                    "user_id": "1234567"
+                },
+                "online": true,
+            }
+        ]
+    }
+}
+
+```
+
 :::
