@@ -349,17 +349,12 @@ class MetaEvent(BaseEvent):
     type: Literal["meta"] = "meta"
 
 
-class Status(BaseModel, extra=Extra.allow):
-    good: bool
-    online: bool
-
-
 class HeartbeatMetaEvent(MetaEvent):
     """心跳事件"""
 
     detail_type: Literal["heartbeat"] = "heartbeat"
     interval: int
-    status: Status
+    # status: Status
 
 
 class ConnectEvent(MetaEvent):
@@ -368,3 +363,16 @@ class ConnectEvent(MetaEvent):
     detail_type: Literal["connect"] = "connect"
     version: dict[str, str]
     """版本"""
+
+
+class BotStatus(BaseModel):
+    self: BotSelf
+    online: bool
+
+
+class StatusUpdateEvent(MetaEvent):
+    """状态更新事件"""
+
+    detail_type: Literal["status_update"] = "status_update"
+    good: bool
+    bots: list[BotStatus]

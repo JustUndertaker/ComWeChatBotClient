@@ -1,4 +1,6 @@
+import time
 from pathlib import Path
+from uuid import uuid4
 
 from pydantic import ValidationError
 
@@ -14,7 +16,7 @@ from wechatbot_client.com_wechat import Message, MessageHandler
 from wechatbot_client.config import Config
 from wechatbot_client.consts import FILE_CACHE
 from wechatbot_client.file_manager import FileManager
-from wechatbot_client.onebot12 import Event
+from wechatbot_client.onebot12 import BotSelf, BotStatus, Event, StatusUpdateEvent
 from wechatbot_client.typing import overrides
 from wechatbot_client.utils import logger_wrapper
 
@@ -100,6 +102,18 @@ class WeChatManager(Adapter):
             )
         # 调用api
         return await self.action_manager.request(action_name, action_model)
+
+    @overrides(Adapter)
+    def get_status_update_event(slef) -> StatusUpdateEvent:
+        """
+        获取状态更新事件
+        """
+        event_id = str(uuid4())
+        botself = BotSelf(user_id=slef.self_id)
+        botstatus = BotStatus(self=botself, online=True)
+        return StatusUpdateEvent(
+            id=event_id, time=time.time(), good=True, bots=[botstatus]
+        )
 
     @overrides(Adapter)
     async def action_ws_request(self, request: WsActionRequest) -> WsActionResponse:

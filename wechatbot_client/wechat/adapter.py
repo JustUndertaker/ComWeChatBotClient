@@ -32,7 +32,7 @@ from wechatbot_client.driver import (
     WebSocketServerSetup,
 )
 from wechatbot_client.exception import WebSocketClosed
-from wechatbot_client.onebot12 import ConnectEvent, Event
+from wechatbot_client.onebot12 import ConnectEvent, Event, StatusUpdateEvent
 from wechatbot_client.utils import DataclassEncoder, escape_tag, logger_wrapper
 
 from .utils import get_auth_bearer
@@ -133,6 +133,12 @@ class Adapter:
             await websocket.send(event.json(ensure_ascii=False))
         except Exception as e:
             log("ERROR", f"发送connect事件失败:{e}")
+        # 发送update事件
+        event = self.get_status_update_event()
+        try:
+            await websocket.send(event.json(ensure_ascii=False, cls=DataclassEncoder))
+        except Exception as e:
+            log("ERROR", f"发送status_update事件失败:{e}")
         try:
             while True:
                 data = await websocket.receive()
@@ -249,6 +255,14 @@ class Adapter:
                         )
                     except Exception as e:
                         log("ERROR", f"发送connect事件失败:{e}")
+                    # 发送update事件
+                    event = self.get_status_update_event()
+                    try:
+                        await websocket.send(
+                            event.json(ensure_ascii=False, cls=DataclassEncoder)
+                        )
+                    except Exception as e:
+                        log("ERROR", f"发送status_update事件失败:{e}")
                     try:
                         while True:
                             data = await websocket.receive()
@@ -324,6 +338,13 @@ class Adapter:
         if action is None:
             return None
         return WsActionRequest(echo=echo, **action.dict())
+
+    @abstractmethod
+    def get_status_update_event(slef) -> StatusUpdateEvent:
+        """
+        获取状态更新事件
+        """
+        raise NotImplementedError
 
     @abstractmethod
     async def action_request(self, request: ActionRequest) -> ActionResponse:
