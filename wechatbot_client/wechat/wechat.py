@@ -24,7 +24,7 @@ from wechatbot_client.onebot12 import (
     StatusUpdateEvent,
 )
 from wechatbot_client.typing import overrides
-from wechatbot_client.utils import logger_wrapper
+from wechatbot_client.utils import logger_wrapper, escape_tag
 
 from .adapter import Adapter
 
@@ -167,5 +167,5 @@ class WeChatManager(Adapter):
         if event is None:
             log("DEBUG", "未生成合适事件")
             return
-        log("SUCCESS", f"生成事件<g>[{event.__repr_name__()}]</g>:{event.dict()}")
+        log("SUCCESS", f"生成事件<g>[{event.__repr_name__()}]</g>:{escape_tag(format(event.dict()))}")
         await self.handle_event(event)

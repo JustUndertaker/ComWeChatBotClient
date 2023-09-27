@@ -317,12 +317,12 @@ class Adapter:
         try:
             action = ActionRequest.parse_obj(json_data)
         except ValidationError:
-            log("ERROR", f"<r>action请求错误: </r>{json_data}")
+            log("ERROR", f"<r>action请求错误: </r>{escape_tag(format(json_data))}")
             return None
         logstring = str(action.dict())
         if len(logstring) > 200:
             logstring = logstring[:200] + "..."
-        log("SUCCESS", f"<y>收到action请求: </y>{logstring}")
+        log("SUCCESS", f"<y>收到action请求: </y>{escape_tag(logstring)}")
         return action
 
     @classmethod
