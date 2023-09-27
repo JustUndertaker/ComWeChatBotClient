@@ -167,5 +167,13 @@ class WeChatManager(Adapter):
         if event is None:
             log("DEBUG", "未生成合适事件")
             return
-        log("SUCCESS", f"生成事件<g>[{event.__repr_name__()}]</g>:{event.dict()}")
+        text:str= event.dict().__repr__()+"<"
+        last = text.find("<")
+        for _ in range(text.count('<') - 1):
+            now = text.find("<", last + 1)
+            if text.find(">", last + 1, now) >= 0 and text.find("\n", last + 1, now) < 0:
+                text = text[:last] + '\\' + text[last:]
+                now += 1
+            last = now
+        log("SUCCESS", f"生成事件<g>[{event.__repr_name__()}]</g>:{text[:-1]}")
         await self.handle_event(event)
